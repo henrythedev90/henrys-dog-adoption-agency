@@ -9,6 +9,26 @@ const api = axios.create({
   },
 });
 
-// export const login = async (credentials) => {
-//     const response = axios.post("/")
-// };
+api.interceptors.response.use(
+  (responce) => responce,
+  (error) => {
+    if (error.responce && error.responce.status === 401) {
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const authAPI = {
+  login: async (name: string, email: string) => {
+    const responce = await api.post("/auth/login", { name, email });
+    return responce.data;
+  },
+
+  logout: async () => {
+    const responce = await api.post("/auth/logout");
+    return responce.data;
+  },
+};
