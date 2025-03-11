@@ -2,6 +2,8 @@ import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const url = "https://frontend-take-home-service.fetch.com";
+const route = "/auth/login";
+const URL_ROUTE = url + route;
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,11 +22,7 @@ export default async function handler(
   }
 
   try {
-    await axios.post(
-      url + "/auth/login",
-      { name, email },
-      { withCredentials: true }
-    );
+    await axios.post(URL_ROUTE, { name, email }, { withCredentials: true });
     res
       .status(200)
       .json({ success: true, message: "I hope you find your dog" });
