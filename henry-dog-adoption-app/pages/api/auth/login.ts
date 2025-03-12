@@ -1,6 +1,5 @@
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
-import { serialize } from "cookie"; // Ensure the 'cookie' module is installed
 
 const BASE_URL = "https://frontend-take-home-service.fetch.com";
 const LOGIN_ROUTE = "/auth/login";
