@@ -1,15 +1,16 @@
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+import { serialize } from "cookie"; // Ensure the 'cookie' module is installed
 
-const url = "https://frontend-take-home-service.fetch.com";
-const route = "/auth/login";
-const URL_ROUTE = url + route;
+const BASE_URL = "https://frontend-take-home-service.fetch.com";
+const LOGIN_ROUTE = "/auth/login";
+const URL_ROUTE = `${BASE_URL}${LOGIN_ROUTE}`;
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === "POST") {
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method is not allowed" });
   }
 
@@ -22,11 +23,32 @@ export default async function handler(
   }
 
   try {
-    await axios.post(URL_ROUTE, { name, email }, { withCredentials: true });
-    res
-      .status(200)
-      .json({ success: true, message: "I hope you find your dog" });
+    const response = await axios.post(
+      URL_ROUTE,
+      { name, email },
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const cookie = response.headers["set-cookie"];
+
+    if (cookie) {
+      cookie.forEach((token: string) => {
+        res.setHeader("Set-Cookie", token);
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "I hope you find your dog",
+      data: response.data,
+    });
   } catch (error) {
     res.status(500).json({ error: "Failed to authenticate" });
+    console.log(error, "this is error");
   }
 }

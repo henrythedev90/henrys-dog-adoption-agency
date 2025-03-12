@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 const url = "https://frontend-take-home-service.fetch.com";
 const route = "/auth/logout";
-const URL_ROUTE = url + route;
+const URL_ROUTE = `${url}${route}`;
 
 export default async function helper(
   req: NextApiRequest,
