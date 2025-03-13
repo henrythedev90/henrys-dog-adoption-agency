@@ -22,7 +22,7 @@ export default async function handler(
     }
     const response = await axios.get(URL_ROUTE, {
       withCredentials: true,
-      headers: { Cookie: cookies },
+      headers: { Cookie: cookies, "Content-Type": "application/json" },
     });
     return res.status(200).json(response.data);
   } catch (error) {

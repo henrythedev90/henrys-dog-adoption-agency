@@ -52,6 +52,7 @@ export default async function handler(
       withCredentials: true,
       headers: {
         Cookie: cookies,
+        "Content-Type": "application/json",
       },
     });
 
