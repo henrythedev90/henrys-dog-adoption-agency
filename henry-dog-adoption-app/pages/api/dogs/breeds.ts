@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { apiClient } from "@/services/apiClient";
 import axios from "axios";
 
 const url = "https://frontend-take-home-service.fetch.com";
@@ -20,11 +21,9 @@ export default async function handler(
         error: "No authentication cookie was found",
       });
     }
-    const response = await axios.get(URL_ROUTE, {
-      withCredentials: true,
-      headers: { Cookie: cookies, "Content-Type": "application/json" },
-    });
-    return res.status(200).json(response.data);
+    const response = await apiClient.get(route);
+    return response.data;
+    // return res.status(200).json(response.data);
   } catch (error) {
     console.error("Error fetching dog breeds:", error);
     if (axios.isAxiosError(error) && error.response) {

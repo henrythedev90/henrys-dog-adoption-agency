@@ -45,6 +45,7 @@ export default async function handler(
       success: true,
       message: "I hope you find your dog",
       data: response.data,
+      cookie: cookie,
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to authenticate" });
