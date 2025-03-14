@@ -11,7 +11,10 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
-    res.status(405).end();
+    res.status(405).json({
+      error: "Method is not allowed",
+      message: "Must use GET method",
+    });
   }
 
   try {
@@ -22,8 +25,7 @@ export default async function handler(
       });
     }
     const response = await apiClient.get(route);
-    return response.data;
-    // return res.status(200).json(response.data);
+    return res.status(200).json(response.data);
   } catch (error) {
     console.error("Error fetching dog breeds:", error);
     if (axios.isAxiosError(error) && error.response) {
