@@ -1,43 +1,55 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
+import { apiClient } from "@/services/apiClient";
 
-const url = "https://frontend-take-home-service.fetch.com";
 const route = "/dogs";
-const URL_ROUTE = `${url}${route}`;
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("API Route: Received request to get dogs by dogs id");
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "This method is not allowed" });
-  }
-
-  const cookies = req.headers.cookie;
-  if (!cookies) {
-    return res
-      .status(401)
-      .json({ error: "You do have access because you are not authenticated" });
-  }
-
-  const dogIds = req.body;
-
-  if (!Array.isArray(dogIds) || dogIds.length > 100) {
-    return res.status(400).json({
-      error: "Too many dogs are being sent",
+    return res.status(405).json({
+      error: "This method is not allowed",
+      message: "Must use the POST method",
     });
   }
-
   try {
-    const response = await axios.post(URL_ROUTE, dogIds, {
-      withCredentials: true,
+    const cookies = req.headers.cookie;
+
+    console.log("Cookies received:", cookies ? "Yes" : "No");
+
+    if (!cookies) {
+      return res.status(401).json({
+        error: "You do have access because you are not authenticated",
+        message: "Cookies are missing",
+      });
+    }
+
+    const dogIds = req.body;
+
+    if (dogIds.length > 100) {
+      return res.status(400).json({
+        error: "Too many dogs are being sent",
+        message: "Please use 100 dogs or less.",
+      });
+    } else if (!Array.isArray(dogIds)) {
+      return res.status(400).json({
+        error: "There are no dogs here",
+        message: "Please add at least 1 dogs",
+      });
+    }
+
+    const response = await apiClient.post(route, dogIds, {
       headers: {
         Cookie: cookies,
-        "Content-Type": "application/json",
       },
     });
     return res.status(200).json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch the dog details" });
+    return res.status(500).json({
+      error: "Failed to fetch the dog id's",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

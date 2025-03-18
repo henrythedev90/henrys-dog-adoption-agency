@@ -1,16 +1,18 @@
 import { NextApiResponse, NextApiRequest } from "next";
-import axios from "axios";
+import { apiClient } from "@/services/apiClient";
 
-const url = "https://frontend-take-home-service.fetch.com";
 const route = "/dogs/search";
-const URL_ROUTE = `${url}${route}`;
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("API Route: Received request for dog search breed");
+
   if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res
+      .status(405)
+      .json({ error: "Method not allowed", message: "Must use GET method" });
   }
 
   const {
@@ -25,8 +27,14 @@ export default async function handler(
 
   try {
     const cookies = req.headers.cookie;
+
+    console.log("Cookies received:", cookies ? "Yes" : "No");
+
     if (!cookies) {
-      return res.status(401).json({ error: "You are not authenticated" });
+      return res.status(401).json({
+        error: "You are not authenticated",
+        message: "Cookies were not received",
+      });
     }
     const queryParams = new URLSearchParams();
 
@@ -48,18 +56,25 @@ export default async function handler(
     if (from) queryParams.append("from", from as string);
     if (sort) queryParams.append("sort", sort as string);
 
-    const response = await axios.get(`${URL_ROUTE}?${queryParams.toString()}`, {
-      withCredentials: true,
-      headers: {
-        Cookie: cookies,
-        "Content-Type": "application/json",
-      },
-    });
+    console.log(
+      "Starting making request to search breed with the params of",
+      queryParams
+    );
+
+    const response = await apiClient.get(
+      `${route}/?${queryParams.toString()}`,
+      {
+        headers: {
+          Cookie: cookies,
+        },
+      }
+    );
 
     return res.status(200).json(response.data);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to search dogs",
+    return res.status(500).json({
+      error: "Failed to fetch the search queries",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }

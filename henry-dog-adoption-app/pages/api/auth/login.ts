@@ -1,9 +1,8 @@
-import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+import { apiClient } from "@/services/apiClient";
 
-const BASE_URL = "https://frontend-take-home-service.fetch.com";
-const LOGIN_ROUTE = "/auth/login";
-const URL_ROUTE = `${BASE_URL}${LOGIN_ROUTE}`;
+const route = "/auth/login";
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,26 +14,21 @@ export default async function handler(
 
   const { name, email } = req.body;
 
-  if (!email || !name) {
-    return res
-      .status(400)
-      .json({ message: "Email and/or password are required" });
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({
+      message: "Please enter a valid email",
+    });
+  }
+
+  if (!name) {
+    return res.status(400).json({ message: "Please enter a valid name" });
   }
 
   try {
-    const response = await axios.post(
-      URL_ROUTE,
-      { name, email },
-      {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await apiClient.post(route, { name, email });
 
+    //setting up the cookies
     const cookie = response.headers["set-cookie"];
-
     if (cookie) {
       cookie.forEach((token: string) => {
         res.setHeader("Set-Cookie", token);
@@ -45,10 +39,12 @@ export default async function handler(
       success: true,
       message: "I hope you find your dog",
       data: response.data,
-      cookie: cookie,
     });
   } catch (error) {
-    res.status(500).json({ error: "Failed to authenticate" });
-    console.log(error, "this is error");
+    // Handle general error if no response is available
+    return res.status(500).json({
+      error: "Failed to login",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

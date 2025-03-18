@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { apiClient } from "@/services/apiClient";
 import axios from "axios";
 
-const url = "https://frontend-take-home-service.fetch.com";
 const route = "/locations/search";
-const URL_ROUTE = `${url}${route}`;
 
 export default async function handler(
   req: NextApiRequest,
@@ -101,11 +100,9 @@ export default async function handler(
       from,
     };
 
-    const response = await axios.post(URL_ROUTE, requestBody, {
-      withCredentials: true,
+    const response = await apiClient.post(route, requestBody, {
       headers: {
         Cookie: cookies,
-        "Content-Type": "application/json",
       },
       timeout: 10000, // Add timeout to prevent hanging requests
     });
