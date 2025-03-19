@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { apiClient } from "@/services/apiClient";
+import { apiClient } from "@/lib/apiClient";
 
 const route = "/dogs/breeds";
 
