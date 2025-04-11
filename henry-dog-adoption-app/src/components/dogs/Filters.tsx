@@ -1,6 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { setFilters, resetFilter } from "../../store/slices/filtersSlice";
+import {
+  setFilters,
+  resetFilter,
+  PAGE_SIZES,
+} from "../../store/slices/filtersSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchBreeds } from "../../store/slices/breedSlice";
 import { selectFilters } from "../../store/selectors/filterSelectors";
@@ -73,11 +77,16 @@ export default function Filters() {
     dispatch(setFilters({ ageMax: value }));
   };
 
+  const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const size = parseInt(e.target.value) as (typeof PAGE_SIZES)[number];
+    dispatch(setFilters({ size }));
+  };
+
   return (
     <div>
       <div>
         <label>Breed:</label>
-        <select onChange={handleBreedsSelect}>
+        <select onChange={handleBreedsSelect} value="">
           <option value="" disabled>
             Select a breed
           </option>
@@ -123,6 +132,17 @@ export default function Filters() {
             </span>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label>Results per page:</label>
+        <select value={filters.size} onChange={handleSizeChange}>
+          {PAGE_SIZES.map((size) => (
+            <option key={size} value={size}>
+              {size} dogs
+            </option>
+          ))}
+        </select>
       </div>
 
       <input

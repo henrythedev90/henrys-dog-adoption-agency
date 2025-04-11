@@ -27,24 +27,26 @@ const initialState: DogState = {
 export const fetchDogs = createAsyncThunk(
   "dogs/fetchDogs",
   async (_, { getState }) => {
-    const state = getState() as { filters: any };
+    const state = getState() as { filters: any; dogs: DogState };
     const filters = state.filters;
+    const currentPage = state.dogs.page;
     try {
       // First, get the search results with IDs
       const searchResponse = await apiClient.get("/dogs/search", {
         params: {
-          breed: filters.breeds.length ? filters.breeds : undefined,
+          breeds: filters.breeds.length ? filters.breeds : undefined,
           zipCodes: filters.zipCodes.length ? filters.zipCodes : undefined,
           ageMin: filters.ageMin || undefined,
           ageMax: filters.ageMax || undefined,
-          size: 25,
-          from: 0,
+          size: filters.size,
+          from: currentPage * filters.size,
           sort: "breed:asc",
         },
         withCredentials: true,
       });
 
       const resultIds = searchResponse.data.resultIds || [];
+      const total = searchResponse.data.total || 0;
 
       // Then, fetch the actual dog data using the IDs
       if (resultIds.length > 0) {
@@ -54,12 +56,16 @@ export const fetchDogs = createAsyncThunk(
         return {
           resultIds,
           dogs: dogsResponse.data || [],
+          total,
+          size: filters.size,
         };
       }
 
       return {
         resultIds: [],
         dogs: [],
+        total: 0,
+        size: filters.size,
       };
     } catch (error: any) {
       throw error;
@@ -91,6 +97,12 @@ const dogsSlice = createSlice({
     setDogsPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
+    clearDogs: (state) => {
+      state.results = [];
+      state.resultIds = [];
+      state.totalPages = 1;
+      state.page = 0;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -103,7 +115,7 @@ const dogsSlice = createSlice({
         state.resultIds = action.payload.resultIds;
         state.results = action.payload.dogs;
         state.totalPages = Math.ceil(
-          (action.payload.resultIds?.length || 0) / 25
+          action.payload.total / action.payload.size
         );
       })
       .addCase(fetchDogs.rejected, (state, action) => {
@@ -119,5 +131,6 @@ export const {
   setMatch,
   clearFavorite,
   setDogsPage,
+  clearDogs,
 } = dogsSlice.actions;
 export default dogsSlice.reducer;
