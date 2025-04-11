@@ -1,10 +1,12 @@
 import React from "react";
 
 export interface FilterState {
-  breed: string[];
+  breeds: string[];
   zipCode: string[];
   ageMin: number;
   ageMax: number;
+  sort: "asc" | "desc";
+  pageCursor: string | null;
 }
 
 export interface FiltersProps {

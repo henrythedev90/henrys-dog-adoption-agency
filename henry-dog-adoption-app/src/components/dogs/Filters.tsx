@@ -1,78 +1,105 @@
 "use client";
 import { useState, useEffect } from "react";
-import { apiClient } from "@/lib/apiClient";
-import { FilterState, FiltersProps } from "@/types/filters";
-import { BreedList } from "@/types/breeds";
+import { setFilters, resetFilter } from "../../store/slices/filtersSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchBreeds } from "../../store/slices/breedSlice";
+import { selectFilters } from "../../store/selectors/filterSelectors";
+import {
+  selectBreeds,
+  selectBreedsLoading,
+  selectBreedsError,
+} from "../../store/selectors/breedSelectors";
 
-export default function Filters({ filters, setFilters }: FiltersProps) {
-  const route = "/dogs/breeds";
-  const [breeds, setBreeds] = useState<BreedList["breeds"]>([]);
-  const [loadingBreeds, setLoadingBreeds] = useState(true);
-  const [showDropdown, setShowDropdown] = useState(false);
+export default function Filters() {
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector(selectFilters);
+  const breeds = useAppSelector(selectBreeds);
+  const loadingBreeds = useAppSelector(selectBreedsLoading);
+  const breedsError = useAppSelector(selectBreedsError);
   const [zipInput, setZipInput] = useState("");
 
   useEffect(() => {
-    apiClient
-      .get(route)
-      .then((res) => setBreeds(res.data))
-      .catch((err) => console.error("Error fetching breeds", err))
-      .finally(() => setLoadingBreeds(false));
-  }, []);
+    dispatch(fetchBreeds());
+  }, [dispatch]);
 
-  const handleBreedsClick = (selectedBreed: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      breed: prev.breed.includes(selectedBreed)
-        ? prev.breed.filter((b) => b !== selectedBreed)
-        : [...prev.breed, selectedBreed],
-    }));
+  const handleBreedsSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBreed = e.target.value;
+    if (selectedBreed && !filters.breeds.includes(selectedBreed)) {
+      dispatch(setFilters({ breeds: [...filters.breeds, selectedBreed] }));
+    }
+  };
+
+  const handleRemoveBreed = (breedToRemove: string) => {
+    dispatch(
+      setFilters({
+        breeds: filters.breeds.filter((breed) => breed !== breedToRemove),
+      })
+    );
   };
 
   const handleZipCodes = () => {
-    if (zipInput.trim() !== "" && !filters.zipCode.includes(zipInput.trim())) {
-      setFilters((prev) => ({
-        ...prev,
-        zipCode: [...prev.zipCode, zipInput.trim()],
-      }));
+    const trimmedZip = zipInput.trim();
+    if (/^\d{5}$/.test(trimmedZip) && !filters.zipCodes.includes(trimmedZip)) {
+      // Basic Zip Validation
+      dispatch(setFilters({ zipCodes: [...filters.zipCodes, trimmedZip] }));
+      setZipInput(""); // Clear input after valid entry
+    } else {
+      alert("Please enter a valid 5-digit ZIP code.");
     }
   };
 
   const removeZip = (zip: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      zipCode: prev.zipCode.filter((z) => z !== zip),
-    }));
+    dispatch(
+      setFilters({ zipCodes: filters.zipCodes.filter((z) => z !== zip) })
+    );
+  };
+
+  const handleAgeMin = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (isNaN(value) || value < 0) {
+      alert("Please enter a non-negative number for Min Age.");
+      return;
+    }
+    dispatch(setFilters({ ageMin: value }));
+  };
+
+  const handleAgeMax = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (isNaN(value) || value < 0) {
+      alert("Please enter a non-negative number for Max Age.");
+      return;
+    }
+    dispatch(setFilters({ ageMax: value }));
   };
 
   return (
     <div>
       <div>
         <label>Breed:</label>
-        <div onClick={() => setShowDropdown(!showDropdown)}>
-          <div>
-            {filters.breed.map((breed) => (
-              <span>{breed} X</span>
-            ))}
-          </div>
-          <button>Select Breeds:</button>
+        <select onChange={handleBreedsSelect}>
+          <option value="" disabled>
+            Select a breed
+          </option>
+          {loadingBreeds ? (
+            <option>Loading breeds...</option>
+          ) : breedsError ? (
+            <option>Error loading breeds.</option>
+          ) : (
+            breeds.map((breed: string) => (
+              <option key={breed} value={breed}>
+                {breed}
+              </option>
+            ))
+          )}
+        </select>
+
+        <div>
+          {filters.breeds.map((breed) => (
+            <span key={breed} onClick={() => handleRemoveBreed(breed)}>
+              {breed}
+            </span>
+          ))}
         </div>
-        {showDropdown && (
-          <div>
-            {loadingBreeds ? (
-              <p>Loading Breeds...</p>
-            ) : (
-              breeds.map((breed: string) => (
-                <div
-                  key={breed}
-                  className={`dropdown-item ${
-                    filters.breed.includes(breed) ? "selected" : ""
-                  }`}
-                  onClick={() => handleBreedsClick(breed)}
-                ></div>
-              ))
-            )}
-          </div>
-        )}
       </div>
 
       <div>
@@ -89,7 +116,7 @@ export default function Filters({ filters, setFilters }: FiltersProps) {
           </button>
         </div>
         <div>
-          {filters.zipCode.map((zip) => (
+          {filters.zipCodes.map((zip) => (
             <span key={zip} onClick={() => removeZip(zip)}>
               {zip} X
             </span>
@@ -101,21 +128,17 @@ export default function Filters({ filters, setFilters }: FiltersProps) {
         type="number"
         placeholder="Min Age"
         value={filters.ageMin || ""}
-        onChange={(e) =>
-          setFilters((prev) => ({
-            ...prev,
-            filters: { ...prev, ageMin: Number(e.target.value) },
-          }))
-        }
+        onChange={handleAgeMin}
       />
       <input
         type="number"
         placeholder="Max Age"
         value={filters.ageMax || ""}
-        onChange={(e) =>
-          setFilters((prev) => ({ ...prev, ageMax: Number(e.target.value) }))
-        }
+        onChange={handleAgeMax}
       />
+      <button type="button" onClick={() => dispatch(resetFilter())}>
+        Clear Filters
+      </button>
     </div>
   );
 }

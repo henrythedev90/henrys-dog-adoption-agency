@@ -1,23 +1,14 @@
-"use client";
-import { useRouter } from "next/navigation";
 import LoginForm from "@/components/auth/LoginForm";
 
-const AuthPage = () => {
-  const router = useRouter();
-
-  const handleSuccessLogin = () => {
-    console.log("Login was successfull");
-    router.push("/dogs");
-  };
-
+const page = () => {
   return (
     <div>
       <div>
-        <h1>Login to adoption center</h1>
-        <LoginForm onSuccessLogin={handleSuccessLogin} />
+        <h1>Welcome to Fetch!</h1>
+        <LoginForm />
       </div>
     </div>
   );
 };
 
-export default AuthPage;
+export default page;

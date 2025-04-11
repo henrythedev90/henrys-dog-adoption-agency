@@ -1,16 +1,20 @@
-import { DogInterface, DogListProps } from "@/types/dog";
+import React from "react";
+import { Dog } from "@/types/dog";
 import DogCard from "./DogCard";
+import { useAppSelector } from "@/store/hooks";
 
-export default function DogList({ dogs }: DogListProps) {
-  if (dogs.length === 0) {
-    return <p>No Dogs were found</p>;
-  }
-  console.log(dogs);
+interface DogListProps {
+  dogIds: string[];
+}
+export default function DogList({ dogIds }: DogListProps) {
+  const dogs = useAppSelector((state) => state.dogs.results);
+  const filteredDogs = dogs.filter((dog) => dogIds.includes(dog.id));
+
   return (
     <div>
-      {dogs.map((dog) => (
-        <DogCard key={dog.id} dogId={dog.id} />
-      ))}
+      {filteredDogs.map((dog: any) => {
+        return <DogCard key={dog.id} dog={dog} />;
+      })}
     </div>
   );
 }

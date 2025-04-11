@@ -37,8 +37,8 @@ export default async function handler(
 
     res.status(200).json({
       success: true,
-      message: "I hope you find your dog",
-      data: response.data,
+      message: "Login successful. I hope you find your dog",
+      user: { name, email },
     });
   } catch (error) {
     // Handle general error if no response is available
