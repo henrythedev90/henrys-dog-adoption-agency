@@ -8,5 +8,5 @@ export interface Dog {
 }
 
 export interface DogListProps {
-  dogs: Dog[];
+  resultIds: Dog[];
 }

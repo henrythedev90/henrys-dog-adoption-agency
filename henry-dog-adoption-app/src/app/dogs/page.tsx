@@ -1,67 +1,66 @@
 "use client";
 import React, { useEffect } from "react";
-import { FilterState } from "@/types/filters";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchDogs, setDogsPage } from "../../store/slices/dogsSlice";
+import {
+  selectDogs,
+  selectDogsLoading,
+  selectDogsError,
+  selectDogsTotalPages,
+  selectDogsPage,
+} from "../../store/selectors/dogsSelectors";
+import Sidebar from "@/components/layout/Sidebar";
+import Filters from "@/components/dogs/Filters";
+import DogCard from "@/components/dogs/DogCard";
+import Pagination from "@/components/dogs/Pagination";
 import { Dog } from "@/types/dog";
-import DogList from "@/components/dogs/DogList";
-import Filters from "../../components/dogs/Filters";
-import Pagination from "../../components/dogs/Pagination";
+import { selectFilters } from "@/store/selectors/filterSelectors";
 
 export default function page() {
-  const route = "/dogs/search";
-  const [dogs, setDogs] = useState<DogInterface[]>([]);
-  const [filters, setFilters] = useState<FilterState>({
-    breed: [] as string[],
-    zipCode: [] as string[],
-    ageMin: 0,
-    ageMax: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+  const dispatch = useAppDispatch();
+  const dogs = useAppSelector(selectDogs);
+  console.log(dogs, "this is dogs");
+  const loading = useAppSelector(selectDogsLoading);
+  const error = useAppSelector(selectDogsError);
+  const totalPages = useAppSelector(selectDogsTotalPages);
+  const page = useAppSelector(selectDogsPage);
+  const filters = useAppSelector(selectFilters);
 
   useEffect(() => {
-    const fetchDogs = async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const response = await apiClient.get(route, {
-          params: {
-            breed: filters.breeds.length ? filters.breed : undefined,
-            zipCodes: filters.zipCode.length ? filters.zipCode : undefined,
-            ageMin: filters.ageMin || undefined,
-            ageMax: filters.ageMax || undefined,
-            size: 25,
-            from: page * 25,
-            sort: "breed:asc",
-          },
-        });
-        setDogs(response.data.resultsId || []);
-      } catch (err) {
-        setError("Failed to getch dogs");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDogs();
-  }, [filters, page]);
+    dispatch(fetchDogs());
+  }, [dispatch, page, filters]);
 
   return (
     <div>
-      <Filters />
-      {loading ? (
-        <p>Loading...</p>
-      ) : dogs.length > 0 ? (
-        <>
-          <DogList dogIds={dogs.map((dog) => dog.id)} />
-          <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-        </>
-      ) : (
-        <p>No dogs found. Try adjusting your search filters</p>
-      )}
-      {error && <p>{error}</p>}
+      <div>
+        <Sidebar>
+          <Filters />
+        </Sidebar>
+        <div>
+          <h2>Available Dogs</h2>
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p>{error}</p>
+          ) : dogs.length > 0 ? (
+            <div>
+              {dogs.map((dog: Dog) => (
+                <DogCard key={dog.id} dog={dog} />
+              ))}
+            </div>
+          ) : (
+            <p>No dogs found. Try adjusting your search filters</p>
+          )}
+        </div>
+
+        <div>
+          <Pagination
+            page={page}
+            setPage={(page) => dispatch(setDogsPage(page))}
+            totalPages={totalPages}
+          />
+        </div>
+      </div>
     </div>
   );
 }

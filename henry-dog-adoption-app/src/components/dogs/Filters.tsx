@@ -45,6 +45,7 @@ export default function Filters() {
       setZipInput(""); // Clear input after valid entry
     } else {
       alert("Please enter a valid 5-digit ZIP code.");
+      setZipInput("");
     }
   };
 

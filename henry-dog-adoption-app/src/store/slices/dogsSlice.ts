@@ -3,6 +3,7 @@ import { apiClient } from "../../lib/apiClient";
 import { Dog } from "@/types/dog";
 
 interface DogState {
+  resultIds: string[];
   results: Dog[];
   favorites: string[];
   match: Dog | null;
@@ -13,6 +14,7 @@ interface DogState {
 }
 
 const initialState: DogState = {
+  resultIds: [],
   results: [],
   favorites: [],
   match: null,
@@ -28,7 +30,8 @@ export const fetchDogs = createAsyncThunk(
     const state = getState() as { filters: any };
     const filters = state.filters;
     try {
-      const response = await apiClient.get("/dogs/search", {
+      // First, get the search results with IDs
+      const searchResponse = await apiClient.get("/dogs/search", {
         params: {
           breed: filters.breeds.length ? filters.breeds : undefined,
           zipCodes: filters.zipCodes.length ? filters.zipCodes : undefined,
@@ -38,8 +41,26 @@ export const fetchDogs = createAsyncThunk(
           from: 0,
           sort: "breed:asc",
         },
+        withCredentials: true,
       });
-      return response.data.resultTds;
+
+      const resultIds = searchResponse.data.resultIds || [];
+
+      // Then, fetch the actual dog data using the IDs
+      if (resultIds.length > 0) {
+        const dogsResponse = await apiClient.post("/dogs", resultIds, {
+          withCredentials: true,
+        });
+        return {
+          resultIds,
+          dogs: dogsResponse.data || [],
+        };
+      }
+
+      return {
+        resultIds: [],
+        dogs: [],
+      };
     } catch (error: any) {
       throw error;
     }
@@ -79,8 +100,11 @@ const dogsSlice = createSlice({
       })
       .addCase(fetchDogs.fulfilled, (state, action) => {
         state.loading = false;
-        state.results = action.payload;
-        state.totalPages = Math.ceil(action.payload.length / 25);
+        state.resultIds = action.payload.resultIds;
+        state.results = action.payload.dogs;
+        state.totalPages = Math.ceil(
+          (action.payload.resultIds?.length || 0) / 25
+        );
       })
       .addCase(fetchDogs.rejected, (state, action) => {
         state.loading = false;

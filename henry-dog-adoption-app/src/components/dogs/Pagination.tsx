@@ -1,22 +1,23 @@
+import React from "react";
 interface PaginationProps {
   page: number;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setPage: (page: number) => void;
   totalPages: number;
 }
 
-export default function Pagination({
+const Pagination: React.FC<PaginationProps> = ({
   page,
   setPage,
   totalPages,
-}: PaginationProps) {
+}) => {
   const handlePrevious = () => {
     if (page > 0) {
-      setPage((prev) => prev - 1);
+      setPage(page - 1);
     }
   };
   const handleNext = () => {
     if (page < totalPages - 1) {
-      setPage((prev) => prev + 1);
+      setPage(page + 1);
     }
   };
 
@@ -33,4 +34,6 @@ export default function Pagination({
       </button>
     </div>
   );
-}
+};
+
+export default Pagination;

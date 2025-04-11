@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import axios from "axios";
+import { apiClient } from "@/lib/apiClient";
 
 export interface LoginRequest {
   name: string;
@@ -33,12 +33,8 @@ export const loginUser = createAsyncThunk<
   { rejectValue: string }
 >("auth/loginUser", async ({ name, email }, { rejectWithValue }) => {
   try {
-    const res = await axios.post(
-      "/api/auth/login",
-      { name, email },
-      { withCredentials: true }
-    );
-    if (res.status === 200 && res.data.success) {
+    const res = await apiClient.post("/auth/login", { name, email });
+    if (res.status === 200) {
       return { name, email };
     } else {
       return rejectWithValue("Login failed.");
