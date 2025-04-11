@@ -22,6 +22,7 @@ import { selectFilters } from "@/store/selectors/filterSelectors";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import Container from "@/components/ui/Container";
 
 export default function page() {
   const dispatch = useAppDispatch();
@@ -31,6 +32,7 @@ export default function page() {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
+  const { name, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const hasActiveFilters =
     filters.breeds.length > 0 ||
@@ -67,7 +69,15 @@ export default function page() {
   return (
     <div>
       <Header />
-      <div>
+      <Container>
+        <div>
+          <h3>Henry's Dog Adoption Agency</h3>
+          {isLoggedIn && (
+            <div>
+              <p>Welcome, {name}!</p>
+            </div>
+          )}
+        </div>
         <Sidebar>
           <Filters />
         </Sidebar>
@@ -96,15 +106,15 @@ export default function page() {
             <p>No dogs found. Try adjusting your search filters</p>
           )}
         </div>
+      </Container>
 
-        <Footer>
-          <Pagination
-            page={page}
-            setPage={(page) => dispatch(setDogsPage(page))}
-            totalPages={totalPages}
-          />
-        </Footer>
-      </div>
+      <Footer>
+        <Pagination
+          page={page}
+          setPage={(page) => dispatch(setDogsPage(page))}
+          totalPages={totalPages}
+        />
+      </Footer>
     </div>
   );
 }

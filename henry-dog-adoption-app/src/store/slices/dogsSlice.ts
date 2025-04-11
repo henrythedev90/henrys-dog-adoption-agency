@@ -122,6 +122,13 @@ const dogsSlice = createSlice({
     },
     clearFavorite: (state) => {
       state.favorites = [];
+      localStorage.removeItem("favorites");
+    },
+    clearBreeds: (state) => {
+      state.results = [];
+      state.resultIds = [];
+      state.totalPages = 1;
+      state.page = 0;
     },
     setDogsPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
@@ -158,6 +165,11 @@ const dogsSlice = createSlice({
       .addCase(fetchMatch.fulfilled, (state, action) => {
         state.loading = false;
         state.match = action.payload;
+        // Clear breeds when match is created
+        state.results = [];
+        state.resultIds = [];
+        state.totalPages = 1;
+        state.page = 0;
       })
       .addCase(fetchMatch.rejected, (state, action) => {
         state.loading = false;
@@ -171,6 +183,7 @@ export const {
   toggleFavorite,
   setMatch,
   clearFavorite,
+  clearBreeds,
   setDogsPage,
   clearDogs,
 } = dogsSlice.actions;

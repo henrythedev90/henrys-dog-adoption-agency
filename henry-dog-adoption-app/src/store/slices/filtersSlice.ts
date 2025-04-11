@@ -18,7 +18,7 @@ const initialState: FiltersState = {
   zipCodes: [],
   ageMin: null,
   ageMax: null,
-  size: 5,
+  size: 25,
   from: null,
   sort: "breed:asc",
 };

@@ -1,5 +1,4 @@
 import React from "react";
-import { Dog } from "@/types/dog";
 import DogCard from "./DogCard";
 import { useAppSelector } from "@/store/hooks";
 

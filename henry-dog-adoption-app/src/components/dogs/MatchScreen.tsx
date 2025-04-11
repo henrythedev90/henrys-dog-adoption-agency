@@ -29,41 +29,26 @@ export default function MatchScreen() {
       onClose={handleCloseModal}
       title="Your Lucky Match!"
     >
-      <div className="space-y-4">
+      <div>
         {loading ? (
-          <p className="text-center">Finding your perfect match...</p>
+          <p>Finding your perfect match...</p>
         ) : error ? (
-          <p className="text-red-500 text-center">{error}</p>
+          <p>{error}</p>
         ) : match ? (
-          <div className="space-y-2">
-            <div className="aspect-w-16 aspect-h-9 mb-4">
-              {match.img && (
-                <img
-                  src={match.img}
-                  alt={match.name}
-                  className="object-cover rounded-lg w-full h-48"
-                />
-              )}
-            </div>
-            <div className="space-y-1">
-              <p className="font-semibold">Name: {match.name}</p>
+          <div>
+            <div>{match.img && <img src={match.img} alt={match.name} />}</div>
+            <div>
+              <p>Name: {match.name}</p>
               <p>Breed: {match.breed}</p>
               <p>Age: {match.age} years</p>
               <p>Zip Code: {match.zipCode}</p>
             </div>
           </div>
         ) : (
-          <p className="text-center">
-            No match found. Try adding some favorites!
-          </p>
+          <p>No match found. Try adding some favorites!</p>
         )}
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={handleCloseModal}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-          >
-            Back to Search
-          </button>
+        <div>
+          <button onClick={handleCloseModal}>Back to Search</button>
         </div>
       </div>
     </Modal>
