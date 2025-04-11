@@ -46,6 +46,20 @@ const loadState = (): AuthState => {
 
 const initialState: AuthState = loadState();
 
+export const checkAuth = createAsyncThunk(
+  "auth/checkAuth",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await fetch("/api/auth/check");
+      return res.status === 200;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Authentication check failed"
+      );
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk<
   LoginRequest,
   LoginResponse,
@@ -101,6 +115,21 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Login failed";
         state.isLoggedIn = false;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.isLoggedIn = action.payload;
+        if (!action.payload) {
+          // If auth check fails, clear the stored auth data
+          localStorage.removeItem("auth");
+          state.name = "";
+          state.email = "";
+        }
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.isLoggedIn = false;
+        localStorage.removeItem("auth");
+        state.name = "";
+        state.email = "";
       });
   },
 });
