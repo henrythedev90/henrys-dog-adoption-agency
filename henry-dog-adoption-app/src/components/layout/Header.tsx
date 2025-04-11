@@ -16,8 +16,8 @@ export default function Header() {
   const favorites = useAppSelector(selectDogFavorite);
   const { isLoggedIn } = useAppSelector((state) => state.auth);
 
-  const handleLogout = () => {
-    dispatch(logoutUser());
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
     dispatch(clearFavorite());
     dispatch(clearBreeds());
     router.push("/");

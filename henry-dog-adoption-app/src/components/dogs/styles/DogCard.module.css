@@ -1,7 +1,6 @@
 .dog_card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   padding: 1rem;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
@@ -11,14 +10,15 @@
 .dog_card_text {
   flex: 1;
   font-size: 12px;
-  text-align: start;
+  text-align: center;
   border: 1px solid black;
   border-radius: 10px 10px 0px 0px;
   padding-left: 10px;
   margin-bottom: 4px;
 }
 .dog_card_text p {
-  text-align: center;
+  text-align: start;
+  margin: 4px;
 }
 
 .dog_card_img {

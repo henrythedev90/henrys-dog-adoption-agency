@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchDogs,
   setDogsPage,
-  clearDogs,
   fetchFavoriteDogs,
 } from "../../store/slices/dogsSlice";
 import {
@@ -22,7 +21,6 @@ import DogCard from "@/components/dogs/DogCard";
 import Pagination from "@/components/dogs/Pagination";
 import { Dog } from "@/types/dog";
 import { selectFilters } from "@/store/selectors/filterSelectors";
-import Button from "@/components/ui/Button";
 import Container from "../ui/Container";
 import { useRouter } from "next/navigation";
 import classes from "./styles/Dashboard.module.css";
@@ -82,10 +80,6 @@ export default function Dashboard() {
     }
   }, [dispatch, page]);
 
-  const handleClear = () => {
-    dispatch(clearDogs());
-  };
-
   return (
     <Container>
       <div className={classes.dashboard_container}>
@@ -112,12 +106,7 @@ export default function Dashboard() {
           {" "}
           {/* Main Content */}
           <div className={classes.dashboard_dogs_result_header}>
-            <h2>Available Dogs</h2>
-            {dogs.length > 0 && (
-              <Button variant="secondary" onClick={handleClear}>
-                Clear Results
-              </Button>
-            )}
+            <h4>Available Dogs</h4>
           </div>
           {loading ? (
             <p>Loading...</p>
