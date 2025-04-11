@@ -1,35 +1,29 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { apiClient } from "@/lib/apiClient";
 
-const route = "/auth/logout";
-
-export default async function helper(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("User is now trying to logout");
   if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method is not allowed",
-      message: "Must use POST method",
-    });
+    return res.status(405).json({ message: "Method not allowed" });
   }
+
   try {
-    const cookies = req.headers.cookie;
-    await apiClient.post(
-      route,
-      {},
-      {
-        headers: {
-          Cookie: cookies,
-        },
-      }
-    );
-    res.status(200).json({ success: true, message: "You are now logged out" });
-  } catch (error) {
-    return res.status(500).json({
-      error: "Failed to find to logout",
-      message: error instanceof Error ? error.message : "Unknown error",
+    // Call the backend logout endpoint
+    await apiClient.post("/auth/logout");
+
+    // Clear the cookies by setting them to expire
+    res.setHeader("Set-Cookie", [
+      "fetch-access-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+    ]);
+
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error: any) {
+    console.error("Error in logout API route:", error);
+    return res.status(error.response?.status || 500).json({
+      message: error.response?.data?.message || "Internal server error",
     });
   }
 }

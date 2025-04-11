@@ -82,19 +82,26 @@ export const loginUser = createAsyncThunk<
   }
 });
 
+export const logoutUser = createAsyncThunk(
+  "auth/logoutUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      await apiClient.post("/auth/logout", {});
+      // Clear auth data from localStorage
+      localStorage.removeItem("auth");
+      return true;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "An error occurred during logout."
+      );
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    logout: (state) => {
-      state.name = "";
-      state.email = "";
-      state.isLoggedIn = false;
-      state.error = null;
-      // Clear auth data from localStorage
-      localStorage.removeItem("auth");
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
@@ -130,9 +137,22 @@ const authSlice = createSlice({
         localStorage.removeItem("auth");
         state.name = "";
         state.email = "";
+      })
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.name = "";
+        state.email = "";
+        state.isLoggedIn = false;
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
       });
   },
 });
 
-export const { logout } = authSlice.actions;
 export default authSlice.reducer;

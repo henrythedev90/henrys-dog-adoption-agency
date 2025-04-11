@@ -86,13 +86,37 @@ export const fetchDogs = createAsyncThunk(
   }
 );
 
+export const fetchFavoriteDogs = createAsyncThunk(
+  "dogs/fetchFavoriteDogs",
+  async (favoriteIds: string[]) => {
+    try {
+      if (favoriteIds.length === 0) {
+        return { dogs: [] };
+      }
+
+      const response = await apiClient.post("/dogs", favoriteIds, {
+        withCredentials: true,
+      });
+
+      return { dogs: response.data || [] };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+);
+
 export const fetchMatch = createAsyncThunk(
   "dogs/fetchMatch",
   async (favoriteIds: string[]) => {
     try {
-      const response = await apiClient.post<Dog>("/dogs/match", {
-        favoriteIds,
-      });
+      const response = await apiClient.post(
+        "/dogs/match",
+        { favoriteIds },
+        {
+          withCredentials: true,
+        }
+      );
+
       return response.data;
     } catch (error: any) {
       throw error;
@@ -158,6 +182,23 @@ const dogsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Failed to fetch dogs";
       })
+      .addCase(fetchFavoriteDogs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchFavoriteDogs.fulfilled, (state, action) => {
+        state.loading = false;
+        // Add favorite dogs to the results without replacing existing dogs
+        const newDogs = action.payload.dogs.filter(
+          (dog: Dog) =>
+            !state.results.some((existingDog) => existingDog.id === dog.id)
+        );
+        state.results = [...state.results, ...newDogs];
+      })
+      .addCase(fetchFavoriteDogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch favorite dogs";
+      })
       .addCase(fetchMatch.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -165,11 +206,6 @@ const dogsSlice = createSlice({
       .addCase(fetchMatch.fulfilled, (state, action) => {
         state.loading = false;
         state.match = action.payload;
-        // Clear breeds when match is created
-        state.results = [];
-        state.resultIds = [];
-        state.totalPages = 1;
-        state.page = 0;
       })
       .addCase(fetchMatch.rejected, (state, action) => {
         state.loading = false;

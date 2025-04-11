@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogs, selectDogFavorite } from "@/store/selectors/dogsSelectors";
-import { fetchMatch } from "@/store/slices/dogsSlice";
+import { fetchMatch, fetchFavoriteDogs } from "@/store/slices/dogsSlice";
 import DogCard from "./DogCard";
 import MatchScreen from "./MatchScreen";
 
@@ -12,6 +12,13 @@ export default function Favorites() {
   const dogs = useAppSelector(selectDogs);
   const favoriteDogs = dogs.filter((dog) => favorites.includes(dog.id));
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Fetch favorite dogs when component mounts
+    if (favorites.length > 0) {
+      dispatch(fetchFavoriteDogs(favorites));
+    }
+  }, [dispatch, favorites]);
 
   const handleOpenModal = () => {
     if (favorites.length > 0) {

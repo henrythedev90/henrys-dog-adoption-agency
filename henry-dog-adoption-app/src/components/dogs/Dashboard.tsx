@@ -1,15 +1,22 @@
 "use client";
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchDogs, setDogsPage } from "../../store/slices/dogsSlice";
+import {
+  fetchDogs,
+  setDogsPage,
+  clearDogs,
+  fetchFavoriteDogs,
+} from "../../store/slices/dogsSlice";
 import {
   selectDogs,
   selectDogsLoading,
   selectDogsError,
   selectDogsTotalPages,
   selectDogsPage,
+  selectDogFavorite,
 } from "../../store/selectors/dogsSelectors";
 import { checkAuth } from "@/store/slices/authSlice";
+import Sidebar from "@/components/layout/Sidebar";
 import Filters from "@/components/dogs/Filters";
 import DogCard from "@/components/dogs/DogCard";
 import Pagination from "@/components/dogs/Pagination";
@@ -29,6 +36,7 @@ export default function Dashboard() {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
+  const favorites = useAppSelector(selectDogFavorite);
   const { name, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const hasActiveFilters =
@@ -45,6 +53,13 @@ export default function Dashboard() {
       }
     });
   }, [dispatch, router]);
+
+  useEffect(() => {
+    // Fetch favorite dogs when component mounts
+    if (favorites.length > 0) {
+      dispatch(fetchFavoriteDogs(favorites));
+    }
+  }, [dispatch, favorites]);
 
   useEffect(() => {
     // Reset to first page when filters change
@@ -67,6 +82,10 @@ export default function Dashboard() {
     }
   }, [dispatch, page]);
 
+  const handleClear = () => {
+    dispatch(clearDogs());
+  };
+
   return (
     <Container>
       <div className={classes.dashboard_container}>
@@ -84,7 +103,9 @@ export default function Dashboard() {
         <div className={classes.dashboard_filter_sections}>
           {" "}
           {/* Sidebar */}
-          <Filters />
+          <Sidebar>
+            <Filters />
+          </Sidebar>
         </div>
 
         <div className={classes.dashboard_dogs_result}>
@@ -92,6 +113,11 @@ export default function Dashboard() {
           {/* Main Content */}
           <div className={classes.dashboard_dogs_result_header}>
             <h2>Available Dogs</h2>
+            {dogs.length > 0 && (
+              <Button variant="secondary" onClick={handleClear}>
+                Clear Results
+              </Button>
+            )}
           </div>
           {loading ? (
             <p>Loading...</p>
@@ -100,7 +126,7 @@ export default function Dashboard() {
           ) : !hasActiveFilters ? (
             <p>Please select at least one filter to see available dogs</p>
           ) : dogs.length > 0 ? (
-            <div>
+            <div className={classes.dashboard_dog_card_result}>
               {dogs.map((dog: Dog) => (
                 <DogCard key={dog.id} dog={dog} />
               ))}

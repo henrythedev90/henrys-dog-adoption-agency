@@ -1,7 +1,7 @@
 import React from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
-import { logout } from "@/store/slices/authSlice";
+import { logoutUser } from "@/store/slices/authSlice";
 import { clearFavorite, clearBreeds } from "@/store/slices/dogsSlice";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
@@ -17,7 +17,7 @@ export default function Header() {
   const { isLoggedIn } = useAppSelector((state) => state.auth);
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     dispatch(clearFavorite());
     dispatch(clearBreeds());
     router.push("/");
@@ -38,7 +38,9 @@ export default function Header() {
                 View Favorites ({favorites.length})
               </Link>
             )}
-            {isLoggedIn && <Button onClick={handleLogout}>Logout</Button>}
+            {isLoggedIn && (
+              <Button onClickFunction={handleLogout}>Logout</Button>
+            )}
           </div>
         </div>
       </Container>
