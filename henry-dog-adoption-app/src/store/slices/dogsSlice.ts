@@ -2,6 +2,19 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "../../lib/apiClient";
 import { Dog } from "@/types/dog";
 
+// Load initial favorites from localStorage
+const loadFavorites = (): string[] => {
+  try {
+    const serializedFavorites = localStorage.getItem("favorites");
+    if (serializedFavorites === null) {
+      return [];
+    }
+    return JSON.parse(serializedFavorites);
+  } catch (err) {
+    return [];
+  }
+};
+
 interface DogState {
   resultIds: string[];
   results: Dog[];
@@ -16,7 +29,7 @@ interface DogState {
 const initialState: DogState = {
   resultIds: [],
   results: [],
-  favorites: [],
+  favorites: loadFavorites(),
   match: null,
   loading: false,
   error: null,
@@ -73,6 +86,20 @@ export const fetchDogs = createAsyncThunk(
   }
 );
 
+export const fetchMatch = createAsyncThunk(
+  "dogs/fetchMatch",
+  async (favoriteIds: string[]) => {
+    try {
+      const response = await apiClient.post<Dog>("/dogs/match", {
+        favoriteIds,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+);
+
 const dogsSlice = createSlice({
   name: "dogs",
   initialState,
@@ -81,12 +108,14 @@ const dogsSlice = createSlice({
       state.results = action.payload;
     },
     toggleFavorite: (state, action: PayloadAction<string>) => {
-      const id = action.payload;
-      if (state.favorites.includes(id)) {
-        state.favorites = state.favorites.filter((dogId) => dogId !== id);
+      const dogId = action.payload;
+      if (state.favorites.includes(dogId)) {
+        state.favorites = state.favorites.filter((id) => id !== dogId);
       } else {
-        state.favorites.push(id);
+        state.favorites.push(dogId);
       }
+      // Persist favorites to localStorage
+      localStorage.setItem("favorites", JSON.stringify(state.favorites));
     },
     setMatch: (state, action: PayloadAction<Dog>) => {
       state.match = action.payload;
@@ -121,6 +150,18 @@ const dogsSlice = createSlice({
       .addCase(fetchDogs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch dogs";
+      })
+      .addCase(fetchMatch.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMatch.fulfilled, (state, action) => {
+        state.loading = false;
+        state.match = action.payload;
+      })
+      .addCase(fetchMatch.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch match";
       });
   },
 });

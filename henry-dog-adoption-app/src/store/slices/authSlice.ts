@@ -19,13 +19,32 @@ interface AuthState {
   isLoggedIn: boolean;
 }
 
-const initialState: AuthState = {
-  name: "",
-  email: "",
-  loading: false,
-  error: null,
-  isLoggedIn: false,
+// Load initial state from localStorage if available
+const loadState = (): AuthState => {
+  try {
+    const serializedState = localStorage.getItem("auth");
+    if (serializedState === null) {
+      return {
+        name: "",
+        email: "",
+        loading: false,
+        error: null,
+        isLoggedIn: false,
+      };
+    }
+    return JSON.parse(serializedState);
+  } catch (err) {
+    return {
+      name: "",
+      email: "",
+      loading: false,
+      error: null,
+      isLoggedIn: false,
+    };
+  }
 };
+
+const initialState: AuthState = loadState();
 
 export const loginUser = createAsyncThunk<
   LoginRequest,
@@ -35,6 +54,9 @@ export const loginUser = createAsyncThunk<
   try {
     const res = await apiClient.post("/auth/login", { name, email });
     if (res.status === 200) {
+      // Store auth data in localStorage
+      const authData = { name, email, isLoggedIn: true };
+      localStorage.setItem("auth", JSON.stringify(authData));
       return { name, email };
     } else {
       return rejectWithValue("Login failed.");
@@ -51,16 +73,19 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout: (state) => {
-      (state.name = ""),
-        (state.email = ""),
-        (state.isLoggedIn = false),
-        (state.error = null);
+      state.name = "";
+      state.email = "";
+      state.isLoggedIn = false;
+      state.error = null;
+      // Clear auth data from localStorage
+      localStorage.removeItem("auth");
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
-        (state.loading = true), (state.error = null);
+        state.loading = true;
+        state.error = null;
       })
       .addCase(
         loginUser.fulfilled,

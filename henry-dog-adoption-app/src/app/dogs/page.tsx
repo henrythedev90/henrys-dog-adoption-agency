@@ -20,6 +20,8 @@ import Pagination from "@/components/dogs/Pagination";
 import { Dog } from "@/types/dog";
 import { selectFilters } from "@/store/selectors/filterSelectors";
 import Button from "@/components/ui/Button";
+import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
 
 export default function page() {
   const dispatch = useAppDispatch();
@@ -64,12 +66,13 @@ export default function page() {
 
   return (
     <div>
+      <Header />
       <div>
         <Sidebar>
           <Filters />
         </Sidebar>
         <div>
-          <div className="flex justify-between items-center mb-4">
+          <div>
             <h2>Available Dogs</h2>
             {dogs.length > 0 && (
               <Button variant="secondary" onClick={handleClear}>
@@ -94,13 +97,13 @@ export default function page() {
           )}
         </div>
 
-        <div>
+        <Footer>
           <Pagination
             page={page}
             setPage={(page) => dispatch(setDogsPage(page))}
             totalPages={totalPages}
           />
-        </div>
+        </Footer>
       </div>
     </div>
   );
