@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export const PAGE_SIZES = [5, 10, 15, 20, 25] as const;
+export const PAGE_SIZES = [8, 16, 20, 24] as const;
 export type PageSize = (typeof PAGE_SIZES)[number];
 
 interface FiltersState {
@@ -18,7 +18,7 @@ const initialState: FiltersState = {
   zipCodes: [],
   ageMin: null,
   ageMax: null,
-  size: 25,
+  size: 20,
   from: null,
   sort: "breed:asc",
 };

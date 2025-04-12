@@ -46,6 +46,7 @@ export default function Dashboard() {
   useEffect(() => {
     // Check authentication status when component mounts
     dispatch(checkAuth()).then((result) => {
+      dispatch(checkAuth());
       if (!result.payload) {
         router.push("/");
       }
@@ -83,19 +84,13 @@ export default function Dashboard() {
   return (
     <Container>
       <div className={classes.dashboard_container}>
-        <div className={classes.dashboard_header}>
-          {" "}
-          {/* Header spanning full width */}
-          <h3>Henry's Dog Adoption Agency</h3>
-          {isLoggedIn && (
-            <div className={classes.dashboard_header_welcome}>
-              <p>Welcome, {name}!</p>
-            </div>
-          )}
-        </div>
-
         <div className={classes.dashboard_filter_sections}>
           {" "}
+          {isLoggedIn && (
+            <div className={classes.dashboard_header_welcome}>
+              <p>Welcome, {name}! You can now search for your ideal dog.</p>
+            </div>
+          )}
           {/* Sidebar */}
           <Sidebar>
             <Filters />

@@ -8,14 +8,23 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+// Example: Adding Authorization header
+
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`Request being made to: ${config.baseURL}${config.url}`);
+    console.log(
+      `Request being made to: <span class="math-inline">\{config\.baseURL\}</span>{config.url}`
+    );
     console.log(`Request method: ${config.method}`);
 
-    // Only try to access document.cookie in the browser
+    // Only try to access localStorage in the browser
     if (typeof window !== "undefined") {
       console.log("Running in browser environment");
+      const auth = localStorage.getItem("auth");
+      if (auth) {
+        const { token } = JSON.parse(auth);
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     } else {
       console.log("Running in server environment");
     }

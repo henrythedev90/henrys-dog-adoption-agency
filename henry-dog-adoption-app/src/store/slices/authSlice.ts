@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiClient } from "@/lib/apiClient";
+import axios from "axios";
 
 export interface LoginRequest {
   name: string;
@@ -50,8 +51,12 @@ export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch("/api/auth/check");
-      return res.status === 200;
+      const res = await axios.get("api/auth/check");
+      if (res.status === 200) {
+        return true;
+      } else {
+        return rejectWithValue("Authentication check failed");
+      }
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Authentication check failed"
@@ -59,7 +64,6 @@ export const checkAuth = createAsyncThunk(
     }
   }
 );
-
 export const loginUser = createAsyncThunk<
   LoginRequest,
   LoginResponse,

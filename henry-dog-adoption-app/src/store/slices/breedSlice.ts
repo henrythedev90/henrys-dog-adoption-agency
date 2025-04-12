@@ -18,6 +18,7 @@ export const fetchBreeds = createAsyncThunk("breeds/fetchBreeds", async () => {
     const response = await apiClient.get("/dogs/breeds", {
       withCredentials: true,
     });
+    console.log(response, "this is response");
     return response.data;
   } catch (error) {
     throw error;

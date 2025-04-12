@@ -157,12 +157,6 @@ const dogsSlice = createSlice({
     setDogsPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
-    clearDogs: (state) => {
-      state.results = [];
-      state.resultIds = [];
-      state.totalPages = 1;
-      state.page = 0;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -221,6 +215,5 @@ export const {
   clearFavorite,
   clearBreeds,
   setDogsPage,
-  clearDogs,
 } = dogsSlice.actions;
 export default dogsSlice.reducer;

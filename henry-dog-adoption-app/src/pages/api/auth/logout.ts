@@ -15,8 +15,8 @@ export default async function handler(
 
     // Clear the cookies by setting them to expire
     res.setHeader("Set-Cookie", [
-      "fetch-access-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      "fetch-access-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
+      "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
     ]);
 
     return res.status(200).json({ message: "Logged out successfully" });
