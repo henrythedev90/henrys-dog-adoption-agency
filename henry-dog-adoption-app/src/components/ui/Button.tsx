@@ -25,9 +25,9 @@ const Button = ({
   };
 
   const variantStyle: Record<string, React.CSSProperties> = {
-    primary: { backgroundColor: "#007bff", color: "#fff" },
-    secondary: { backgroundColor: "#6c757d", color: "#fff" },
-    danger: { backgroundColor: "#dc3545", color: "#fff" },
+    primary: { backgroundColor: "#5b9aff", color: "#fff" },
+    secondary: { backgroundColor: "#5ee6a3", color: "#fff" },
+    danger: { backgroundColor: "#ffd666", color: "#fff" },
   };
 
   return (

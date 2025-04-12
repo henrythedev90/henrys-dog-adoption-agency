@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginUser } from "@/store/slices/authSlice";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import classes from "./style/LoginForm.module.css";
 
 const LoginForm = () => {
   const [name, setName] = useState("");
@@ -25,7 +26,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div>
+    <div className={classes.input_container}>
       {error && <div>{error}</div>}
       <form onSubmit={handleSubmit}>
         <input
