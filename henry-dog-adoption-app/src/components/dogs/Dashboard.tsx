@@ -15,7 +15,6 @@ import {
   selectDogFavorite,
 } from "../../store/selectors/dogsSelectors";
 import { checkAuth } from "@/store/slices/authSlice";
-import Sidebar from "@/components/layout/Sidebar";
 import Filters from "@/components/dogs/Filters";
 import DogCard from "@/components/dogs/DogCard";
 import Pagination from "@/components/dogs/Pagination";
@@ -92,9 +91,10 @@ export default function Dashboard() {
             </div>
           )}
           {/* Sidebar */}
-          <Sidebar>
+          <div>
+            <h3>Filter Dogs:</h3>
             <Filters />
-          </Sidebar>
+          </div>
         </div>
 
         <div className={classes.dashboard_dogs_result}>

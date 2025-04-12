@@ -1,18 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchBreeds } from "../../store/slices/breedSlice";
+import { selectFilters } from "../../store/selectors/filterSelectors";
+import classes from "./styles/Filters.module.css";
 import {
   setFilters,
   resetFilter,
   PAGE_SIZES,
 } from "../../store/slices/filtersSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchBreeds } from "../../store/slices/breedSlice";
-import { selectFilters } from "../../store/selectors/filterSelectors";
 import {
   selectBreeds,
   selectBreedsLoading,
   selectBreedsError,
 } from "../../store/selectors/breedSelectors";
+import Button from "../ui/Button";
 
 export default function Filters() {
   const dispatch = useAppDispatch();
@@ -83,8 +85,8 @@ export default function Filters() {
   };
 
   return (
-    <div>
-      <div>
+    <div className={classes.filter_container}>
+      <div className={classes.filter_breed_container}>
         <label>Breed:</label>
         <select onChange={handleBreedsSelect} value="">
           <option value="" disabled>
@@ -102,39 +104,28 @@ export default function Filters() {
             ))
           )}
         </select>
-
-        <div>
-          {filters.breeds.map((breed) => (
-            <span key={breed} onClick={() => handleRemoveBreed(breed)}>
-              {breed}
-            </span>
-          ))}
-        </div>
       </div>
 
-      <div>
+      <div className={classes.filter_zipCode_container}>
         <label>ZIP Codes:</label>
-        <div>
+        <div className={classes.filter_zipCode_input}>
           <input
             type="text"
             placeholder="Enter ZIP Codes"
             value={zipInput}
             onChange={(e) => setZipInput(e.target.value)}
           />
-          <button type="button" onClick={handleZipCodes}>
+          <Button
+            type="button"
+            disabled={zipInput.length > 5}
+            onClickFunction={handleZipCodes}
+          >
             Add
-          </button>
-        </div>
-        <div>
-          {filters.zipCodes.map((zip) => (
-            <span key={zip} onClick={() => removeZip(zip)}>
-              {zip} X
-            </span>
-          ))}
+          </Button>
         </div>
       </div>
 
-      <div>
+      <div className={classes.filter_breed_container}>
         <label>Results per page:</label>
         <select value={filters.size} onChange={handleSizeChange}>
           {PAGE_SIZES.map((size) => (
@@ -144,22 +135,46 @@ export default function Filters() {
           ))}
         </select>
       </div>
+      <div className={classes.filter_zipCode_container}>
+        <input
+          type="number"
+          placeholder="Min Age"
+          value={filters.ageMin || ""}
+          onChange={handleAgeMin}
+        />
+        <input
+          type="number"
+          placeholder="Max Age"
+          value={filters.ageMax || ""}
+          onChange={handleAgeMax}
+        />
+      </div>
 
-      <input
-        type="number"
-        placeholder="Min Age"
-        value={filters.ageMin || ""}
-        onChange={handleAgeMin}
-      />
-      <input
-        type="number"
-        placeholder="Max Age"
-        value={filters.ageMax || ""}
-        onChange={handleAgeMax}
-      />
-      <button type="button" onClick={() => dispatch(resetFilter())}>
-        Clear Filters
-      </button>
+      <div>
+        <div>
+          {filters.zipCodes.map((zip) => (
+            <span key={zip} onClick={() => removeZip(zip)}>
+              {zip} X
+            </span>
+          ))}
+        </div>
+        <div>
+          {filters.breeds.map((breed) => (
+            <span key={breed} onClick={() => handleRemoveBreed(breed)}>
+              {breed} X
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className={classes.filter_button_container}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClickFunction={() => dispatch(resetFilter())}
+        >
+          Clear Filters
+        </Button>
+      </div>
     </div>
   );
 }

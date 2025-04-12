@@ -5,8 +5,15 @@
   margin-top: 100px;
 }
 .dashboard_header_welcome {
-  margin-top: 20px;
+  text-align: center;
+  color: var(--foreground);
+  font-size: 1.2em;
+  font-weight: 200;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--foreground);
+  margin-bottom: 10px;
 }
+
 .dashboard_filter_sections {
   grid-column: 1/2;
   display: flex;
@@ -32,7 +39,25 @@
 .dashboard_dog_card_result {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
   max-height: 600px;
   overflow-y: auto;
+}
+
+@media (max-width: 575px) {
+  .dashboard_container {
+    display: flex;
+    flex-direction: column;
+  }
+  .dashboard_filter_sections {
+    border: 4px solid var(--foreground);
+    box-shadow: 18px 18px 0 0 var(--accent), 18px 18px 0 4px var(--foreground);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .dashboard_filter_sections h3 {
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
 }

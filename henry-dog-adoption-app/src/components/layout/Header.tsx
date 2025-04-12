@@ -3,6 +3,7 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import { logoutUser } from "@/store/slices/authSlice";
 import { clearFavorite, clearBreeds } from "@/store/slices/dogsSlice";
+import { resetAuth } from "@/store/slices/authSlice";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Container from "../ui/Container";
@@ -17,10 +18,9 @@ export default function Header() {
   const { isLoggedIn } = useAppSelector((state) => state.auth);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
-    dispatch(clearFavorite());
-    dispatch(clearBreeds());
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    dispatch(resetAuth());
     router.push("/");
   };
 
