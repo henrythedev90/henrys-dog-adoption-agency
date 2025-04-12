@@ -33,31 +33,28 @@
   animation: none;
   font-size: 5em;
   font-weight: 600;
-  color: var(--foreground); /* Default charcoal color */
+  color: var(--foreground);
 }
 
-/* Style the individual spans from SplitText */
 .login_container h1 span[aria-hidden="true"] {
   display: inline-block;
   position: relative;
   animation: move-text 0.75s forwards;
 }
 
-/* Color the spans using nth-child */
 .login_container h1 span[aria-hidden="true"]:nth-child(2n) {
-  color: var(--primary); /* Soft Blue */
+  color: var(--primary);
 }
 .login_container h1 span[aria-hidden="true"]:nth-child(3n) {
-  color: var(--secondary); /* Sage Green */
+  color: var(--secondary);
 }
 .login_container h1 span[aria-hidden="true"]:nth-child(4n) {
-  color: var(--accent); /* Warm Beige */
+  color: var(--accent);
 }
 .login_container h1 span[aria-hidden="true"]:nth-child(5n) {
-  color: var(--primary); /* Off-White */
+  color: var(--primary);
 }
 
-/* Style the first span (if needed) */
 .login_container h1 > span:first-of-type {
   font-size: 0.75em;
 }
@@ -67,23 +64,16 @@
     bottom: -0.2em;
     opacity: 1;
   }
-
   50% {
     bottom: 0.2em;
   }
-
   100% {
     bottom: 0;
     opacity: 1;
   }
 }
 
-@media (min-width: 768px) {
-  .login_container {
-    width: 500px;
-  }
-}
-
+/* Mobile Specific Styles (575px and below) */
 @media (max-width: 575px) {
   .login_container h1 {
     text-transform: uppercase;
@@ -98,6 +88,48 @@
     animation: none;
     display: flex;
     text-align: center;
+  }
+  .input_container {
+    border: 4px solid var(--foreground);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .input_container form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 20px;
+  }
+  .input_container input {
+    background: var(--background);
+    border: 4px solid var(--foreground);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--foreground);
+  }
+}
+
+/* Adapt Larger Screens to Mobile Styles */
+@media (min-width: 576px) {
+  .login_container h1 {
+    text-transform: uppercase;
+    letter-spacing: -9.17px;
+    color: var(--foreground);
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-size: 5em;
+    font-weight: 600;
+    line-height: 0.83;
+    animation: none;
+    display: flex;
+    text-align: center;
+    max-width: 250px;
   }
   .input_container {
     border: 4px solid var(--foreground);
