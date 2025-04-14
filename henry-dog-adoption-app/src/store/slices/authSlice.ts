@@ -70,10 +70,11 @@ export const loginUser = createAsyncThunk<
   { rejectValue: string }
 >("auth/loginUser", async ({ name, email }, { rejectWithValue }) => {
   try {
-    const res = await apiClient.post("/auth/login", { name, email });
+    const res = await axios.post("api/auth/login", { name, email });
     if (res.status === 200) {
       // Store auth data in localStorage
       const authData = { name, email, isLoggedIn: true };
+
       localStorage.setItem("auth", JSON.stringify(authData));
       return { name, email };
     } else {
