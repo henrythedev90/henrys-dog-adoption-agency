@@ -118,16 +118,15 @@ export default function Dashboard() {
           ) : (
             <p>No dogs found. Try adjusting your search filters</p>
           )}
-        </div>
-
-        <div className={classes.dashboard_pagination_sections}>
-          {" "}
-          {/* Pagination spanning full width */}
-          <Pagination
-            page={page}
-            setPage={(page) => dispatch(setDogsPage(page))}
-            totalPages={totalPages}
-          />
+          <div className={classes.dashboard_pagination_sections}>
+            {" "}
+            {/* Pagination spanning full width */}
+            <Pagination
+              page={page}
+              setPage={(page) => dispatch(setDogsPage(page))}
+              totalPages={totalPages}
+            />
+          </div>
         </div>
       </div>
     </Container>

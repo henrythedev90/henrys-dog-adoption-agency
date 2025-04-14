@@ -64,3 +64,34 @@
     transform: scale(1);
   }
 }
+
+@media (max-width: 575px) {
+  .dog_card {
+    padding: 0.5rem; /* Reduce padding */
+    margin-bottom: 0.5rem; /* Reduce margin */
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .dog_card_text {
+    font-size: 10px; /* Reduce font size */
+    padding-left: 5px; /* Reduce padding */
+  }
+
+  .dog_card_text p {
+    margin: 2px; /* Reduce paragraph margin */
+  }
+
+  .dog_card_img {
+    padding: 5px; /* Reduce image padding */
+    gap: 0.25rem; /* Reduce gap */
+  }
+
+  .heart_icon {
+    padding: 0.25rem; /* Reduce heart icon padding */
+  }
+}

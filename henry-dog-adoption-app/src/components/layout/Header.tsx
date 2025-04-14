@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import { logoutUser } from "@/store/slices/authSlice";
-import { clearFavorite, clearBreeds } from "@/store/slices/dogsSlice";
 import { resetAuth } from "@/store/slices/authSlice";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";

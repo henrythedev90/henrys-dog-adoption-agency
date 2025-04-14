@@ -136,6 +136,7 @@ export default function Filters() {
         </select>
       </div>
       <div className={classes.filter_zipCode_container}>
+        <label>Age:</label>
         <input
           type="number"
           placeholder="Min Age"

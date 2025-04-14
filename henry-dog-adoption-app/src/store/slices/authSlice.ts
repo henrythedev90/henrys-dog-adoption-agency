@@ -105,13 +105,14 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    updateUserName: (state, action: PayloadAction<string>) => {
+    loggedIn: (state, action: PayloadAction<string>) => {
       state.name = action.payload;
-    },
-    updateEmail: (state, action: PayloadAction<string>) => {
       state.email = action.payload;
+      state.isLoggedIn = true;
     },
     resetAuth(state) {
+      state.name = "";
+      state.email = "";
       state.isLoggedIn = false;
     },
   },
@@ -168,5 +169,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { resetAuth } = authSlice.actions;
+export const { resetAuth, loggedIn } = authSlice.actions;
 export default authSlice.reducer;
