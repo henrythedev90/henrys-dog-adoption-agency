@@ -34,6 +34,7 @@ export default async function handler(
 
     // Make the API request with cookies forwarded
     const response = await apiClient.get(route, {
+      withCredentials: true,
       headers: {
         Cookie: cookies,
       },

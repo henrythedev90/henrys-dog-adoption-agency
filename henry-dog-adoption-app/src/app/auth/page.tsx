@@ -3,7 +3,7 @@ import classes from "../../components/auth/style/LoginForm.module.css";
 import Container from "@/components/ui/Container";
 import SplitText from "@/components/ui/SplitText";
 
-const page = () => {
+export default function Page() {
   return (
     <Container>
       <div className={classes.form_container}>
@@ -19,6 +19,4 @@ const page = () => {
       </div>
     </Container>
   );
-};
-
-export default page;
+}

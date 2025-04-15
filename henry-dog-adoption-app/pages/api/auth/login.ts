@@ -26,7 +26,7 @@ export default async function handler(
 
   try {
     const response = await apiClient.post(route, { name, email });
-
+    debugger;
     //setting up the cookies
     const cookie = response.headers["set-cookie"];
     if (cookie) {

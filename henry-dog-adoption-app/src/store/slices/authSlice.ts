@@ -20,43 +20,20 @@ interface AuthState {
   isLoggedIn: boolean;
 }
 
-// Load initial state from localStorage if available
-const loadState = (): AuthState => {
-  try {
-    const serializedState = localStorage.getItem("auth");
-    if (serializedState === null) {
-      return {
-        name: "",
-        email: "",
-        loading: false,
-        error: null,
-        isLoggedIn: false,
-      };
-    }
-    return JSON.parse(serializedState);
-  } catch (err) {
-    return {
-      name: "",
-      email: "",
-      loading: false,
-      error: null,
-      isLoggedIn: false,
-    };
-  }
+const initialState: AuthState = {
+  name: "",
+  email: "",
+  loading: false,
+  error: null,
+  isLoggedIn: false,
 };
-
-const initialState: AuthState = loadState();
 
 export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get("api/auth/check");
-      if (res.status === 200) {
-        return true;
-      } else {
-        return rejectWithValue("Authentication check failed");
-      }
+      const res = await axios.get("/api/auth/check", { withCredentials: true });
+      return res.status === 200;
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Authentication check failed"
@@ -64,18 +41,15 @@ export const checkAuth = createAsyncThunk(
     }
   }
 );
+
 export const loginUser = createAsyncThunk<
   LoginRequest,
   LoginResponse,
   { rejectValue: string }
 >("auth/loginUser", async ({ name, email }, { rejectWithValue }) => {
   try {
-    const res = await axios.post("api/auth/login", { name, email });
+    const res = await apiClient.post("/auth/login", { name, email });
     if (res.status === 200) {
-      // Store auth data in localStorage
-      const authData = { name, email, isLoggedIn: true };
-
-      localStorage.setItem("auth", JSON.stringify(authData));
       return { name, email };
     } else {
       return rejectWithValue("Login failed.");
@@ -91,8 +65,7 @@ export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { rejectWithValue }) => {
     try {
-      await apiClient.post("/auth/logout", {});
-      localStorage.removeItem("auth");
+      await apiClient.post("/auth/logout");
       return true;
     } catch (error: any) {
       return rejectWithValue(
@@ -141,15 +114,12 @@ const authSlice = createSlice({
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoggedIn = action.payload;
         if (!action.payload) {
-          // If auth check fails, clear the stored auth data
-          localStorage.removeItem("auth");
           state.name = "";
           state.email = "";
         }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoggedIn = false;
-        localStorage.removeItem("auth");
         state.name = "";
         state.email = "";
       })
