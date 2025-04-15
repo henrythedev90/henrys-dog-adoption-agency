@@ -3,6 +3,7 @@ import DogCard from "./DogCard";
 import classes from "./styles/DogCarousel.module.css";
 import { Dog } from "@/types/dog";
 import Container from "../ui/Container";
+import Button from "../ui/Button";
 
 interface DogCarouselProps {
   favoriteDogs: Dog[];
@@ -81,23 +82,25 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
         </div>
 
         {currentSlide > 0 && (
-          <button
-            onClick={prevSlide}
+          <Button
+            onClickFunction={prevSlide}
             className={classes.carousel_button_previous}
             aria-label="Previous dog"
+            variant="secondary"
           >
             ←
-          </button>
+          </Button>
         )}
 
         {currentSlide < favoriteDogs.length - 1 && (
-          <button
-            onClick={nextSlide}
+          <Button
+            onClickFunction={nextSlide}
             className={classes.carousel_button_next}
             aria-label="Next dog"
+            variant="secondary"
           >
             →
-          </button>
+          </Button>
         )}
 
         <div className={classes.carousel_button_container}>
@@ -113,13 +116,13 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               />
             ))}
           </div>
-          <button
-            onClick={() => handleOpenModal(favoriteDogs[currentSlide])}
+          <Button
+            onClickFunction={() => handleOpenModal(favoriteDogs[currentSlide])}
             className={classes.generate_match_button}
           >
             Generate Match with{" "}
             {favoriteDogs[currentSlide]?.name || "Current Dog"}
-          </button>
+          </Button>
         </div>
       </div>
     </Container>

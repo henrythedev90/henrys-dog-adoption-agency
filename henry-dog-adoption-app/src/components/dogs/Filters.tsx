@@ -15,6 +15,7 @@ import {
   selectBreedsError,
 } from "../../store/selectors/breedSelectors";
 import Button from "../ui/Button";
+import styles from "./styles/Filters.module.css";
 
 export default function Filters() {
   const dispatch = useAppDispatch();
@@ -163,18 +164,28 @@ export default function Filters() {
         />
       </div>
 
-      <div>
-        <div>
+      <div className={styles.tags_container}>
+        <div className={styles.tag_group}>
           {filters.zipCodes.map((zip) => (
-            <span key={zip} onClick={() => removeZip(zip)}>
-              {zip} X
+            <span
+              key={zip}
+              className={styles.tag_zipCode}
+              onClick={() => removeZip(zip)}
+            >
+              {zip}
+              <span className={styles.tag_remove}>×</span>
             </span>
           ))}
         </div>
-        <div>
+        <div className={styles.tag_group}>
           {filters.breeds.map((breed) => (
-            <span key={breed} onClick={() => handleRemoveBreed(breed)}>
-              {breed} X
+            <span
+              key={breed}
+              className={styles.tag}
+              onClick={() => handleRemoveBreed(breed)}
+            >
+              {breed}
+              <span className={styles.tag_remove}>×</span>
             </span>
           ))}
         </div>

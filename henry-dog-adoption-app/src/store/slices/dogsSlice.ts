@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "../../lib/apiClient";
 import { Dog } from "@/types/dog";
+import { RootState } from "..";
 
 // Load initial favorites from localStorage
 const loadFavorites = (): string[] => {
@@ -216,4 +217,5 @@ export const {
   clearBreeds,
   setDogsPage,
 } = dogsSlice.actions;
+
 export default dogsSlice.reducer;

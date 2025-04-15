@@ -132,6 +132,7 @@
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--foreground) var(--background);
+    width: 100%;
   }
   .dashboard_dogs_result_header h4 {
     text-align: center;

@@ -12,7 +12,6 @@ export default function page() {
       <Container>
         <Dashboard />
       </Container>
-      <Footer>hello world</Footer>
     </div>
   );
 }

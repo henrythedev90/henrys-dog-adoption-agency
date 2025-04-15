@@ -81,6 +81,13 @@
   box-shadow: 4px 4px 0 0 var(--secondary), 4px 4px 0 2px var(--foreground);
 }
 
+.carousel_parent_wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 300px;
+}
+
 .match_button:hover {
   transform: translateY(-2px);
 }

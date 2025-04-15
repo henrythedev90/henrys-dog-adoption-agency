@@ -7,7 +7,7 @@ import MatchScreen from "./MatchScreen";
 import DogCarousel from "./DogCarousel";
 import { Dog } from "@/types/dog";
 import Container from "../ui/Container";
-
+import classes from "./styles/Favorites.module.css";
 export default function Favorites() {
   const dispatch = useAppDispatch();
   const favorites = useAppSelector(selectDogFavorite) as string[];
@@ -31,23 +31,35 @@ export default function Favorites() {
 
   return (
     <Container>
-      {favoriteDogs.length > 0 ? (
-        <DogCarousel
-          favoriteDogs={favoriteDogs}
-          handleOpenModal={handleOpenModal}
-          title="Your Favorite Dogs"
-        />
-      ) : (
-        <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <h2>Your Favorite Dogs</h2>
-          <p>
-            No favorite dogs yet. Add some dogs to your favorites to generate a
-            match!
-          </p>
-        </div>
-      )}
+      <div
+        className={
+          favoriteDogs.length === 0
+            ? classes.carousel_parent_wrapper
+            : undefined
+        }
+      >
+        {favoriteDogs.length > 0 ? (
+          <DogCarousel
+            favoriteDogs={favoriteDogs}
+            handleOpenModal={handleOpenModal}
+            title="Your Favorite Dogs"
+          />
+        ) : (
+          <div style={{ textAlign: "center", marginTop: "40px" }}>
+            {favoriteDogs.length > 0 ? (
+              <h2>Your Favorite Dogs</h2>
+            ) : (
+              <h2>You do not have any favorite Dogs</h2>
+            )}
+            <p>
+              No favorite dogs yet. Add some dogs to your favorites to generate
+              a match!
+            </p>
+          </div>
+        )}
 
-      {isModalOpen && <MatchScreen />}
+        {isModalOpen && <MatchScreen />}
+      </div>
     </Container>
   );
 }

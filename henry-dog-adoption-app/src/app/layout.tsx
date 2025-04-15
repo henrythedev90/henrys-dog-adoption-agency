@@ -1,3 +1,5 @@
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import "./globals.css";
 import { ReduxProvider } from "./providers";
 
@@ -9,7 +11,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body>
-        <ReduxProvider>{children}</ReduxProvider>
+        <ReduxProvider>
+          {children}
+          <Footer>Hello world</Footer>
+        </ReduxProvider>
       </body>
     </html>
   );

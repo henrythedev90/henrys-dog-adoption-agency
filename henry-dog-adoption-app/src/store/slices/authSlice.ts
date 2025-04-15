@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/apiClient";
 import axios from "axios";
 import { clearFavorite, clearBreeds } from "./dogsSlice";
 import { resetFilter } from "./filtersSlice";
+import { RootState } from "..";
 
 export interface LoginRequest {
   name: string;
@@ -86,10 +87,13 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    loggedIn: (state, action: PayloadAction<string>) => {
-      state.name = action.payload;
-      state.email = action.payload;
+    login: (state, action: PayloadAction<string>) => {
       state.isLoggedIn = true;
+      state.name = action.payload;
+    },
+    logout: (state) => {
+      state.isLoggedIn = false;
+      state.name = "";
     },
     resetAuth(state) {
       return initialState;
@@ -142,5 +146,8 @@ const authSlice = createSlice({
   },
 });
 
-export const { resetAuth, loggedIn } = authSlice.actions;
+export const selectIsLoggedIn = (state: RootState) => state.auth.isLoggedIn;
+export const selectAuthName = (state: RootState) => state.auth.name;
+
+export const { resetAuth, login, logout } = authSlice.actions;
 export default authSlice.reducer;

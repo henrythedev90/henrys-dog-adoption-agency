@@ -1,5 +1,5 @@
 import LoginForm from "@/components/auth/LoginForm";
-import classes from "../../components/auth/style/LoginForm.module.css";
+import classes from "@/components/auth/style/LoginForm.module.css";
 import Container from "@/components/ui/Container";
 import SplitText from "@/components/ui/SplitText";
 
