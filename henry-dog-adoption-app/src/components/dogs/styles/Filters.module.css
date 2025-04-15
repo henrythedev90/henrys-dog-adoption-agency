@@ -9,15 +9,16 @@
 @media (max-width: 575px) {
   .filter_container {
     padding: 20px;
+    max-width: 340px;
   }
   .filter_container > * {
     margin-bottom: 1rem; /* Adjust the value as needed */
   }
-  .filter_breed_container {
+  /* .filter_breed_container {
     border: 2px solid var(--foreground);
     border-radius: 8px;
     padding: 10px;
-  }
+  } */
   .filter_breed_container select {
     background-color: var(--background);
     color: var(--foreground);
@@ -33,6 +34,16 @@
     border-radius: 8px;
     padding: 10px;
   }
+  .filter_zipCode_container button {
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: 8px;
+    width: 50px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   .filter_zipCode_container label {
     text-align: start;
   }
@@ -47,7 +58,31 @@
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    column-gap: 10px;
+    column-gap: 4px;
+  }
+  .filter_age_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    border: 2px solid var(--foreground);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .filter_age_container input {
+    background-color: var(--background);
+    color: var(--foreground);
+    border: 2px solid var(--foreground);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+  }
+  .filter_age_container label {
+    align-self: start;
   }
   .filter_button_container {
     display: flex;

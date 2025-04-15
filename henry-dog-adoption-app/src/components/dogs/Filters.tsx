@@ -64,7 +64,11 @@ export default function Filters() {
   const handleAgeMin = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (isNaN(value) || value < 0) {
-      alert("Please enter a non-negative number for Min Age.");
+      alert("Please enter a number bigger than 0.");
+      return;
+    }
+    if (filters.ageMax !== null && value > filters.ageMax) {
+      alert("Minimum age cannot be greater than maximum age.");
       return;
     }
     dispatch(setFilters({ ageMin: value }));
@@ -74,6 +78,14 @@ export default function Filters() {
     const value = parseInt(e.target.value);
     if (isNaN(value) || value < 0) {
       alert("Please enter a non-negative number for Max Age.");
+      return;
+    }
+    if (value > 30) {
+      alert("Maximum age cannot be greater than 30.");
+      return;
+    }
+    if (filters.ageMin !== null && value < filters.ageMin) {
+      alert("Maximum age cannot be less than minimum age.");
       return;
     }
     dispatch(setFilters({ ageMax: value }));
@@ -135,7 +147,7 @@ export default function Filters() {
           ))}
         </select>
       </div>
-      <div className={classes.filter_zipCode_container}>
+      <div className={classes.filter_age_container}>
         <label>Age:</label>
         <input
           type="number"

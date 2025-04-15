@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { apiClient } from "../../lib/apiClient";
 
 interface BreedState {
   breeds: string[];
@@ -15,7 +15,7 @@ const initialState: BreedState = {
 
 export const fetchBreeds = createAsyncThunk("breeds/fetchBreeds", async () => {
   try {
-    const response = await axios.get("/api/dogs/breeds", {
+    const response = await apiClient.get("/dogs/breeds", {
       withCredentials: true,
     });
     return response.data;

@@ -81,54 +81,56 @@ export default function Dashboard() {
   }, [dispatch, page]);
 
   return (
-    <Container>
-      <div className={classes.dashboard_container}>
-        <div className={classes.dashboard_filter_sections}>
-          {" "}
-          {isLoggedIn && (
-            <div className={classes.dashboard_header_welcome}>
-              <p>Welcome, {name}! You can now search for your ideal dog.</p>
+    <div>
+      <Container>
+        <div className={classes.dashboard_container}>
+          <div className={classes.dashboard_filter_sections}>
+            {" "}
+            {isLoggedIn && (
+              <div className={classes.dashboard_header_welcome}>
+                <p>Welcome, {name}! You can now search for your ideal dog.</p>
+              </div>
+            )}
+            {/* Sidebar */}
+            <div>
+              <h3>Filter Dogs:</h3>
+              <Filters />
             </div>
-          )}
-          {/* Sidebar */}
-          <div>
-            <h3>Filter Dogs:</h3>
-            <Filters />
           </div>
         </div>
+      </Container>
 
-        <div className={classes.dashboard_dogs_result}>
+      <div className={classes.dashboard_dogs_result}>
+        {" "}
+        {/* Main Content */}
+        <div className={classes.dashboard_dogs_result_header}>
+          <h4>Available Dogs</h4>
+        </div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : !hasActiveFilters ? (
+          <p>Please select at least one filter to see available dogs</p>
+        ) : dogs.length > 0 ? (
+          <div className={classes.dashboard_dog_card_result}>
+            {dogs.map((dog: Dog) => (
+              <DogCard key={dog.id} dog={dog} />
+            ))}
+          </div>
+        ) : (
+          <p>No dogs found. Try adjusting your search filters</p>
+        )}
+        <div className={classes.dashboard_pagination_sections}>
           {" "}
-          {/* Main Content */}
-          <div className={classes.dashboard_dogs_result_header}>
-            <h4>Available Dogs</h4>
-          </div>
-          {loading ? (
-            <p>Loading...</p>
-          ) : error ? (
-            <p>{error}</p>
-          ) : !hasActiveFilters ? (
-            <p>Please select at least one filter to see available dogs</p>
-          ) : dogs.length > 0 ? (
-            <div className={classes.dashboard_dog_card_result}>
-              {dogs.map((dog: Dog) => (
-                <DogCard key={dog.id} dog={dog} />
-              ))}
-            </div>
-          ) : (
-            <p>No dogs found. Try adjusting your search filters</p>
-          )}
-          <div className={classes.dashboard_pagination_sections}>
-            {" "}
-            {/* Pagination spanning full width */}
-            <Pagination
-              page={page}
-              setPage={(page) => dispatch(setDogsPage(page))}
-              totalPages={totalPages}
-            />
-          </div>
+          {/* Pagination spanning full width */}
+          <Pagination
+            page={page}
+            setPage={(page) => dispatch(setDogsPage(page))}
+            totalPages={totalPages}
+          />
         </div>
       </div>
-    </Container>
+    </div>
   );
 }
