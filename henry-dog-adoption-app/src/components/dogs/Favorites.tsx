@@ -3,8 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogs, selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import { fetchMatch, fetchFavoriteDogs } from "@/store/slices/dogsSlice";
-import DogCard from "./DogCard";
 import MatchScreen from "./MatchScreen";
+import DogCarousel from "./DogCarousel";
+import { Dog } from "@/types/dog";
+import Container from "../ui/Container";
 
 export default function Favorites() {
   const dispatch = useAppDispatch();
@@ -20,32 +22,32 @@ export default function Favorites() {
     }
   }, [dispatch, favorites]);
 
-  const handleOpenModal = () => {
+  const handleOpenModal = (dog: Dog) => {
     if (favorites.length > 0) {
-      dispatch(fetchMatch(favorites));
+      dispatch(fetchMatch([dog.id]));
       setIsModalOpen(true);
     }
   };
 
   return (
-    <div>
-      <h2>Your Favorite Dogs</h2>
-
+    <Container>
       {favoriteDogs.length > 0 ? (
-        <div>
-          {favoriteDogs.map((dog: any) => {
-            return <DogCard key={dog.id} dog={dog} />;
-          })}
-          <button onClick={handleOpenModal}>Generate Match</button>
-        </div>
+        <DogCarousel
+          favoriteDogs={favoriteDogs}
+          handleOpenModal={handleOpenModal}
+          title="Your Favorite Dogs"
+        />
       ) : (
-        <p>
-          No favorite dogs yet. Add some dogs to your favorites to generate a
-          match!
-        </p>
+        <div style={{ textAlign: "center", marginTop: "40px" }}>
+          <h2>Your Favorite Dogs</h2>
+          <p>
+            No favorite dogs yet. Add some dogs to your favorites to generate a
+            match!
+          </p>
+        </div>
       )}
 
       {isModalOpen && <MatchScreen />}
-    </div>
+    </Container>
   );
 }

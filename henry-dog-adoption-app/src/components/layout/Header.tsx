@@ -6,7 +6,7 @@ import { resetAuth } from "@/store/slices/authSlice";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Container from "../ui/Container";
-import classes from "./style/Header.module.css";
+import classes from "./styles/Header.module.css";
 import Button from "../ui/Button";
 
 export default function Header() {

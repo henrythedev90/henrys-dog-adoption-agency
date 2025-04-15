@@ -1,4 +1,8 @@
 import React from "react";
+import classes from "./styles/Pagination.module.css";
+import Button from "../ui/Button";
+import Container from "../../components/ui/Container";
+
 interface PaginationProps {
   page: number;
   setPage: (page: number) => void;
@@ -22,17 +26,27 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div>
-      <button onClick={handlePrevious} disabled={page === 0}>
-        Previous
-      </button>
-      <span>
-        Page {page + 1} of {totalPages}
-      </span>
-      <button onClick={handleNext} disabled={page >= totalPages - 1}>
-        Next
-      </button>
-    </div>
+    <Container>
+      <div className={classes.pagination_container}>
+        <Button
+          onClickFunction={handlePrevious}
+          variant="danger"
+          disabled={page === 0}
+        >
+          Previous
+        </Button>
+        <span>
+          Page {page + 1} of {totalPages}
+        </span>
+        <Button
+          onClickFunction={handleNext}
+          variant="danger"
+          disabled={page >= totalPages - 1}
+        >
+          Next
+        </Button>
+      </div>
+    </Container>
   );
 };
 

@@ -1,18 +1,13 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  fetchDogs,
-  setDogsPage,
-  fetchFavoriteDogs,
-} from "../../store/slices/dogsSlice";
+import { fetchDogs, setDogsPage } from "../../store/slices/dogsSlice";
 import {
   selectDogs,
   selectDogsLoading,
   selectDogsError,
   selectDogsTotalPages,
   selectDogsPage,
-  selectDogFavorite,
 } from "../../store/selectors/dogsSelectors";
 import { checkAuth } from "@/store/slices/authSlice";
 import Filters from "@/components/dogs/Filters";
@@ -24,7 +19,7 @@ import Container from "../ui/Container";
 import { useRouter } from "next/navigation";
 import classes from "./styles/Dashboard.module.css";
 
-export default function Dashboard() {
+const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const dogs = useAppSelector(selectDogs);
@@ -33,7 +28,6 @@ export default function Dashboard() {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
-  const favorites = useAppSelector(selectDogFavorite);
   const { name, isLoggedIn } = useAppSelector((state) => state.auth);
 
   const hasActiveFilters =
@@ -45,7 +39,6 @@ export default function Dashboard() {
   useEffect(() => {
     // Check authentication status when component mounts
     dispatch(checkAuth()).then((result) => {
-      dispatch(checkAuth());
       if (!result.payload) {
         router.push("/");
       }
@@ -53,56 +46,45 @@ export default function Dashboard() {
   }, [dispatch, router]);
 
   useEffect(() => {
-    // Fetch favorite dogs when component mounts
-    if (favorites.length > 0) {
-      dispatch(fetchFavoriteDogs(favorites));
-    }
-  }, [dispatch, favorites]);
-
-  useEffect(() => {
-    // Reset to first page when filters change
-    if (page !== 0) {
-      dispatch(setDogsPage(0));
-    } else if (hasActiveFilters) {
+    // Fetch dogs when page changes or filters change
+    if (hasActiveFilters) {
       dispatch(fetchDogs());
     }
   }, [
     dispatch,
+    page,
+    hasActiveFilters,
     filters.breeds,
     filters.zipCodes,
     filters.ageMin,
     filters.ageMax,
+    filters.size, // Add size to dependencies
   ]);
 
-  useEffect(() => {
-    if (page > 0 && hasActiveFilters) {
-      dispatch(fetchDogs());
-    }
-  }, [dispatch, page]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      dispatch(setDogsPage(newPage));
+    },
+    [dispatch]
+  );
 
   return (
-    <div>
-      <Container>
-        <div className={classes.dashboard_container}>
-          <div className={classes.dashboard_filter_sections}>
-            {" "}
-            {isLoggedIn && (
-              <div className={classes.dashboard_header_welcome}>
-                <p>Welcome, {name}! You can now search for your ideal dog.</p>
-              </div>
-            )}
-            {/* Sidebar */}
-            <div>
-              <h3>Filter Dogs:</h3>
-              <Filters />
+    <div className={classes.dashboard_parent_container}>
+      <div className={classes.dashboard_container}>
+        <div className={classes.dashboard_filter_sections}>
+          {isLoggedIn && (
+            <div className={classes.dashboard_header_welcome}>
+              <p>Welcome, {name}! You can now search for your ideal dog.</p>
             </div>
+          )}
+          <div>
+            <h3>Filter Dogs:</h3>
+            <Filters />
           </div>
         </div>
-      </Container>
+      </div>
 
       <div className={classes.dashboard_dogs_result}>
-        {" "}
-        {/* Main Content */}
         <div className={classes.dashboard_dogs_result_header}>
           <h4>Available Dogs</h4>
         </div>
@@ -113,24 +95,30 @@ export default function Dashboard() {
         ) : !hasActiveFilters ? (
           <p>Please select at least one filter to see available dogs</p>
         ) : dogs.length > 0 ? (
-          <div className={classes.dashboard_dog_card_result}>
-            {dogs.map((dog: Dog) => (
-              <DogCard key={dog.id} dog={dog} />
-            ))}
-          </div>
+          <>
+            <div className={classes.dashboard_dog_card_result}>
+              {dogs.map((dog: Dog) => (
+                <DogCard key={dog.id} dog={dog} />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className={classes.dashboard_pagination_sections}>
+                <Pagination
+                  page={page}
+                  setPage={handlePageChange}
+                  totalPages={totalPages}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <p>No dogs found. Try adjusting your search filters</p>
         )}
-        <div className={classes.dashboard_pagination_sections}>
-          {" "}
-          {/* Pagination spanning full width */}
-          <Pagination
-            page={page}
-            setPage={(page) => dispatch(setDogsPage(page))}
-            totalPages={totalPages}
-          />
-        </div>
       </div>
     </div>
   );
-}
+});
+
+Dashboard.displayName = "Dashboard";
+
+export default Dashboard;

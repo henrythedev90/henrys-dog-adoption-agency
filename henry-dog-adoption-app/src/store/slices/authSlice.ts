@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiClient } from "@/lib/apiClient";
 import axios from "axios";
+import { clearFavorite, clearBreeds } from "./dogsSlice";
+import { resetFilter } from "./filtersSlice";
 
 export interface LoginRequest {
   name: string;
@@ -63,9 +65,14 @@ export const loginUser = createAsyncThunk<
 
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       await apiClient.post("/auth/logout");
+      // Clear all user data
+      dispatch(clearFavorite());
+      dispatch(clearBreeds());
+      dispatch(resetFilter());
+      localStorage.clear(); // Clear all localStorage data
       return true;
     } catch (error: any) {
       return rejectWithValue(
@@ -85,9 +92,7 @@ const authSlice = createSlice({
       state.isLoggedIn = true;
     },
     resetAuth(state) {
-      state.name = "";
-      state.email = "";
-      state.isLoggedIn = false;
+      return initialState;
     },
   },
   extraReducers: (builder) => {
@@ -128,14 +133,11 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(logoutUser.fulfilled, (state) => {
-        state.name = "";
-        state.email = "";
-        state.isLoggedIn = false;
-        state.loading = false;
-        state.error = null;
+        return initialState;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
+        state.error = (action.payload as string) || "Logout failed";
       });
   },
 });

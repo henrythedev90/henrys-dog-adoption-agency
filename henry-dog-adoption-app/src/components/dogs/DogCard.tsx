@@ -10,21 +10,19 @@ interface DogCardProps {
   dog: Dog;
 }
 
-export default function DogCard({ dog }: DogCardProps) {
+const DogCard = React.memo(({ dog }: DogCardProps) => {
   const dispatch = useAppDispatch();
   const favorite = useAppSelector(selectDogFavorite);
   const isFavorite = favorite.includes(dog.id);
 
-  const handleFavoriteClick = () => {
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     dispatch(toggleFavorite(dog.id));
   };
 
   return (
-    <div
-      className={classes.dog_card}
-      onClick={handleFavoriteClick}
-      role="button"
-    >
+    <div className={classes.dog_card}>
       <div className={classes.dog_card_text}>
         <h4>{dog.name}</h4>
         <p>Breed: {dog.breed}</p>
@@ -37,7 +35,10 @@ export default function DogCard({ dog }: DogCardProps) {
           className={`${classes.heart_icon} ${
             isFavorite ? classes.favorite : ""
           }`}
+          onClick={handleFavoriteClick}
           tabIndex={0}
+          role="button"
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <svg
             viewBox="0 0 24 24"
@@ -53,4 +54,8 @@ export default function DogCard({ dog }: DogCardProps) {
       </div>
     </div>
   );
-}
+});
+
+DogCard.displayName = "DogCard";
+
+export default DogCard;
