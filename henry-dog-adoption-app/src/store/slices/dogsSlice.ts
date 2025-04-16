@@ -2,6 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { Dog } from "@/types/dog";
 import { RootState } from "..";
 import { apiClient } from "@/lib/apiClient";
+import axios from "axios";
 
 // Load initial favorites from localStorage
 const loadFavorites = (): string[] => {
@@ -151,29 +152,84 @@ export const fetchMatch = createAsyncThunk(
   async (favoriteIds: string[], { rejectWithValue }) => {
     try {
       console.log(
-        `fetchMatch Thunk: Fetching match for ${favoriteIds.length} favorites.`
+        `fetchMatch Thunk: Calling /api/dogs/match for ${favoriteIds.length} favorites.`
       );
-      // Call your /api/dogs/match route
-      const response = await apiClient.post("/dogs/match", { favoriteIds });
-      console.log("fetchMatch Thunk: Received match response.");
-      // Check response structure based on your /api/dogs/match implementation
+
+      // Add timing for debugging
+      const startTime = new Date().getTime();
+
+      // Call your LOCAL API route with the array directly and ensure credentials are sent
+      const response = await axios.post(
+        "/api/dogs/match", // Target your Next.js route
+        favoriteIds, // Send the array directly as the body
+        {
+          withCredentials: true, // Ensure cookies are sent with the request
+        }
+      );
+
+      const endTime = new Date().getTime();
+      console.log(`fetchMatch Thunk: Request took ${endTime - startTime}ms`);
+
+      console.log("fetchMatch Thunk: Received response from /api/dogs/match:", {
+        status: response.status,
+        data: response.data
+          ? typeof response.data === "object"
+            ? "Valid object"
+            : typeof response.data
+          : "No data",
+        headers: response.headers ? "Present" : "None",
+      });
+
+      // Your /api/dogs/match route now returns the full dog object
       if (response.data && response.data.id) {
-        return response.data;
+        console.log("fetchMatch Thunk: Received valid dog data.");
+        return response.data; // Return the full dog object
       } else {
+        // This case should be less likely now, as the API route handles errors
         console.error(
-          "fetchMatch Thunk: Invalid match data received.",
+          "fetchMatch Thunk: Invalid data received from /api/dogs/match.",
           response.data
         );
-        return rejectWithValue("Invalid match data received.");
+        return rejectWithValue("Match API route returned invalid data.");
       }
     } catch (error: any) {
-      console.error("fetchMatch Thunk: Error:", {
-        /* ... */
+      // Enhanced error logging for debugging
+      console.error("fetchMatch Thunk: Error calling /api/dogs/match:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        stack: error.stack?.substring(0, 200), // First part of stack trace
+        name: error.name,
+        headers: error.response?.headers
+          ? JSON.stringify(error.response.headers)
+          : "None",
       });
+
       if (error.response?.status === 401) {
-        return rejectWithValue("Authentication failed.");
+        console.error(
+          "fetchMatch Thunk: Authentication error (401). This could indicate missing or expired cookies."
+        );
+
+        // Check if document.cookie exists
+        console.log(
+          "Current cookies:",
+          document.cookie
+            ? "Present (but contents hidden for security)"
+            : "No cookies"
+        );
+
+        return rejectWithValue(
+          "Authentication failed. Please refresh the page or log in again."
+        );
       }
-      return rejectWithValue(error.message || "Failed to fetch match");
+
+      // Use the error message from your API route if available
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to generate match."
+      );
     }
   }
 );

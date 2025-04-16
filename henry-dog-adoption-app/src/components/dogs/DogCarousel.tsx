@@ -82,7 +82,6 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     setIsModalOpen(true);
 
     try {
-      debugger;
       const result = await dispatch(fetchMatch(favoriteIds)).unwrap();
 
       // Add a 5-second delay before showing the match

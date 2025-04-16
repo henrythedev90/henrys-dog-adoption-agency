@@ -46,18 +46,34 @@ export const checkAuth = createAsyncThunk(
 );
 
 export const loginUser = createAsyncThunk<
-  LoginRequest,
   LoginResponse,
+  LoginRequest,
   { rejectValue: string }
 >("auth/loginUser", async ({ name, email }, { rejectWithValue }) => {
   try {
-    const res = await apiClient.post("/auth/login", { name, email });
+    console.log("Login thunk: Attempting login for:", { name, email });
+
+    // Use axios directly with the correct Next.js API route
+    const res = await axios.post(
+      "/api/auth/login",
+      { name, email },
+      { withCredentials: true } // Ensure cookies are properly saved
+    );
+
     if (res.status === 200) {
+      console.log("Login thunk: Login successful");
       return { name, email };
     } else {
-      return rejectWithValue("Login failed.");
+      console.error("Login thunk: Login failed with status:", res.status);
+      return rejectWithValue("Login failed with status: " + res.status);
     }
   } catch (error: any) {
+    console.error("Login thunk: Error during login:", {
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data,
+    });
+
     return rejectWithValue(
       error.response?.data?.message || "An error occurred during login."
     );
@@ -68,14 +84,44 @@ export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      await apiClient.post("/auth/logout");
+      console.log("Logout thunk: Attempting logout");
+
+      // Flag the logout in sessionStorage to prevent unnecessary API calls during logout
+      sessionStorage.setItem("logging_out", "true");
+
+      // Use axios directly with the correct Next.js API route
+      await axios.post("/api/auth/logout", {}, { withCredentials: true });
+
+      console.log("Logout thunk: Logout API call successful");
+
       // Clear all user data
       dispatch(clearFavorite());
       dispatch(clearBreeds());
       dispatch(resetFilter());
       localStorage.clear(); // Clear all localStorage data
+
+      // Add a small delay before removing the logging_out flag
+      // This gives time for any in-flight requests to complete
+      setTimeout(() => {
+        sessionStorage.removeItem("logging_out");
+      }, 500);
+
       return true;
     } catch (error: any) {
+      console.error("Logout thunk: Error during logout:", {
+        status: error.response?.status,
+        message: error.message,
+      });
+
+      // Even if the API call fails, clear local state
+      dispatch(clearFavorite());
+      dispatch(clearBreeds());
+      dispatch(resetFilter());
+      localStorage.clear();
+
+      // Remove logout flag
+      sessionStorage.removeItem("logging_out");
+
       return rejectWithValue(
         error.response?.data?.message || "An error occurred during logout."
       );
