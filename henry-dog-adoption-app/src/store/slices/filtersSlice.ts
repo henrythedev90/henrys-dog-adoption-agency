@@ -13,7 +13,42 @@ interface FiltersState {
   sort: string;
 }
 
-const initialState: FiltersState = {
+// Load filters from localStorage if they exist
+const loadFiltersFromStorage = (): FiltersState => {
+  if (typeof window === "undefined") {
+    return {
+      breeds: [],
+      zipCodes: [],
+      ageMin: null,
+      ageMax: null,
+      size: 20,
+      from: null,
+      sort: "breed:asc",
+    };
+  }
+
+  try {
+    const storedFilters = localStorage.getItem("dogFilters");
+    if (storedFilters) {
+      return JSON.parse(storedFilters);
+    }
+  } catch (error) {
+    console.error("Failed to load filters from localStorage:", error);
+  }
+
+  return {
+    breeds: [],
+    zipCodes: [],
+    ageMin: null,
+    ageMax: null,
+    size: 20,
+    from: null,
+    sort: "breed:asc",
+  };
+};
+
+// Define default state as fallback
+const defaultState: FiltersState = {
   breeds: [],
   zipCodes: [],
   ageMin: null,
@@ -21,6 +56,19 @@ const initialState: FiltersState = {
   size: 20,
   from: null,
   sort: "breed:asc",
+};
+
+const initialState: FiltersState = loadFiltersFromStorage();
+
+// Helper function to save filters to localStorage
+const saveFiltersToStorage = (filters: FiltersState) => {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("dogFilters", JSON.stringify(filters));
+    } catch (error) {
+      console.error("Failed to save filters to localStorage:", error);
+    }
+  }
 };
 
 const filterSlice = createSlice({
@@ -52,9 +100,16 @@ const filterSlice = createSlice({
       if (action.payload.sort !== undefined) {
         state.sort = action.payload.sort;
       }
+
+      // Save updated state to localStorage
+      saveFiltersToStorage(state);
     },
     resetFilter() {
-      return initialState;
+      // Clear localStorage when filters are reset
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("dogFilters");
+      }
+      return defaultState;
     },
   },
 });

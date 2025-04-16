@@ -29,7 +29,6 @@ import { setFilters } from "@/store/slices/filtersSlice";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const dogs = useAppSelector(selectDogs);
   const loading = useAppSelector(selectDogsLoading);
   const error = useAppSelector(selectDogsError);
@@ -161,10 +160,10 @@ const Dashboard = React.memo(() => {
         <div className={classes.dashboard_filter_sections}>
           {isLoggedIn && (
             <div className={classes.dashboard_header_welcome}>
-              <p>
-                Welcome, <SplitColorText text={name} size="small" tag="span" />!
+              <h4>
+                Welcome, <SplitColorText text={name} size="medium" tag="p" />!
                 You can now search for your ideal dog.
-              </p>
+              </h4>
             </div>
           )}
           <div>

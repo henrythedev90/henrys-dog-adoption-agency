@@ -10,10 +10,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
+      <head>
+        <title>The Fetch Adoption Center</title>
+        <link
+          rel="stylesheet"
+          type="text/css"
+          href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
+        />
+      </head>
       <body>
         <ReduxProvider>
           {children}
-          <Footer>Hello world</Footer>
+          <Footer />
         </ReduxProvider>
       </body>
     </html>

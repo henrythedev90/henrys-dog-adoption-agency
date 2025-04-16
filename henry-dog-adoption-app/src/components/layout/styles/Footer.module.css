@@ -21,3 +21,21 @@
   width: 100%;
   z-index: 99;
 }
+
+.footer_content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.footer_content i {
+  font-size: 1.5rem;
+  color: var(--foreground);
+}
+
+.footer_content p {
+  font-size: 1.5rem;
+  color: var(--foreground);
+}

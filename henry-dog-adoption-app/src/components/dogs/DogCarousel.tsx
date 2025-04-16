@@ -10,7 +10,9 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import { fetchMatch } from "@/store/slices/dogsSlice";
+import { resetFilter } from "@/store/slices/filtersSlice";
 import confetti from "canvas-confetti";
+import { useRouter } from "next/navigation";
 
 interface DogCarouselProps {
   favoriteDogs: Dog[];
@@ -24,13 +26,14 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   title = "Your Favorite Dogs",
 }) => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(false);
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const favoriteIds = useAppSelector(selectDogFavorite);
   const [error, setError] = useState<string | null>(null);
-
+  const [isNavigating, setIsNavigating] = useState(false);
   // Update current slide when favorites change
   useEffect(() => {
     // If we're at the last slide and a dog is removed, move back one slide
@@ -98,9 +101,22 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   };
 
   const handleCloseModal = () => {
+    router.push("/dogs");
+    dispatch(resetFilter());
     setIsModalOpen(false);
     setMatchedDog(null);
   };
+
+  if (isNavigating) {
+    return (
+      <div className={classes.loading_container}>
+        <LoadingSpinner size="large" />
+        <p className={classes.loading_text}>
+          {loading ? "Finding Match..." : "Redirecting to dashboard..."}
+        </p>
+      </div>
+    );
+  }
 
   // Don't render carousel if no favorites
   if (favoriteDogs.length === 0) {

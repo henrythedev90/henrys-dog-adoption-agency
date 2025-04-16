@@ -18,17 +18,52 @@ export interface LoginResponse {
 interface AuthState {
   name: string;
   email: string;
+  isLoggedIn: boolean;
   loading: boolean;
   error: string | null;
-  isLoggedIn: boolean;
 }
+
+const loadAuthFromStorage = (): Partial<AuthState> => {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const storedAuth = localStorage.getItem("dogAuth");
+    if (storedAuth) {
+      return JSON.parse(storedAuth);
+    }
+  } catch (error) {
+    console.error("Failed to load auth from localStorage:", error);
+  }
+
+  return {};
+};
 
 const initialState: AuthState = {
   name: "",
   email: "",
+  isLoggedIn: false,
   loading: false,
   error: null,
-  isLoggedIn: false,
+  ...loadAuthFromStorage(),
+};
+
+const saveAuthToStorage = (auth: Partial<AuthState>) => {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(
+        "dogAuth",
+        JSON.stringify({
+          name: auth.name,
+          email: auth.email,
+          isLoggedIn: auth.isLoggedIn,
+        })
+      );
+    } catch (error) {
+      console.error("Failed to save auth to localStorage:", error);
+    }
+  }
 };
 
 export const checkAuth = createAsyncThunk(
@@ -133,15 +168,19 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<string>) => {
+    login: (state, action: PayloadAction<{ name: string; email: string }>) => {
       state.isLoggedIn = true;
-      state.name = action.payload;
+      state.name = action.payload.name;
+      state.email = action.payload.email;
+      saveAuthToStorage(state);
     },
     logout: (state) => {
       state.isLoggedIn = false;
       state.name = "";
+      state.email = "";
+      localStorage.removeItem("dogAuth");
     },
-    resetAuth(state) {
+    resetAuth() {
       return initialState;
     },
   },
@@ -154,11 +193,11 @@ const authSlice = createSlice({
       .addCase(
         loginUser.fulfilled,
         (state, action: PayloadAction<{ name: string; email: string }>) => {
+          state.loading = false;
+          state.isLoggedIn = true;
           state.name = action.payload.name;
           state.email = action.payload.email;
-          state.isLoggedIn = true;
-          state.loading = false;
-          state.error = null;
+          saveAuthToStorage(state);
         }
       )
       .addCase(loginUser.rejected, (state, action) => {
