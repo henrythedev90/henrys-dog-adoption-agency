@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { apiClient } from "@/lib/apiClient";
+import axios from "axios";
 
-const route = "/dogs";
+const route = "https://frontend-take-home-service.fetch.com/dogs";
 
 export default async function handler(
   req: NextApiRequest,
@@ -40,7 +40,8 @@ export default async function handler(
       });
     }
 
-    const response = await apiClient.post(route, dogIds, {
+    const response = await axios.post(route, dogIds, {
+      withCredentials: true,
       headers: {
         Cookie: cookies,
       },

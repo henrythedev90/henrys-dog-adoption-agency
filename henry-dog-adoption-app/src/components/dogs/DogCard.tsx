@@ -24,6 +24,7 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
   return (
     <div className={classes.dog_card}>
       <div className={classes.dog_card_text}>
+        <p>{dog.id}</p>
         <h4>{dog.name}</h4>
         <p>Breed: {dog.breed}</p>
         <p>Age: {dog.age}</p>

@@ -15,9 +15,7 @@ const initialState: BreedState = {
 
 export const fetchBreeds = createAsyncThunk("breeds/fetchBreeds", async () => {
   try {
-    const response = await apiClient.get("/dogs/breeds", {
-      withCredentials: true,
-    });
+    const response = await apiClient.get("/dogs/breeds");
     return response.data;
   } catch (error) {
     throw error;

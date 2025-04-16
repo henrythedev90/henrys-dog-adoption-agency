@@ -55,11 +55,23 @@ export const fetchDogs = createAsyncThunk(
         `fetchDogs Thunk: Fetching page ${currentPage} with sort: ${currentSort}`
       );
 
+      console.log("Client sending params:", {
+        breeds: filters.breeds,
+        zipCodes: filters.zipCodes,
+        ageMin: filters.ageMin,
+        ageMax: filters.ageMax,
+        size: filters.size,
+        from: currentPage * filters.size,
+        sort: currentSort,
+      });
+
       // Call *your* Next.js API route
       const searchResponse = await apiClient.get("/dogs/search", {
         params: {
-          breeds: filters.breeds.length ? filters.breeds : undefined,
-          zipCodes: filters.zipCodes.length ? filters.zipCodes : undefined,
+          breeds: filters.breeds.length ? filters.breeds.join(",") : undefined,
+          zipCodes: filters.zipCodes.length
+            ? filters.zipCodes.join(",")
+            : undefined,
           ageMin: filters.ageMin ?? undefined, // Use nullish coalescing
           ageMax: filters.ageMax ?? undefined,
           size: filters.size,
@@ -67,6 +79,27 @@ export const fetchDogs = createAsyncThunk(
           sort: currentSort, // *** Pass sort parameter ***
         },
       });
+
+      // Debug the actual URL being sent
+      console.log(
+        "Client URL constructed:",
+        apiClient.getUri({
+          url: "/dogs/search",
+          params: {
+            breeds: filters.breeds.length
+              ? filters.breeds.join(",")
+              : undefined,
+            zipCodes: filters.zipCodes.length
+              ? filters.zipCodes.join(",")
+              : undefined,
+            ageMin: filters.ageMin ?? undefined,
+            ageMax: filters.ageMax ?? undefined,
+            size: filters.size,
+            from: currentPage * filters.size,
+            sort: currentSort,
+          },
+        })
+      );
 
       console.log(
         "fetchDogs Thunk: Search response status:",
@@ -94,6 +127,8 @@ export const fetchDogs = createAsyncThunk(
         "fetchDogs Thunk: Dog details response status:",
         dogsResponse.status
       );
+
+      console.log("Client received response:", searchResponse.data);
 
       return {
         resultIds,

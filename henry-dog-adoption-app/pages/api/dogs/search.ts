@@ -1,13 +1,17 @@
 import { NextApiResponse, NextApiRequest } from "next";
-import { apiClient } from "@/lib/apiClient";
+import axios from "axios";
 
-const route = "/dogs/search";
+const route = "https://frontend-take-home-service.fetch.com/dogs/search";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   console.log("API Route: /api/dogs/search received request");
+
+  // Debug the actual request received
+  console.log("Request query:", JSON.stringify(req.query));
+  console.log("Request body:", JSON.stringify(req.body));
 
   if (req.method !== "GET") {
     return res
@@ -42,9 +46,26 @@ export default async function handler(
       size: size as string,
       from: from as string,
     };
-    if (breeds) params.breeds = Array.isArray(breeds) ? breeds : [breeds];
+    if (breeds) {
+      if (Array.isArray(breeds)) {
+        params.breeds = breeds;
+        console.log("Search API: Breeds parameter is an array:", breeds);
+      } else if (typeof breeds === "string") {
+        // Handle comma-separated breed strings
+        const breedsArray = breeds.split(",").map((breed) => breed.trim());
+        params.breeds = breedsArray;
+        console.log(
+          "Search API: Breeds parameter is a comma-separated string:",
+          breedsArray
+        );
+      }
+    }
     if (zipCodes)
-      params.zipCodes = Array.isArray(zipCodes) ? zipCodes : [zipCodes];
+      params.zipCodes = Array.isArray(zipCodes)
+        ? zipCodes
+        : zipCodes
+        ? [zipCodes]
+        : undefined;
     if (ageMin) params.ageMin = ageMin as string;
     if (ageMax) params.ageMax = ageMax as string;
     if (sort) {
@@ -58,7 +79,22 @@ export default async function handler(
 
     console.log("Search API: Calling apiClient with params:", params);
 
-    const response = await apiClient.get(route, {
+    // Add detailed debugging for the URL that will be sent
+    console.log(
+      "Search API: Full URL with params that will be sent:",
+      route +
+        "?" +
+        Object.entries(params)
+          .map(([key, val]) => {
+            if (Array.isArray(val)) {
+              return `${key}=${encodeURIComponent(val.join(","))}`;
+            }
+            return `${key}=${encodeURIComponent(val as string)}`;
+          })
+          .join("&")
+    );
+
+    const response = await axios.get(route, {
       params: params,
       headers: {
         Cookie: cookies,

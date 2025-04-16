@@ -14,7 +14,7 @@ export default async function handler(
   }
 
   const { name, email } = req.body;
-
+  console.log("Login API: Received request for:", { name, email });
   if (!email || !emailRegex.test(email)) {
     console.log("Login API: Invalid email:", email);
     return res.status(400).json({

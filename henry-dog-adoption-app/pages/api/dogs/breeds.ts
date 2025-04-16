@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { apiClient } from "@/lib/apiClient";
+import axios from "axios";
 
-const route = "/dogs/breeds";
+const route = "https://frontend-take-home-service.fetch.com/dogs/breeds";
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,7 +33,7 @@ export default async function handler(
     console.log("Making request to dog breeds API");
 
     // Make the API request with cookies forwarded
-    const response = await apiClient.get(route, {
+    const response = await axios.get(route, {
       withCredentials: true,
       headers: {
         Cookie: cookies,
