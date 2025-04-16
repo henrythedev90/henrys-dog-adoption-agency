@@ -5,7 +5,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "frontend-take-home-service.fetch.com",
+        hostname: "frontend-take-home.fetch.com",
         pathname: "/dog-images/**",
       },
     ],

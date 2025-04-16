@@ -2,6 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "../../lib/apiClient";
 import { Dog } from "@/types/dog";
 import { RootState } from "..";
+import axios from "axios";
 
 // Load initial favorites from localStorage
 const loadFavorites = (): string[] => {
@@ -108,19 +109,49 @@ export const fetchFavoriteDogs = createAsyncThunk(
 
 export const fetchMatch = createAsyncThunk(
   "dogs/fetchMatch",
-  async (favoriteIds: string[]) => {
+  async (favoriteIds: string[], { rejectWithValue }) => {
+    // Note: No isLoggedIn check here, assuming auth is handled by the API route
     try {
-      const response = await apiClient.post(
-        "/dogs/match",
+      console.log(
+        "fetchMatch Thunk: Calling /api/dogs/match with favorites:",
+        favoriteIds
+      );
+      // *** Use axios to call YOUR Next.js API route ***
+      const response = await axios.post(
+        "/api/dogs/match", // Target your API route
         { favoriteIds },
         {
-          withCredentials: true,
+          withCredentials: true, // Send cookies to your API route
         }
       );
 
-      return response.data;
+      console.log("fetchMatch Thunk: Received response from /api/dogs/match:", {
+        status: response.status,
+        data: response.data,
+      });
+
+      // Your /api/dogs/match route should return the dog object directly
+      if (response.data && response.data.id) {
+        return response.data; // Return the dog object
+      } else {
+        console.error(
+          "fetchMatch Thunk: API response from /api/dogs/match did not contain valid dog data.",
+          response.data
+        );
+        return rejectWithValue("Received invalid data for matched dog.");
+      }
     } catch (error: any) {
-      throw error;
+      console.error("fetchMatch Thunk: Error calling /api/dogs/match:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      // Provide a user-friendly error message
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to generate match. Please try again."
+      );
     }
   }
 );
@@ -198,13 +229,39 @@ const dogsSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchMatch.fulfilled, (state, action) => {
-        state.loading = false;
-        state.match = action.payload;
+      .addCase(fetchMatch.fulfilled, (state, action: PayloadAction<Dog>) => {
+        // *** Added Logging ***
+        console.log(
+          "fetchMatch Reducer (Fulfilled): Received payload:",
+          action.payload
+        );
+
+        // Ensure payload is a valid Dog object before setting
+        if (
+          action.payload &&
+          typeof action.payload === "object" &&
+          action.payload.id
+        ) {
+          state.loading = false;
+          state.match = action.payload; // Expecting the dog object directly
+          state.error = null; // Clear any previous error
+        } else {
+          console.error(
+            "fetchMatch Reducer (Fulfilled): Invalid payload received, not updating state:",
+            action.payload
+          );
+          state.loading = false;
+          state.error = "Received invalid data for match."; // Set an error state
+        }
       })
       .addCase(fetchMatch.rejected, (state, action) => {
+        console.log("fetchMatch Reducer (Rejected): Action:", action);
         state.loading = false;
-        state.error = action.error.message || "Failed to fetch match";
+        state.error =
+          (action.payload as string) ||
+          action.error.message ||
+          "Failed to fetch match";
+        state.match = null; // Clear any potentially stale match
       });
   },
 });
