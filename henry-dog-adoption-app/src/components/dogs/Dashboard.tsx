@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchDogs,
@@ -24,6 +24,7 @@ import classes from "./styles/Dashboard.module.css";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import SplitColorText from "../ui/SplitColorText";
 import { fetchBreeds } from "@/store/slices/breedSlice";
+import Button from "../ui/Button";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
@@ -36,6 +37,10 @@ const Dashboard = React.memo(() => {
   const filters = useAppSelector(selectFilters);
   const { name, isLoggedIn } = useAppSelector((state) => state.auth);
   const [authChecked, setAuthChecked] = useState(false);
+
+  // --- Add State for Sorting ---
+  const [sortKey, setSortKey] = useState<keyof Dog | null>(null); // 'breed', 'name', 'age'
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const hasActiveFilters =
     filters.breeds.length > 0 ||
@@ -103,6 +108,37 @@ const Dashboard = React.memo(() => {
     isLoggedIn,
   ]);
 
+  // --- Sorting Logic ---
+  const sortedDogs = useMemo(() => {
+    if (!sortKey) return dogs; // No sorting if no key is selected
+
+    // Create a copy to avoid mutating the original Redux state
+    const dogsToSort = [...dogs];
+
+    dogsToSort.sort((a, b) => {
+      const valA = a[sortKey];
+      const valB = b[sortKey];
+
+      let comparison = 0;
+      if (valA > valB) {
+        comparison = 1;
+      } else if (valA < valB) {
+        comparison = -1;
+      }
+
+      return sortDirection === "asc" ? comparison : comparison * -1;
+    });
+
+    return dogsToSort;
+  }, [dogs, sortKey, sortDirection]);
+
+  const handleSort = (key: keyof Dog) => {
+    const newDirection =
+      sortKey === key && sortDirection === "asc" ? "desc" : "asc";
+    setSortKey(key);
+    setSortDirection(newDirection);
+  };
+
   const handlePageChange = useCallback(
     (newPage: number) => {
       dispatch(setDogsPage(newPage));
@@ -132,6 +168,40 @@ const Dashboard = React.memo(() => {
       <div className={classes.dashboard_dogs_result}>
         <div className={classes.dashboard_dogs_result_header}>
           <h4>Available Dogs</h4>
+          {dogs.length > 0 && (
+            <div className={classes.sort_controls}>
+              <span>Sort by:</span>
+              <Button
+                variant={sortKey === "breed" ? "primary" : "secondary"}
+                onClickFunction={() => handleSort("breed")}
+              >
+                Breed{" "}
+                {sortKey === "breed"
+                  ? sortDirection === "asc"
+                    ? "▲"
+                    : "▼"
+                  : ""}
+              </Button>
+              <Button
+                variant={sortKey === "name" ? "primary" : "secondary"}
+                onClickFunction={() => handleSort("name")}
+              >
+                Name{" "}
+                {sortKey === "name"
+                  ? sortDirection === "asc"
+                    ? "▲"
+                    : "▼"
+                  : ""}
+              </Button>
+              <Button
+                variant={sortKey === "age" ? "primary" : "secondary"}
+                onClickFunction={() => handleSort("age")}
+              >
+                Age{" "}
+                {sortKey === "age" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+              </Button>
+            </div>
+          )}
         </div>
         {loading ? (
           <LoadingSpinner />
@@ -139,10 +209,11 @@ const Dashboard = React.memo(() => {
           <p>{error}</p>
         ) : !hasActiveFilters ? (
           <p>Please select at least one filter to see available dogs</p>
-        ) : dogs.length > 0 ? (
+        ) : sortedDogs.length > 0 ? (
           <>
             <div className={classes.dashboard_dog_card_result}>
-              {dogs.map((dog: Dog) => (
+              {/* --- Render Sorted Dogs --- */}
+              {sortedDogs.map((dog: Dog) => (
                 <DogCard key={dog.id} dog={dog} />
               ))}
             </div>
