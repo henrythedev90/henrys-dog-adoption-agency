@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "./styles/Modal.module.css";
 
 interface ModalProps {
   isOpen: boolean;
@@ -16,19 +17,18 @@ export default function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+    <div className={styles.modal_overlay}>
+      <div className={styles.modal_content}>
+        <div className={styles.modal_header}>
+          <h2 className={styles.modal_title}>{title}</h2>
+          <button onClick={onClose} className={styles.close_button}>
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              width="24"
+              height="24"
             >
               <path
                 strokeLinecap="round"

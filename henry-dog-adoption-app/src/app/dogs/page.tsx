@@ -1,17 +1,17 @@
 "use client";
 import React from "react";
-import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import Container from "@/components/ui/Container";
 import Dashboard from "@/components/dogs/Dashboard";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-export default function page() {
+export default function Page() {
   return (
-    <div>
+    <ProtectedRoute>
       <Header />
       <Container>
         <Dashboard />
       </Container>
-    </div>
+    </ProtectedRoute>
   );
 }

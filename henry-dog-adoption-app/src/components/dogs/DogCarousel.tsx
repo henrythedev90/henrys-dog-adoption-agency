@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
 import DogCard from "./DogCard";
 import classes from "./styles/DogCarousel.module.css";
+import modalClasses from "../ui/styles/Modal.module.css";
 import { Dog } from "@/types/dog";
 import Container from "../ui/Container";
 import Button from "../ui/Button";
+import Modal from "../ui/Modal";
+import LoadingSpinner from "../ui/LoadingSpinner";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
+import { fetchMatch } from "@/store/slices/dogsSlice";
+import confetti from "canvas-confetti";
 
 interface DogCarouselProps {
   favoriteDogs: Dog[];
@@ -16,7 +23,13 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   handleOpenModal,
   title = "Your Favorite Dogs",
 }) => {
+  const dispatch = useAppDispatch();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const favoriteIds = useAppSelector(selectDogFavorite);
+  const [error, setError] = useState<string | null>(null);
 
   // Update current slide when favorites change
   useEffect(() => {
@@ -26,14 +39,68 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     }
   }, [favoriteDogs.length, currentSlide]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prevSlide) =>
-      Math.min(prevSlide + 1, favoriteDogs.length - 1)
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) =>
+      prev === 0 ? favoriteDogs.length - 1 : prev - 1
     );
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prevSlide) => Math.max(prevSlide - 1, 0));
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) =>
+      prev === favoriteDogs.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const fireConfetti = () => {
+    // Fire confetti from the left edge
+    confetti({
+      particleCount: 100,
+      spread: 120,
+      origin: { x: 0, y: 0.6 },
+      scalar: 1.5,
+      ticks: 200,
+    });
+
+    // Fire confetti from the right edge
+    confetti({
+      particleCount: 100,
+      spread: 120,
+      origin: { x: 1, y: 0.6 },
+      scalar: 1.5,
+      ticks: 200,
+    });
+  };
+
+  const handleGenerateMatch = async () => {
+    if (favoriteIds.length === 0) {
+      alert("Please favorite some dogs first!");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setIsModalOpen(true);
+
+    try {
+      debugger;
+      const result = await dispatch(fetchMatch(favoriteIds)).unwrap();
+
+      // Add a 5-second delay before showing the match
+      setTimeout(() => {
+        setMatchedDog(result);
+        setLoading(false);
+        fireConfetti(); // Fire confetti when the match is revealed
+      }, 5000);
+    } catch (err: any) {
+      console.error("Match error:", err);
+      setError(err?.message || "Failed to generate match. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setMatchedDog(null);
   };
 
   // Don't render carousel if no favorites
@@ -81,27 +148,35 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
           ))}
         </div>
 
-        {currentSlide > 0 && (
+        <div className={classes.carousel_button_container}>
           <Button
-            onClickFunction={prevSlide}
+            onClickFunction={handlePrevSlide}
             className={classes.carousel_button_previous}
             aria-label="Previous dog"
             variant="secondary"
+            disabled={favoriteDogs.length <= 1}
           >
             ←
           </Button>
-        )}
 
-        {currentSlide < favoriteDogs.length - 1 && (
           <Button
-            onClickFunction={nextSlide}
+            onClickFunction={handleGenerateMatch}
+            className={classes.generate_match_button}
+            disabled={loading}
+          >
+            {loading ? "Finding Match..." : "Generate Match"}
+          </Button>
+
+          <Button
+            onClickFunction={handleNextSlide}
             className={classes.carousel_button_next}
             aria-label="Next dog"
             variant="secondary"
+            disabled={favoriteDogs.length <= 1}
           >
             →
           </Button>
-        )}
+        </div>
 
         <div className={classes.carousel_button_container}>
           <div className={classes.carousel_dot}>
@@ -116,15 +191,55 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               />
             ))}
           </div>
-          <Button
-            onClickFunction={() => handleOpenModal(favoriteDogs[currentSlide])}
-            className={classes.generate_match_button}
-          >
-            Generate Match with{" "}
-            {favoriteDogs[currentSlide]?.name || "Current Dog"}
-          </Button>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title="Your Perfect Match!"
+      >
+        <div className={modalClasses.match_modal_content}>
+          {loading ? (
+            <>
+              <h4 className={modalClasses.match_modal_title}>
+                Finding your perfect match...
+              </h4>
+              <div className={modalClasses.loading_container}>
+                <LoadingSpinner size="large" />
+                <p className={modalClasses.loading_text}>
+                  Our algorithm is working its magic!
+                </p>
+              </div>
+            </>
+          ) : matchedDog ? (
+            <>
+              <h4 className={modalClasses.match_modal_title}>
+                Meet {matchedDog.name}!
+              </h4>
+              <DogCard dog={matchedDog} />
+              <div className={modalClasses.match_modal_actions}>
+                <Button onClickFunction={handleCloseModal} variant="primary">
+                  Keep Browsing
+                </Button>
+              </div>
+            </>
+          ) : error ? (
+            <>
+              <h4 className={modalClasses.match_modal_title}>Oops!</h4>
+              <p className={modalClasses.error_text}>{error}</p>
+              <div className={modalClasses.match_modal_actions}>
+                <Button onClickFunction={handleCloseModal} variant="secondary">
+                  Close
+                </Button>
+                <Button onClickFunction={handleGenerateMatch} variant="primary">
+                  Try Again
+                </Button>
+              </div>
+            </>
+          ) : null}
+        </div>
+      </Modal>
     </Container>
   );
 };
