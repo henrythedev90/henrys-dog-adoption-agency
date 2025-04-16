@@ -7,7 +7,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("API Route: Received request for dog search breed");
+  console.log("API Route: /api/dogs/search received request");
 
   if (req.method !== "GET") {
     return res
@@ -22,59 +22,69 @@ export default async function handler(
     ageMax,
     size = 25,
     from = 0,
-    sort = ["breed:asc"],
+    sort,
   } = req.query;
 
   try {
     const cookies = req.headers.cookie;
 
-    console.log("Cookies received:", cookies ? "Yes" : "No");
+    console.log("Search API: Cookies received:", cookies ? "Yes" : "No");
 
     if (!cookies) {
+      console.error("Search API: Authentication cookies missing.");
       return res.status(401).json({
         error: "You are not authenticated",
         message: "Cookies were not received",
       });
     }
-    const queryParams = new URLSearchParams();
 
-    if (breeds) {
-      const breedArray = Array.isArray(breeds) ? breeds : [breeds];
-      breedArray.forEach((breed) => queryParams.append("breeds", breed));
-    }
-
-    if (zipCodes) {
-      const zipCodesArray = Array.isArray(zipCodes) ? zipCodes : [zipCodes];
-      zipCodesArray.forEach((zipCode) =>
-        queryParams.append("zipCodes", zipCode)
+    const params: Record<string, any> = {
+      size: size as string,
+      from: from as string,
+    };
+    if (breeds) params.breeds = Array.isArray(breeds) ? breeds : [breeds];
+    if (zipCodes)
+      params.zipCodes = Array.isArray(zipCodes) ? zipCodes : [zipCodes];
+    if (ageMin) params.ageMin = ageMin as string;
+    if (ageMax) params.ageMax = ageMax as string;
+    if (sort) {
+      params.sort = sort as string;
+      console.log("Search API: Using sort parameter:", params.sort);
+    } else {
+      console.log(
+        "Search API: No sort parameter provided, using external API default."
       );
     }
 
-    if (ageMin) queryParams.append("ageMin", ageMin as string);
-    if (ageMax) queryParams.append("ageMax", ageMax as string);
-    if (size) queryParams.append("size", size as string);
-    if (from) queryParams.append("from", from as string);
-    if (sort) queryParams.append("sort", sort as string);
+    console.log("Search API: Calling apiClient with params:", params);
+
+    const response = await apiClient.get(route, {
+      params: params,
+      headers: {
+        Cookie: cookies,
+      },
+    });
 
     console.log(
-      "Starting making request to search breed with the params of",
-      queryParams
+      "Search API: Received response from apiClient, status:",
+      response.status
     );
-
-    const response = await apiClient.get(
-      `${route}/?${queryParams.toString()}`,
-      {
-        headers: {
-          Cookie: cookies,
-        },
-      }
-    );
-
     return res.status(200).json(response.data);
-  } catch (error) {
-    return res.status(500).json({
-      error: "Failed to fetch the search queries",
-      message: error instanceof Error ? error.message : "Unknown error",
+  } catch (error: any) {
+    console.error("Search API: Error calling external API via apiClient:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+      url: error.config?.url,
+      params: error.config?.params,
+    });
+    return res.status(error.response?.status || 500).json({
+      error: "Failed to fetch search results from external service",
+      message:
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Unknown error",
     });
   }
 }

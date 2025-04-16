@@ -18,12 +18,21 @@ async function fetchDogDetails(dogId: string, cookies: string | undefined) {
         withCredentials: true, // Important for the direct call
       }
     );
-    const dogData = response.data?.[0] || null;
-    console.log(
-      `Match API (Favorite Picker): Details received for ${dogId}:`,
-      dogData ? "Yes" : "No"
-    );
-    return dogData;
+    const potentialDogData = response.data?.[0]; // Get the first item, could be {} or a dog
+
+    // *** Add validation: Check if the received data has an ID ***
+    if (potentialDogData && potentialDogData.id) {
+      console.log(
+        `Match API (Favorite Picker): Valid details received for ${dogId}.`
+      );
+      return potentialDogData; // Return the valid dog object
+    } else {
+      console.warn(
+        `Match API (Favorite Picker): Invalid or empty data received for dog ID ${dogId}. Data:`,
+        potentialDogData
+      );
+      return null; // Return null if data is invalid or missing ID
+    }
   } catch (error) {
     console.error(
       `Match API (Favorite Picker): Error fetching details for dog ${dogId}:`,

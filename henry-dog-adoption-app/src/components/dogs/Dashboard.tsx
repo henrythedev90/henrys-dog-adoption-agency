@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchDogs,
@@ -25,6 +25,7 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 import SplitColorText from "../ui/SplitColorText";
 import { fetchBreeds } from "@/store/slices/breedSlice";
 import Button from "../ui/Button";
+import { setFilters } from "@/store/slices/filtersSlice";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
@@ -36,11 +37,12 @@ const Dashboard = React.memo(() => {
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
   const { name, isLoggedIn } = useAppSelector((state) => state.auth);
-  const [authChecked, setAuthChecked] = useState(false);
 
-  // --- Add State for Sorting ---
-  const [sortKey, setSortKey] = useState<keyof Dog | null>(null); // 'breed', 'name', 'age'
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
+  const [hasFiltersOrPageChanged, setHasFiltersOrPageChanged] = useState(false);
+
+  const currentSortString = filters.sort;
+  const [currentSortKey, currentSortDirection] = currentSortString.split(":");
 
   const hasActiveFilters =
     filters.breeds.length > 0 ||
@@ -49,94 +51,88 @@ const Dashboard = React.memo(() => {
     filters.ageMax !== null;
 
   useEffect(() => {
-    // Check authentication status when component mounts
-    console.log("Dashboard: Checking auth status");
-    dispatch(checkAuth()).then((result) => {
-      console.log("Dashboard: Auth check result:", result.payload);
-      setAuthChecked(true);
-      if (!result.payload) {
-        console.log("Dashboard: Auth check failed, redirecting to home");
+    console.log("Dashboard: Mount - Dispatching checkAuth");
+    dispatch(checkAuth())
+      .unwrap()
+      .then(() => {
+        console.log("Dashboard: checkAuth successful.");
+        setIsAuthCheckComplete(true);
+      })
+      .catch((authError) => {
+        console.error("Dashboard: checkAuth failed:", authError);
+        setIsAuthCheckComplete(true);
         window.location.replace("/");
-      }
-    });
-  }, [dispatch, router]);
+      });
+  }, [dispatch]);
 
-  // Add a separate effect to watch for auth state changes
   useEffect(() => {
-    if (authChecked && !isLoggedIn) {
-      console.log("Dashboard: Not logged in, redirecting to home");
+    if (!isAuthCheckComplete) return;
+
+    if (isLoggedIn) {
+      console.log(
+        "Dashboard: Auth verified & logged in. Fetching initial breeds & dogs."
+      );
+      dispatch(fetchBreeds());
+      dispatch(fetchDogs());
+    } else {
+      console.log("Dashboard: Auth verified but not logged in. Redirecting.");
       window.location.replace("/");
     }
-  }, [isLoggedIn, authChecked]);
+  }, [isAuthCheckComplete, isLoggedIn, dispatch]);
 
-  // On initial load, fetch all dogs
   useEffect(() => {
-    // Only fetch breeds if user is logged in
-    if (isLoggedIn) {
-      console.log("Dashboard: Fetching breeds as user is logged in");
-      dispatch(fetchBreeds());
+    if (!isAuthCheckComplete || !isLoggedIn) {
+      return;
     }
-  }, [dispatch, isLoggedIn]);
-
-  // Fetch dogs based on filters
-  useEffect(() => {
-    // Only fetch dogs if user is logged in
-    if (!isLoggedIn) {
-      console.log("Dashboard: Skipping dog fetch - not logged in yet");
+    if (!hasFiltersOrPageChanged) {
       return;
     }
 
-    // Clear results when filters are removed
-    if (!hasActiveFilters) {
-      console.log("Dashboard: No active filters, clearing results");
-      dispatch(clearBreeds());
-      return;
-    }
-
-    // Apply filters to the already fetched dogs
-    console.log("Dashboard: Fetching dogs with filters:", filters);
+    console.log("Dashboard: Filters/page changed. Re-fetching dogs.", {
+      page,
+      filters,
+    });
     dispatch(fetchDogs());
   }, [
-    dispatch,
     page,
-    hasActiveFilters,
     filters.breeds,
     filters.zipCodes,
     filters.ageMin,
     filters.ageMax,
     filters.size,
+    filters.sort,
+    dispatch,
+    isAuthCheckComplete,
     isLoggedIn,
+    hasFiltersOrPageChanged,
   ]);
 
-  // --- Sorting Logic ---
-  const sortedDogs = useMemo(() => {
-    if (!sortKey) return dogs; // No sorting if no key is selected
+  useEffect(() => {
+    if (isAuthCheckComplete) {
+      setHasFiltersOrPageChanged(true);
+    }
+  }, [
+    page,
+    filters.breeds,
+    filters.zipCodes,
+    filters.ageMin,
+    filters.ageMax,
+    filters.size,
+    filters.sort,
+    isAuthCheckComplete,
+  ]);
 
-    // Create a copy to avoid mutating the original Redux state
-    const dogsToSort = [...dogs];
-
-    dogsToSort.sort((a, b) => {
-      const valA = a[sortKey];
-      const valB = b[sortKey];
-
-      let comparison = 0;
-      if (valA > valB) {
-        comparison = 1;
-      } else if (valA < valB) {
-        comparison = -1;
-      }
-
-      return sortDirection === "asc" ? comparison : comparison * -1;
-    });
-
-    return dogsToSort;
-  }, [dogs, sortKey, sortDirection]);
-
-  const handleSort = (key: keyof Dog) => {
+  const handleSort = (key: string) => {
+    const [sortKeyFromState, sortDirectionFromState] = filters.sort.split(":");
     const newDirection =
-      sortKey === key && sortDirection === "asc" ? "desc" : "asc";
-    setSortKey(key);
-    setSortDirection(newDirection);
+      sortKeyFromState === key && sortDirectionFromState === "asc"
+        ? "desc"
+        : "asc";
+    const newSortString = `${key}:${newDirection}`;
+
+    console.log("Dashboard: Updating sort to:", newSortString);
+    dispatch(setFilters({ sort: newSortString }));
+    dispatch(setDogsPage(0));
   };
 
   const handlePageChange = useCallback(
@@ -145,6 +141,19 @@ const Dashboard = React.memo(() => {
     },
     [dispatch]
   );
+
+  if (!isAuthCheckComplete) {
+    return (
+      <div className={classes.loading_container_full_page}>
+        <LoadingSpinner />
+        <p>Checking authentication...</p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <div className={classes.dashboard_parent_container}>
@@ -168,37 +177,41 @@ const Dashboard = React.memo(() => {
       <div className={classes.dashboard_dogs_result}>
         <div className={classes.dashboard_dogs_result_header}>
           <h4>Available Dogs</h4>
-          {dogs.length > 0 && (
+          {dogs.length > 0 && !loading && (
             <div className={classes.sort_controls}>
               <span>Sort by:</span>
               <Button
-                variant={sortKey === "breed" ? "primary" : "secondary"}
+                variant={currentSortKey === "breed" ? "primary" : "secondary"}
                 onClickFunction={() => handleSort("breed")}
               >
                 Breed{" "}
-                {sortKey === "breed"
-                  ? sortDirection === "asc"
+                {currentSortKey === "breed"
+                  ? currentSortDirection === "asc"
                     ? "▲"
                     : "▼"
                   : ""}
               </Button>
               <Button
-                variant={sortKey === "name" ? "primary" : "secondary"}
+                variant={currentSortKey === "name" ? "primary" : "secondary"}
                 onClickFunction={() => handleSort("name")}
               >
                 Name{" "}
-                {sortKey === "name"
-                  ? sortDirection === "asc"
+                {currentSortKey === "name"
+                  ? currentSortDirection === "asc"
                     ? "▲"
                     : "▼"
                   : ""}
               </Button>
               <Button
-                variant={sortKey === "age" ? "primary" : "secondary"}
+                variant={currentSortKey === "age" ? "primary" : "secondary"}
                 onClickFunction={() => handleSort("age")}
               >
                 Age{" "}
-                {sortKey === "age" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+                {currentSortKey === "age"
+                  ? currentSortDirection === "asc"
+                    ? "▲"
+                    : "▼"
+                  : ""}
               </Button>
             </div>
           )}
@@ -207,13 +220,12 @@ const Dashboard = React.memo(() => {
           <LoadingSpinner />
         ) : error ? (
           <p>{error}</p>
-        ) : !hasActiveFilters ? (
+        ) : !hasActiveFilters && dogs.length === 0 && !error ? (
           <p>Please select at least one filter to see available dogs</p>
-        ) : sortedDogs.length > 0 ? (
+        ) : dogs.length > 0 ? (
           <>
             <div className={classes.dashboard_dog_card_result}>
-              {/* --- Render Sorted Dogs --- */}
-              {sortedDogs.map((dog: Dog) => (
+              {dogs.map((dog: Dog) => (
                 <DogCard key={dog.id} dog={dog} />
               ))}
             </div>
@@ -227,9 +239,9 @@ const Dashboard = React.memo(() => {
               </div>
             )}
           </>
-        ) : (
+        ) : hasActiveFilters && dogs.length === 0 && !error ? (
           <p>No dogs found. Try adjusting your search filters</p>
-        )}
+        ) : null}
       </div>
     </div>
   );
