@@ -27,6 +27,7 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
         <h4>{dog.name}</h4>
         <p>Breed: {dog.breed}</p>
         <p>Age: {dog.age}</p>
+        <p>Zip Code: {dog.zip_code}</p>
         {/* <p>Zip Code: {dog.zipCode}</p> */}
       </div>
       <div className={classes.dog_card_img}>
