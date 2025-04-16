@@ -87,12 +87,19 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     try {
       const result = await dispatch(fetchMatch(favoriteIds)).unwrap();
 
-      // Add a 5-second delay before showing the match
-      setTimeout(() => {
+      if (favoriteIds.length > 2) {
+        // Add a delay before showing the match for better UX when there are many favorites
+        setTimeout(() => {
+          setMatchedDog(result);
+          setLoading(false);
+          fireConfetti(); // Fire confetti when the match is revealed
+        }, 3000);
+      } else {
+        // Show match immediately if few favorites
         setMatchedDog(result);
         setLoading(false);
         fireConfetti(); // Fire confetti when the match is revealed
-      }, 5000);
+      }
     } catch (err: any) {
       console.error("Match error:", err);
       setError(err?.message || "Failed to generate match. Please try again.");
@@ -236,6 +243,9 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               <div className={modalClasses.match_modal_actions}>
                 <Button onClickFunction={handleCloseModal} variant="primary">
                   Keep Browsing
+                </Button>
+                <Button onClickFunction={handleGenerateMatch} variant="primary">
+                  Try Again
                 </Button>
               </div>
             </>

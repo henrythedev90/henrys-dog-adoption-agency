@@ -54,14 +54,7 @@ export default async function handler(
         : undefined;
     if (ageMin) params.ageMin = ageMin as string;
     if (ageMax) params.ageMax = ageMax as string;
-    if (sort) {
-      params.sort = sort as string;
-      console.log("Search API: Using sort parameter:", params.sort);
-    } else {
-      console.log(
-        "Search API: No sort parameter provided, using external API default."
-      );
-    }
+    if (sort) params.sort = sort as string;
 
     const response = await axios.get(route, {
       params: params,
@@ -72,13 +65,6 @@ export default async function handler(
 
     return res.status(200).json(response.data);
   } catch (error: any) {
-    console.error("Search API: Error calling external API via apiClient:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-      url: error.config?.url,
-      params: error.config?.params,
-    });
     return res.status(error.response?.status || 500).json({
       error: "Failed to fetch search results from external service",
       message:
