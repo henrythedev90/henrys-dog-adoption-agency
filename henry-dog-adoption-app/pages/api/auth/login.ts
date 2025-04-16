@@ -14,22 +14,18 @@ export default async function handler(
   }
 
   const { name, email } = req.body;
-  console.log("Login API: Received request for:", { name, email });
+
   if (!email || !emailRegex.test(email)) {
-    console.log("Login API: Invalid email:", email);
     return res.status(400).json({
       message: "Please enter a valid email",
     });
   }
 
   if (!name) {
-    console.log("Login API: Missing name");
     return res.status(400).json({ message: "Please enter a valid name" });
   }
 
   try {
-    console.log("Login API: Attempting login for:", { name, email });
-
     // Make the login request directly to the Fetch API
     const response = await axios.post(
       route,
@@ -44,10 +40,6 @@ export default async function handler(
 
     // Get the cookies from the response
     const cookies = response.headers["set-cookie"];
-    console.log(
-      "Login API: Raw cookies from Fetch API:",
-      cookies ? "Present" : "None"
-    );
 
     if (cookies && cookies.length > 0) {
       // Log each cookie for debugging
@@ -78,7 +70,6 @@ export default async function handler(
 
       // Forward each cookie exactly as received from the Fetch API
       res.setHeader("Set-Cookie", cookies);
-      console.log("Login API: Forwarded cookies to client");
     } else {
       console.error("Login API: No cookies received from Fetch API");
       return res.status(401).json({
@@ -87,7 +78,6 @@ export default async function handler(
       });
     }
 
-    console.log("Login API: Login successful for", name);
     res.status(200).json({
       success: true,
       message: "Login successful",

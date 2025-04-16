@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toggleFavorite } from "@/store/slices/dogsSlice";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import classes from "./styles/DogCard.module.css";
-import Image from "next/image";
+import DogCardImage from "./DogCardImage";
 
 interface DogCardProps {
   dog: Dog;
@@ -24,15 +24,13 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
   return (
     <div className={classes.dog_card}>
       <div className={classes.dog_card_text}>
-        <p>{dog.id}</p>
         <h4>{dog.name}</h4>
         <p>Breed: {dog.breed}</p>
         <p>Age: {dog.age}</p>
         <p>Zip Code: {dog.zip_code}</p>
-        {/* <p>Zip Code: {dog.zipCode}</p> */}
       </div>
       <div className={classes.dog_card_img}>
-        <Image src={dog.img} alt={dog.name} width={120} height={120} />
+        <DogCardImage urlImage={dog.img} title={dog.name} />
         <div
           className={`${classes.heart_icon} ${
             isFavorite ? classes.favorite : ""

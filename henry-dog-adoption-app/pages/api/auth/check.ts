@@ -10,14 +10,8 @@ export default async function handler(
   }
 
   const cookies = req.headers.cookie;
-  console.log("Auth check: Cookies received:", cookies ? "Yes" : "No");
-
-  if (cookies) {
-    console.log("Auth check: Cookie header:", cookies);
-  }
 
   if (!cookies) {
-    console.log("Auth check: No cookies found");
     return res.status(401).json({ error: "Not authenticated" });
   }
 

@@ -7,12 +7,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("API Route: /api/dogs/search received request");
-
-  // Debug the actual request received
-  console.log("Request query:", JSON.stringify(req.query));
-  console.log("Request body:", JSON.stringify(req.body));
-
   if (req.method !== "GET") {
     return res
       .status(405)
@@ -32,10 +26,7 @@ export default async function handler(
   try {
     const cookies = req.headers.cookie;
 
-    console.log("Search API: Cookies received:", cookies ? "Yes" : "No");
-
     if (!cookies) {
-      console.error("Search API: Authentication cookies missing.");
       return res.status(401).json({
         error: "You are not authenticated",
         message: "Cookies were not received",
@@ -49,15 +40,10 @@ export default async function handler(
     if (breeds) {
       if (Array.isArray(breeds)) {
         params.breeds = breeds;
-        console.log("Search API: Breeds parameter is an array:", breeds);
       } else if (typeof breeds === "string") {
         // Handle comma-separated breed strings
         const breedsArray = breeds.split(",").map((breed) => breed.trim());
         params.breeds = breedsArray;
-        console.log(
-          "Search API: Breeds parameter is a comma-separated string:",
-          breedsArray
-        );
       }
     }
     if (zipCodes)
@@ -77,23 +63,6 @@ export default async function handler(
       );
     }
 
-    console.log("Search API: Calling apiClient with params:", params);
-
-    // Add detailed debugging for the URL that will be sent
-    console.log(
-      "Search API: Full URL with params that will be sent:",
-      route +
-        "?" +
-        Object.entries(params)
-          .map(([key, val]) => {
-            if (Array.isArray(val)) {
-              return `${key}=${encodeURIComponent(val.join(","))}`;
-            }
-            return `${key}=${encodeURIComponent(val as string)}`;
-          })
-          .join("&")
-    );
-
     const response = await axios.get(route, {
       params: params,
       headers: {
@@ -101,10 +70,6 @@ export default async function handler(
       },
     });
 
-    console.log(
-      "Search API: Received response from apiClient, status:",
-      response.status
-    );
     return res.status(200).json(response.data);
   } catch (error: any) {
     console.error("Search API: Error calling external API via apiClient:", {

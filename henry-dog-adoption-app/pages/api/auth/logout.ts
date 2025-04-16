@@ -18,11 +18,6 @@ export default async function handler(
     const fetchApiToken = req.cookies["fetch-api-token"];
     const fetchRefreshToken = req.cookies["fetch-refresh-token"];
 
-    console.log("Logout API: Cookie values:", {
-      fetchApiToken: fetchApiToken ? "exists" : "missing",
-      fetchRefreshToken: fetchRefreshToken ? "exists" : "missing",
-    });
-
     if (!fetchApiToken && !fetchRefreshToken) {
       console.log("Logout API: No authentication cookies found");
       // Even if cookies are missing, clear any that might exist and consider it a successful logout

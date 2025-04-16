@@ -6,11 +6,6 @@ async function fetchDogDetails(
   dogId: string,
   cookieHeader: string | undefined
 ) {
-  console.log(
-    `fetchDogDetails: Attempting POST to external /dogs for ID ${dogId}`
-  );
-  console.log(`Cookie header being sent: ${cookieHeader?.substring(0, 20)}...`);
-
   try {
     console.log(
       `Match API (Favorite Picker): Fetching details for selected favorite ID: ${dogId}`
@@ -23,15 +18,6 @@ async function fetchDogDetails(
           Cookie: cookieHeader, // Pass the received cookies
           "Content-Type": "application/json",
         },
-      }
-    );
-
-    // Log the RAW response from the external API
-    console.log(
-      `Match API (Favorite Picker): RAW response from external /dogs for ID ${dogId}:`,
-      {
-        status: response.status,
-        data: response.data ? "Data present" : "No data", // Avoid logging full data
       }
     );
 

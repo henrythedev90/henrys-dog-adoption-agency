@@ -17,8 +17,6 @@ export default async function handler(
   try {
     const cookies = req.headers.cookie;
 
-    console.log("Cookies received:", cookies ? "Yes" : "No");
-
     if (!cookies) {
       return res.status(401).json({
         error: "You do have access because you are not authenticated",
