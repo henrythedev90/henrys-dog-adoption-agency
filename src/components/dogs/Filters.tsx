@@ -127,7 +127,11 @@ export default function Filters() {
     <div className={classes.filter_container}>
       <div className={classes.filter_breed_container}>
         <label>Breed:</label>
-        <select onChange={handleBreedsSelect} value="">
+        <select
+          onChange={handleBreedsSelect}
+          value=""
+          disabled={filters.breeds.length >= 5}
+        >
           <option value="" disabled>
             Select a breed
           </option>
