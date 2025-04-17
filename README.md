@@ -19,7 +19,6 @@ A modern web application for browsing and finding your perfect canine companion!
 - **HTTP Client**: Axios for API requests
 - **Animations**: canvas-confetti for celebration effects
 - **Routing**: Next.js App Router and react-router-dom
-- **Testing**: Jest and React Testing Library for unit and component testing
 
 ## 📋 Prerequisites
 
@@ -61,9 +60,6 @@ A modern web application for browsing and finding your perfect canine companion!
 - `npm run build` - Build the application for production
 - `npm run start` - Start the production server
 - `npm run lint` - Run ESLint to catch issues
-- `npm test` - Run Jest tests
-- `npm run test:watch` - Run Jest in watch mode
-- `npm run test:coverage` - Generate test coverage report
 
 ## 📱 Application Structure
 
@@ -79,7 +75,7 @@ A modern web application for browsing and finding your perfect canine companion!
 - **src/store/** - Redux store with slices organized by domain (auth, dogs, filters)
 - **src/types/** - TypeScript type definitions for app-wide use
 
-## 📄 Contributing
+## �� Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
