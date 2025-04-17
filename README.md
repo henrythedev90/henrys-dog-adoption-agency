@@ -30,8 +30,8 @@ A modern web application for browsing and finding your perfect canine companion!
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/henrys-dog-adoption-agency.git
-   cd henrys-dog-adoption-agency/henry-dog-adoption-app
+   git clone https://github.com/<yourusername>/henrys-dog-adoption-agency.git
+   cd henry-dog-adoption-app
    ```
 
 2. **Install dependencies**
