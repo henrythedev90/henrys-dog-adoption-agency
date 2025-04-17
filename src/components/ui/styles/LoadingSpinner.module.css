@@ -1,11 +1,3 @@
-:root {
-  --primary: #5b9aff; /* Soft Blue */
-  --secondary: #5ee6a3; /* Sage Green */
-  --accent: #daa520; /* Warm Beige */
-  --background: #f5f7fa; /* Off-White */
-  --foreground: #4a4f57; /* Charcoal */
-}
-
 .spinner_container {
   display: flex;
   justify-content: center;

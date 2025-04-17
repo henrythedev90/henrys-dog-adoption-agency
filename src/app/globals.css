@@ -1,10 +1,10 @@
-:root {
-  --primary: #5b9aff; /* Soft Blue */
-  --secondary: #5ee6a3; /* Sage Green */
-  --accent: #daa520; /* Warm Beige */
-  --background: #f5f7fa; /* Off-White */
-  --foreground: #4a4f57; /* Charcoal */
-}
+/* :root {
+  --primary: #5b9aff; 
+  --secondary: #5ee6a3; 
+  --accent: #daa520;
+  --background: #f5f7fa; 
+  --foreground: #4a4f57; 
+}*/
 
 @media (prefers-color-scheme: dark) {
   :root {
