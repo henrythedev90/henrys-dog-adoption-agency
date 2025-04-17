@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchBreeds } from "../../store/slices/breedSlice";
 import { selectFilters } from "../../store/selectors/filterSelectors";
@@ -24,6 +24,10 @@ export default function Filters() {
   const loadingBreeds = useAppSelector(selectBreedsLoading);
   const breedsError = useAppSelector(selectBreedsError);
   const [zipInput, setZipInput] = useState("");
+  const [validateTimeout, setValidateTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
+  // Create timeout ref for debounce
 
   useEffect(() => {
     dispatch(fetchBreeds());
@@ -76,20 +80,28 @@ export default function Filters() {
   };
 
   const handleAgeMax = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (isNaN(value) || value < 0) {
-      alert("Please enter a non-negative number for Max Age.");
+    const value = parseInt(e.target.value, 10);
+    if (isNaN(value)) {
+      dispatch(setFilters({ ageMax: null }));
       return;
     }
-    if (value > 30) {
-      alert("Maximum age cannot be greater than 30.");
-      return;
-    }
-    if (filters.ageMin !== null && value < filters.ageMin) {
-      alert("Maximum age cannot be less than minimum age.");
-      return;
-    }
+
+    // Set the value immediately without validation
     dispatch(setFilters({ ageMax: value }));
+
+    // Clear previous timeout if it exists
+    if (validateTimeout) clearTimeout(validateTimeout);
+
+    // Set new timeout for validation
+    const newTimeout = setTimeout(() => {
+      // Validate after timeout
+      if (filters.ageMin !== null && value < filters.ageMin) {
+        alert("Maximum age cannot be less than minimum age.");
+        dispatch(setFilters({ ageMax: filters.ageMin }));
+      }
+    }, 1000);
+
+    setValidateTimeout(newTimeout);
   };
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
