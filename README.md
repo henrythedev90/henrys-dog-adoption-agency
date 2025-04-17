@@ -63,12 +63,19 @@ A modern web application for browsing and finding your perfect canine companion!
 
 ## 📱 Application Structure
 
-- `src/components` - Reusable UI components
-- `src/store` - Redux store configuration and slices
-- `src/types` - TypeScript type definitions
-- `public` - Static assets and images
+- **pages/api/** - Backend API endpoints organized by functionality (auth, dogs, locations)
+- **src/app/** - Next.js App Router pages and layouts for main application views
+- **src/components/** - Reusable UI components organized by feature:
+  - **auth/** - Login form and authentication-related components
+  - **dogs/** - Dog cards, listing, filtering and favorites components
+  - **layout/** - Structural components (Header, Footer, Navigation)
+  - **ui/** - Generic UI components (Button, Modal, Container)
+- **src/hooks/** - Custom React hooks for reusable logic
+- **src/lib/** - Utility functions and API client implementation
+- **src/store/** - Redux store with slices organized by domain (auth, dogs, filters)
+- **src/types/** - TypeScript type definitions for app-wide use
 
-## 💻 Contributing
+## �� Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
