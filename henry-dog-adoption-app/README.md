@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Henry's Dog Adoption Agency
 
-## Getting Started
+A modern web application for browsing and finding your perfect canine companion! This app allows users to browse available dogs, filter by various criteria, add favorites, and receive personalized matches based on their preferences.
 
-First, run the development server:
+## 🐶 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dog Browsing**: View all available dogs with filtering options
+- **Favorites**: Save your favorite dogs for later viewing
+- **Match Algorithm**: Receive personalized dog recommendations based on your favorites
+- **Responsive Design**: Works on desktop and mobile devices
+- **Interactive UI**: Smooth animations and intuitive interface
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Frontend Framework**: [Next.js](https://nextjs.org/) 15.3.0 with React 19
+- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/) with React-Redux
+- **Styling**: CSS Modules for component-scoped styling
+- **Language**: TypeScript for type safety
+- **HTTP Client**: Axios for API requests
+- **Animations**: canvas-confetti for celebration effects
+- **Routing**: Next.js App Router and react-router-dom
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📋 Prerequisites
 
-## Learn More
+- Node.js 18.x or higher
+- npm or yarn package manager
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Setup Instructions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone the repository**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   git clone https://github.com/yourusername/henrys-dog-adoption-agency.git
+   cd henrys-dog-adoption-agency/henry-dog-adoption-app
+   ```
 
-## Deploy on Vercel
+2. **Install dependencies**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Run the development server**
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+4. **Open in browser**
+
+   The application will be available at [http://localhost:3000](http://localhost:3000)
+
+## 🔧 Available Scripts
+
+- `npm run dev` - Start the development server with Turbopack
+- `npm run build` - Build the application for production
+- `npm run start` - Start the production server
+- `npm run lint` - Run ESLint to catch issues
+
+## 📱 Application Structure
+
+- `src/components` - Reusable UI components
+- `src/store` - Redux store configuration and slices
+- `src/types` - TypeScript type definitions
+- `public` - Static assets and images
+
+## 💻 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
