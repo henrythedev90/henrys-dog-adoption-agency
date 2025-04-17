@@ -1,0 +1,200 @@
+:root {
+  --primary: #5b9aff; /* Soft Blue */
+  --secondary: #5ee6a3; /* Sage Green */
+  --accent: #daa520; /* Warm Beige */
+  --background: #f5f7fa; /* Off-White */
+  --foreground: #4a4f57; /* Charcoal */
+}
+
+.carousel_wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 600px;
+  margin: 120px auto 0;
+  border: 4px solid var(--foreground);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.carousel_slide_container {
+  display: flex;
+  width: 100%;
+  transform: translateX(var(--slide-offset));
+  transition: transform 0.5s ease-in-out;
+  position: relative;
+}
+
+.carousel_slide {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dog_card_carousel_container {
+  width: 100%;
+  max-width: 534px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  background: var(--background);
+}
+
+.carousel_button_previous,
+.carousel_button_next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  padding: 20px 25px;
+  font-size: 24px;
+  background-color: white;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.carousel_button_previous:hover,
+.carousel_button_next:hover {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel_button_previous {
+  left: 20px;
+}
+
+.carousel_button_next {
+  right: 20px;
+}
+
+.carousel_button_container {
+  text-align: center;
+  margin-top: 40px;
+  padding: 0 40px;
+}
+
+.carousel_dot {
+  margin-bottom: 20px;
+}
+
+.dot_indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin: 0 8px;
+  padding: 0;
+  background-color: #ccc;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dot_indicator.active {
+  background-color: var(--secondary);
+  transform: scale(1.2);
+}
+
+.generate_match_button {
+  padding: 16px 32px;
+  font-size: 20px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.generate_match_button:hover {
+  background-color: var(--secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.carousel_header {
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--foreground);
+  font-size: 36px;
+  font-weight: 600;
+}
+
+.carousel_count {
+  font-size: 24px;
+  color: #666;
+  margin-left: 15px;
+  font-weight: normal;
+}
+
+.no_favorites_message {
+  text-align: center;
+  font-size: 24px;
+  color: var(--foreground);
+  padding: 60px;
+  background: var(--background);
+  border-radius: 16px;
+  border: 2px solid var(--foreground);
+  margin: 40px auto;
+  max-width: 800px;
+}
+
+.match_modal_content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background-color: var(--background);
+  border: 2px solid var(--foreground);
+  border-radius: 12px;
+  animation: modalPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.match_modal_title {
+  font-size: 2rem;
+  color: var(--foreground);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+}
+
+.match_modal_actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.match_modal_actions button {
+  min-width: 120px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.match_modal_actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

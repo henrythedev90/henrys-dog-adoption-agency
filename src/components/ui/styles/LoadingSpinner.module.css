@@ -1,0 +1,58 @@
+:root {
+  --primary: #5b9aff; /* Soft Blue */
+  --secondary: #5ee6a3; /* Sage Green */
+  --accent: #daa520; /* Warm Beige */
+  --background: #f5f7fa; /* Off-White */
+  --foreground: #4a4f57; /* Charcoal */
+}
+
+.spinner_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  border: 3px solid var(--background);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Size variants */
+.size_small .spinner {
+  width: 20px;
+  height: 20px;
+}
+
+.size_medium .spinner {
+  width: 40px;
+  height: 40px;
+}
+
+.size_large .spinner {
+  width: 60px;
+  height: 60px;
+}
+
+/* Container padding for different sizes */
+.size_small {
+  padding: 8px;
+}
+
+.size_medium {
+  padding: 12px;
+}
+
+.size_large {
+  padding: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

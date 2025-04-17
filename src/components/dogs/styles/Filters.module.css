@@ -1,0 +1,167 @@
+:root {
+  --primary: #5b9aff; /* Soft Blue */
+  --secondary: #5ee6a3; /* Sage Green */
+  --accent: #daa520; /* Warm Beige */
+  --background: #f5f7fa; /* Off-White */
+  --foreground: #4a4f57; /* Charcoal */
+}
+
+@media screen and (max-width: 575px) {
+  .filter_container {
+    padding: 20px;
+    max-width: 340px;
+  }
+}
+
+.filter_container {
+  padding: 20px;
+  max-width: 340px;
+}
+.filter_container > * {
+  margin-bottom: 1rem; /* Adjust the value as needed */
+}
+/* .filter_breed_container {
+    border: 2px solid var(--foreground);
+    border-radius: 8px;
+    padding: 10px;
+  } */
+.filter_breed_container select {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 4px 4px 0 0 var(--secondary), 4px 4px 0 2px var(--foreground);
+  margin-left: 10px;
+}
+
+.filter_zipCode_container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  padding: 10px;
+}
+.filter_zipCode_container button {
+  background-color: var(--primary);
+  color: var(--background);
+  border-radius: 8px;
+  width: 50px;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.filter_zipCode_container label {
+  text-align: start;
+}
+.filter_zipCode_container input {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  padding: 8px;
+}
+.filter_zipCode_input {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  column-gap: 4px;
+}
+.filter_age_container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  padding: 10px;
+}
+.filter_age_container input {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+}
+.filter_age_container label {
+  align-self: start;
+}
+.filter_button_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  padding-bottom: 0px;
+}
+
+.tags_container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tag_group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 50px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 2px 2px 0 0 var(--secondary), 2px 2px 0 2px var(--foreground);
+}
+.tag_zipCode {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 50px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 2px 2px 0 0 var(--primary), 2px 2px 0 2px var(--foreground);
+}
+
+.tag:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--secondary), 3px 3px 0 2px var(--foreground);
+}
+
+.tag_remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--foreground);
+  color: var(--background);
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.tag:hover .tag_remove {
+  background-color: var(--primary);
+}
