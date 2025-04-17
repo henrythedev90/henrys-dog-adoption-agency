@@ -2,7 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { Dog } from "@/types/dog";
 import { RootState } from "..";
 import { apiClient } from "@/lib/apiClient";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 // Load initial favorites from localStorage
 const loadFavorites = (): string[] => {
@@ -12,7 +12,14 @@ const loadFavorites = (): string[] => {
       return [];
     }
     return JSON.parse(serializedFavorites);
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error("loadFavorites error:", {
+      status: err instanceof AxiosError ? err.response?.status : null,
+      message:
+        err instanceof Error
+          ? err.message
+          : "Failed to load favorites from localStorage",
+    });
     return [];
   }
 };
@@ -136,21 +143,26 @@ export const fetchDogs = createAsyncThunk(
         total,
         size: filters.size,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("fetchDogs Thunk: Error occurred:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
+        status: error instanceof AxiosError ? error.response?.status : null,
+        data: error instanceof AxiosError ? error.response?.data : null,
+        message:
+          error instanceof Error ? error.message : "Failed to fetch dogs",
       });
       // Handle specific errors or provide generic message
-      if (error.response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         // Optional: Redirect or specific handling for auth errors
         console.error("fetchDogs Thunk: Authentication error (401).");
         // window.location.href = "/"; // Example redirect
         return rejectWithValue("Authentication failed. Please log in again.");
       }
       return rejectWithValue(
-        error.response?.data?.message || error.message || "Failed to fetch dogs"
+        error instanceof AxiosError
+          ? error.response?.data?.message ||
+              error.message ||
+              "Failed to fetch dogs"
+          : "Failed to fetch dogs"
       );
     }
   }
@@ -170,14 +182,16 @@ export const fetchFavoriteDogs = createAsyncThunk(
       const response = await apiClient.post("/dogs", favoriteIds);
       console.log("fetchFavoriteDogs Thunk: Received details.");
       return { dogs: response.data || [] };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("fetchFavoriteDogs Thunk: Error:", {
         /* ... */
       });
-      if (error.response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         return rejectWithValue("Authentication failed.");
       }
-      return rejectWithValue(error.message || "Failed to fetch favorite dogs");
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to fetch favorite dogs"
+      );
     }
   }
 );
@@ -227,21 +241,26 @@ export const fetchMatch = createAsyncThunk(
         );
         return rejectWithValue("Match API route returned invalid data.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Enhanced error logging for debugging
       console.error("fetchMatch Thunk: Error calling /api/dogs/match:", {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message,
-        stack: error.stack?.substring(0, 200), // First part of stack trace
-        name: error.name,
-        headers: error.response?.headers
-          ? JSON.stringify(error.response.headers)
-          : "None",
+        status: error instanceof AxiosError ? error.response?.status : null,
+        statusText:
+          error instanceof AxiosError ? error.response?.statusText : null,
+        data: error instanceof AxiosError ? error.response?.data : null,
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during match generation.",
+        stack: error instanceof Error ? error.stack?.substring(0, 200) : null,
+        name: error instanceof Error ? error.name : null,
+        headers:
+          error instanceof AxiosError
+            ? JSON.stringify(error.response?.headers)
+            : "None",
       });
 
-      if (error.response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         console.error(
           "fetchMatch Thunk: Authentication error (401). This could indicate missing or expired cookies."
         );
@@ -261,9 +280,11 @@ export const fetchMatch = createAsyncThunk(
 
       // Use the error message from your API route if available
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to generate match."
+        error instanceof AxiosError
+          ? error.response?.data?.message ||
+              error.message ||
+              "Failed to generate match."
+          : "Failed to generate match."
       );
     }
   }

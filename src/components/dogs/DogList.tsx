@@ -1,6 +1,7 @@
 import React from "react";
 import DogCard from "./DogCard";
 import { useAppSelector } from "@/store/hooks";
+import { Dog } from "@/types/dog";
 
 interface DogListProps {
   dogIds: string[];
@@ -11,7 +12,7 @@ export default function DogList({ dogIds }: DogListProps) {
 
   return (
     <div>
-      {filteredDogs.map((dog: any) => {
+      {filteredDogs.map((dog: Dog) => {
         return <DogCard key={dog.id} dog={dog} />;
       })}
     </div>

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 const isTest = process.env.NODE_ENV === "test";
 
@@ -57,47 +57,52 @@ export default async function handler(
       );
 
       if (!isTest) console.log("Logout API: Fetch API logout successful");
-    } catch (fetchError: any) {
-      if (!isTest)
-        console.error(
-          "Logout API: Error calling Fetch API:",
-          fetchError.message,
-          fetchError.response?.status
-        );
+    } catch (fetchError: unknown) {
+      if (axios.isAxiosError(fetchError)) {
+        if (!isTest)
+          console.error("Logout API: Error calling Fetch API:", {
+            message: fetchError.message,
+            status: fetchError.response?.status,
+            headers: fetchError.response?.headers ? "Present" : "None",
+            data: fetchError.response?.data,
+          });
 
-      // If it's not a 401, rethrow to be handled by the outer catch
-      if (fetchError.response?.status !== 401) {
-        throw fetchError;
+        // If it's not a 401, rethrow to be handled by the outer catch
+        if (fetchError.response?.status !== 401) {
+          throw fetchError;
+        }
+
+        if (!isTest)
+          console.log(
+            "Logout API: Got 401 from Fetch API - treating as already logged out"
+          );
       }
 
+      // Clear the cookies by setting them to expire
+      res.setHeader("Set-Cookie", [
+        "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
+        "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
+      ]);
+
       if (!isTest)
-        console.log(
-          "Logout API: Got 401 from Fetch API - treating as already logged out"
-        );
+        console.log("Logout API: Cookies cleared, returning success");
+      return res.status(200).json({ message: "Logged out successfully" });
     }
-
-    // Clear the cookies by setting them to expire
-    res.setHeader("Set-Cookie", [
-      "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-      "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-    ]);
-
-    if (!isTest) console.log("Logout API: Cookies cleared, returning success");
-    return res.status(200).json({ message: "Logged out successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (!isTest)
-      console.error("Logout API: Error in logout API route:", error.message);
+      console.error(
+        "Logout API: Error in logout API route:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
 
-    // Always clear cookies on error - better to log the user out client-side
     res.setHeader("Set-Cookie", [
       "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
       "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
     ]);
 
-    // Return 200 always - we want the client to consider the user logged out
-    return res.status(200).json({
+    return res.status(500).json({
       message: "Logged out (with server error)",
-      error: error.message,
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }

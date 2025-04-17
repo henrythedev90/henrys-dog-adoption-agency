@@ -1,11 +1,7 @@
 "use client";
 import React, { useEffect, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  fetchDogs,
-  setDogsPage,
-  clearBreeds,
-} from "../../store/slices/dogsSlice";
+import { fetchDogs, setDogsPage } from "../../store/slices/dogsSlice";
 import {
   selectDogs,
   selectDogsLoading,
@@ -19,7 +15,6 @@ import DogCard from "@/components/dogs/DogCard";
 import Pagination from "@/components/dogs/Pagination";
 import { Dog } from "@/types/dog";
 import { selectFilters } from "@/store/selectors/filterSelectors";
-import { useRouter } from "next/navigation";
 import classes from "./styles/Dashboard.module.css";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import SplitColorText from "../ui/SplitColorText";

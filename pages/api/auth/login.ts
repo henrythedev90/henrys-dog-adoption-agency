@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 const route = "https://frontend-take-home-service.fetch.com/auth/login";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,19 +90,33 @@ export default async function handler(
       message: "Login successful",
       user: { name, email },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (!isTest)
+        console.error("Login API: Login failed:", {
+          status: (error as AxiosError).response?.status,
+          data: (error as AxiosError).response?.data,
+          message: (error as AxiosError).message,
+          headers: (error as AxiosError).response?.headers ? "Present" : "None",
+        });
+
+      return res.status(error.response?.status || 500).json({
+        error: "Failed to login",
+        message:
+          error.response?.data?.message || error.message || "Unknown error",
+      });
+    }
+
+    // Handle non-Axios errors
     if (!isTest)
       console.error("Login API: Login failed:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        headers: error.response?.headers ? "Present" : "None",
+        status: (error as Error).message,
+        message: (error as Error).message,
       });
 
-    return res.status(error.response?.status || 500).json({
+    return res.status(500).json({
       error: "Failed to login",
-      message:
-        error.response?.data?.message || error.message || "Unknown error",
+      message: (error as Error).message || "Unknown error",
     });
   }
 }

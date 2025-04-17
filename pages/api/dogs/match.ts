@@ -29,11 +29,13 @@ async function fetchDogDetails(
     } else {
       return null; // Return null if data is invalid or missing ID
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (!isTest)
       console.error(
-        `fetchDogDetails: Error during POST to external /dogs for ID ${dogId}. Status: ${error.response?.status}.`,
-        error.message
+        `fetchDogDetails: Error during POST to external /dogs for ID ${dogId}. Status: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        error instanceof Error ? error.message : "Unknown error"
       );
 
     return null; // Return null if fetching details fails
@@ -109,16 +111,17 @@ export default async function handler(
             "Match API: External API did not return a specific match ID."
           );
       }
-    } catch (matchError: any) {
-      const status = matchError.response?.status;
+    } catch (matchError: unknown) {
+      const status =
+        matchError instanceof Error ? matchError.message : "Unknown error";
       if (!isTest)
         console.error(
           `Match API: Error during POST to external /dogs/match. Status: ${status}.`,
-          matchError.message
+          matchError instanceof Error ? matchError.message : "Unknown error"
         );
 
       // If we got a 401, there's likely an issue with the cookies
-      if (status === 401) {
+      if (status === "401") {
         // Return a specific error message for unauthorized
         return res.status(401).json({
           message:
@@ -154,9 +157,10 @@ export default async function handler(
     }
 
     return res.status(200).json(dogToReturn);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return res.status(500).json({
       message: "Internal server error processing match request.",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }

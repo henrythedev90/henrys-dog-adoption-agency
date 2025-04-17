@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { apiClient } from "@/lib/apiClient";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { clearFavorite, clearBreeds } from "./dogsSlice";
 import { resetFilter } from "./filtersSlice";
 import { RootState } from "..";
@@ -72,9 +71,9 @@ export const checkAuth = createAsyncThunk(
     try {
       const res = await axios.get("/api/auth/check", { withCredentials: true });
       return res.status === 200;
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(
-        error.response?.data?.message || "Authentication check failed"
+        error instanceof Error ? error.message : "Authentication check failed"
       );
     }
   }
@@ -102,15 +101,20 @@ export const loginUser = createAsyncThunk<
       console.error("Login thunk: Login failed with status:", res.status);
       return rejectWithValue("Login failed with status: " + res.status);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Login thunk: Error during login:", {
-      status: error.response?.status,
-      message: error.message,
-      data: error.response?.data,
+      status: error instanceof AxiosError ? error.response?.status : null,
+      message:
+        error instanceof Error
+          ? error.message
+          : "An error occurred during login.",
+      data: error instanceof AxiosError ? error.response?.data : null,
     });
 
     return rejectWithValue(
-      error.response?.data?.message || "An error occurred during login."
+      error instanceof AxiosError
+        ? error.response?.data?.message || "An error occurred during login."
+        : "An error occurred during login."
     );
   }
 });
@@ -142,10 +146,13 @@ export const logoutUser = createAsyncThunk(
       }, 500);
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Logout thunk: Error during logout:", {
-        status: error.response?.status,
-        message: error.message,
+        status: error instanceof AxiosError ? error.response?.status : null,
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during logout.",
       });
 
       // Even if the API call fails, clear local state
@@ -158,7 +165,9 @@ export const logoutUser = createAsyncThunk(
       sessionStorage.removeItem("logging_out");
 
       return rejectWithValue(
-        error.response?.data?.message || "An error occurred during logout."
+        error instanceof AxiosError
+          ? error.response?.data?.message || "An error occurred during logout."
+          : "An error occurred during logout."
       );
     }
   }
@@ -221,7 +230,7 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(logoutUser.fulfilled, (state) => {
+      .addCase(logoutUser.fulfilled, () => {
         return initialState;
       })
       .addCase(logoutUser.rejected, (state, action) => {

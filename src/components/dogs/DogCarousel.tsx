@@ -16,14 +16,15 @@ import { useRouter } from "next/navigation";
 
 interface DogCarouselProps {
   favoriteDogs: Dog[];
-  handleOpenModal: (dog: Dog) => void;
+  handleOpenModal?: () => void;
   title?: string;
+  isExternalMatch?: boolean;
 }
 
 const DogCarousel: React.FC<DogCarouselProps> = ({
   favoriteDogs,
-  handleOpenModal,
   title = "Your Favorite Dogs",
+  handleOpenModal,
 }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -33,7 +34,6 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const favoriteIds = useAppSelector(selectDogFavorite);
   const [error, setError] = useState<string | null>(null);
-  const [isNavigating, setIsNavigating] = useState(false);
   // Update current slide when favorites change
   useEffect(() => {
     // If we're at the last slide and a dog is removed, move back one slide
@@ -100,9 +100,13 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
         setLoading(false);
         fireConfetti(); // Fire confetti when the match is revealed
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Match error:", err);
-      setError(err?.message || "Failed to generate match. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate match. Please try again."
+      );
       setLoading(false);
     }
   };
@@ -113,18 +117,6 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     setIsModalOpen(false);
     setMatchedDog(null);
   };
-
-  if (isNavigating) {
-    return (
-      <div className={classes.loading_container}>
-        <LoadingSpinner size="large" />
-        <p className={classes.loading_text}>
-          {loading ? "Finding Match..." : "Redirecting to dashboard..."}
-        </p>
-      </div>
-    );
-  }
-
   // Don't render carousel if no favorites
   if (favoriteDogs.length === 0) {
     return (

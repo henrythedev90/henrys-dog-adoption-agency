@@ -33,7 +33,7 @@ export default async function handler(
       });
     }
 
-    const params: Record<string, any> = {
+    const params: Record<string, string | string[] | undefined> = {
       size: size as string,
       from: from as string,
     };
@@ -64,14 +64,10 @@ export default async function handler(
     });
 
     return res.status(200).json(response.data);
-  } catch (error: any) {
-    return res.status(error.response?.status || 500).json({
+  } catch (error: unknown) {
+    return res.status(500).json({
       error: "Failed to fetch search results from external service",
-      message:
-        error.response?.data?.message ||
-        error.response?.data ||
-        error.message ||
-        "Unknown error",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
