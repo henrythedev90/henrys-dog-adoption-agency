@@ -99,6 +99,7 @@ const Dashboard = React.memo(() => {
     isAuthCheckComplete,
     isLoggedIn,
     hasFiltersOrPageChanged,
+    filters,
   ]);
 
   useEffect(() => {

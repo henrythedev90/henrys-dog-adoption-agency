@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 import { clearFavorite, clearBreeds } from "./dogsSlice";
 import { resetFilter } from "./filtersSlice";
-import { RootState } from "..";
 
 export interface LoginRequest {
   name: string;
@@ -239,9 +238,6 @@ const authSlice = createSlice({
       });
   },
 });
-
-export const selectIsLoggedIn = (state: RootState) => state.auth.isLoggedIn;
-export const selectAuthName = (state: RootState) => state.auth.name;
 
 export const { resetAuth, login, logout } = authSlice.actions;
 export default authSlice.reducer;

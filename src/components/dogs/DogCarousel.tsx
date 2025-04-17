@@ -16,14 +16,15 @@ import { useRouter } from "next/navigation";
 
 interface DogCarouselProps {
   favoriteDogs: Dog[];
-  handleOpenModal?: () => void;
   title?: string;
-  isExternalMatch?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleOpenModal?: () => void;
 }
 
 const DogCarousel: React.FC<DogCarouselProps> = ({
   favoriteDogs,
   title = "Your Favorite Dogs",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleOpenModal,
 }) => {
   const dispatch = useAppDispatch();

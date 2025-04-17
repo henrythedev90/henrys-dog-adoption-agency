@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 const isTest = process.env.NODE_ENV === "test";
 

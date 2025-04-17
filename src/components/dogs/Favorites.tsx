@@ -8,12 +8,15 @@ import { Dog } from "@/types/dog";
 import Container from "../ui/Container";
 import classes from "./styles/Favorites.module.css";
 import { apiClient } from "@/lib/apiClient";
-
+import Modal from "../ui/Modal";
+import Image from "next/image";
 export default function Favorites() {
   const dispatch = useAppDispatch();
   const favorites = useAppSelector(selectDogFavorite) as string[];
   const dogs = useAppSelector(selectDogs);
   const favoriteDogs = dogs.filter((dog) => favorites.includes(dog.id));
+
+  // Keep the state and actually use it
   const [matchState, setMatchState] = useState<{
     isModalOpen: boolean;
     matchedDog: Dog | null;
@@ -26,6 +29,7 @@ export default function Favorites() {
     error: null,
   });
 
+  // Actually use these variables by destructuring them
   const { isModalOpen, matchedDog, loading, error } = matchState;
 
   useEffect(() => {
@@ -41,7 +45,12 @@ export default function Favorites() {
       return;
     }
 
-    setMatchState((prev) => ({ ...prev, loading: true, error: null }));
+    setMatchState((prev) => ({
+      ...prev,
+      loading: true,
+      error: null,
+      isModalOpen: true,
+    }));
     try {
       const matchResponse = await apiClient.post("/dogs/match", favorites, {
         withCredentials: true,
@@ -54,19 +63,19 @@ export default function Favorites() {
       setMatchState((prev) => ({
         ...prev,
         matchedDog: dogResponse.data[0],
-        isModalOpen: true,
+        loading: false,
       }));
     } catch (err) {
       console.error(err);
       setMatchState((prev) => ({
         ...prev,
         error: "Failed to generate match. Please try again.",
+        loading: false,
       }));
-    } finally {
-      setMatchState((prev) => ({ ...prev, loading: false }));
     }
   };
 
+  // Actually use this function
   const handleCloseModal = () => {
     setMatchState((prev) => ({
       ...prev,
@@ -85,24 +94,49 @@ export default function Favorites() {
         }
       >
         {favoriteDogs.length > 0 ? (
-          <DogCarousel
-            favoriteDogs={favoriteDogs}
-            handleOpenModal={handleGenerateMatch}
-            title="Your Favorite Dogs"
-          />
+          <DogCarousel favoriteDogs={favoriteDogs} title="Your Favorite Dogs" />
         ) : (
           <div style={{ textAlign: "center", marginTop: "40px" }}>
-            {favoriteDogs.length > 0 ? (
-              <h2>Your Favorite Dogs</h2>
-            ) : (
-              <h2>You do not have any favorite Dogs</h2>
-            )}
+            <h2>You do not have any favorite Dogs</h2>
             <p>
               No favorite dogs yet. Add some dogs to your favorites to generate
               a match!
             </p>
           </div>
         )}
+
+        {/* Add the modal to use the state */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title="Your Perfect Match!"
+        >
+          <div className={classes.modal_content}>
+            {loading ? (
+              <p>Finding your perfect match...</p>
+            ) : matchedDog ? (
+              <div>
+                <h3>Meet {matchedDog.name}!</h3>
+                <p>Breed: {matchedDog.breed}</p>
+                <p>Age: {matchedDog.age} years</p>
+                {matchedDog.img && (
+                  <Image
+                    src={matchedDog.img}
+                    alt={matchedDog.name}
+                    width={300}
+                    height={300}
+                  />
+                )}
+                <button onClick={handleGenerateMatch}>Try Again</button>
+              </div>
+            ) : error ? (
+              <div>
+                <p>{error}</p>
+                <button onClick={handleGenerateMatch}>Try Again</button>
+              </div>
+            ) : null}
+          </div>
+        </Modal>
       </div>
     </Container>
   );
