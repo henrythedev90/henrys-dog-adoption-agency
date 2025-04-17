@@ -16,10 +16,7 @@ describe("Login API", () => {
     jest.clearAllMocks();
   });
   // Helper to create mock req/res
-  function mockReqRes(
-    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
-    body = {}
-  ) {
+  function mockReqRes(method: "GET" | "POST", body = {}) {
     return createMocks<NextApiRequest, NextApiResponse>({
       method,
       body,

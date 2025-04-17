@@ -26,7 +26,6 @@ const Pagination: React.FC<PaginationProps> = ({
 
   const getPageNumbers = () => {
     const pageNumbers: (number | string)[] = [];
-    const maxPagesToShow = 5;
     const siblingCount = 1;
 
     pageNumbers.push(1);

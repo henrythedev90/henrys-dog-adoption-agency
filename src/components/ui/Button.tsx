@@ -1,6 +1,6 @@
 import React from "react";
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger"; // Fixed typo from 'varient' to 'variant'
+  variant?: "primary" | "secondary" | "danger";
   isLoading?: boolean;
   onClickFunction?: () => void;
 }

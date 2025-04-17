@@ -27,7 +27,9 @@ export default function Footer() {
             {link.devicon ? (
               <i className={link.devicon}></i>
             ) : (
-              <p>{currentEmoji}</p>
+              <p>
+                Visit Me! <span>{currentEmoji}</span>
+              </p>
             )}
           </Link>
         ))}

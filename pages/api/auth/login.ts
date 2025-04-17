@@ -3,13 +3,14 @@ import axios from "axios";
 
 const route = "https://frontend-take-home-service.fetch.com/auth/login";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isTest = process.env.NODE_ENV === "test";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
-    console.log("Login API: Invalid method:", req.method);
+    if (!isTest) console.log("Login API: Invalid method:", req.method);
     return res.status(405).json({ error: "Method is not allowed" });
   }
 
@@ -50,9 +51,12 @@ export default async function handler(
         const cookieValuePreview = cookieParts[1]
           ? `${cookieParts[1].substring(0, 10)}...`
           : "[empty]";
-        console.log(
-          `Login API: Cookie ${index + 1}: ${cookieName}=${cookieValuePreview}`
-        );
+        if (!isTest)
+          console.log(
+            `Login API: Cookie ${
+              index + 1
+            }: ${cookieName}=${cookieValuePreview}`
+          );
       });
 
       // Check specifically for fetch-api token
@@ -63,15 +67,18 @@ export default async function handler(
         cookie.includes("fetch-refresh-token")
       );
 
-      console.log(`Login API: fetch-api-token present: ${hasFetchApiToken}`);
-      console.log(
-        `Login API: fetch-refresh-token present: ${hasFetchRefreshToken}`
-      );
+      if (!isTest)
+        console.log(`Login API: fetch-api-token present: ${hasFetchApiToken}`);
+      if (!isTest)
+        console.log(
+          `Login API: fetch-refresh-token present: ${hasFetchRefreshToken}`
+        );
 
       // Forward each cookie exactly as received from the Fetch API
       res.setHeader("Set-Cookie", cookies);
     } else {
-      console.error("Login API: No cookies received from Fetch API");
+      if (!isTest)
+        console.error("Login API: No cookies received from Fetch API");
       return res.status(401).json({
         error: "Authentication failed",
         message: "No authentication cookies received from server",
@@ -84,12 +91,13 @@ export default async function handler(
       user: { name, email },
     });
   } catch (error: any) {
-    console.error("Login API: Login failed:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-      headers: error.response?.headers ? "Present" : "None",
-    });
+    if (!isTest)
+      console.error("Login API: Login failed:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        headers: error.response?.headers ? "Present" : "None",
+      });
 
     return res.status(error.response?.status || 500).json({
       error: "Failed to login",

@@ -1,11 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+const isTest = process.env.NODE_ENV === "test";
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
-    console.log("Auth check: Invalid method:", req.method);
+    if (!isTest) console.log("Auth check: Invalid method:", req.method);
     return res.status(405).json({ error: "Method not allowed" });
   }
 

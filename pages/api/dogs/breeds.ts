@@ -1,16 +1,18 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 
+const isTest = process.env.NODE_ENV === "test";
+
 const route = "https://frontend-take-home-service.fetch.com/dogs/breeds";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("API Route: Received request for dog breeds");
+  if (!isTest) console.log("API Route: Received request for dog breeds");
 
   if (req.method !== "GET") {
-    console.error(`Invalid method: ${req.method}`);
+    if (!isTest) console.error(`Invalid method: ${req.method}`);
     return res.status(405).json({
       error: "Method is not allowed",
       message: "Must use GET method",
@@ -21,14 +23,14 @@ export default async function handler(
     const cookies = req.headers.cookie;
 
     if (!cookies) {
-      console.error("No cookies found in the request");
+      if (!isTest) console.error("No cookies found in the request");
       return res.status(401).json({
         error: "Missing authentication",
         message: "Cookies are missing",
       });
     }
 
-    console.log("Making request to dog breeds API");
+    if (!isTest) console.log("Making request to dog breeds API");
 
     // Make the API request with cookies forwarded
     const response = await axios.get(route, {

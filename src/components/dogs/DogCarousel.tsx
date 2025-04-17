@@ -108,7 +108,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   };
 
   const handleCloseModal = () => {
-    router.push("/dogs");
+    router.push("/dogs/favorites");
     dispatch(resetFilter());
     setIsModalOpen(false);
     setMatchedDog(null);
@@ -241,9 +241,6 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               </h4>
               <DogCard dog={matchedDog} />
               <div className={modalClasses.match_modal_actions}>
-                <Button onClickFunction={handleCloseModal} variant="primary">
-                  Keep Browsing
-                </Button>
                 <Button onClickFunction={handleGenerateMatch} variant="primary">
                   Try Again
                 </Button>

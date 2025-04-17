@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchBreeds } from "../../store/slices/breedSlice";
 import { selectFilters } from "../../store/selectors/filterSelectors";
@@ -27,6 +27,7 @@ export default function Filters() {
   const [validateTimeout, setValidateTimeout] = useState<NodeJS.Timeout | null>(
     null
   );
+  const [ageMaxInput, setAgeMaxInput] = useState("");
   // Create timeout ref for debounce
 
   useEffect(() => {
@@ -80,26 +81,39 @@ export default function Filters() {
   };
 
   const handleAgeMax = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    if (isNaN(value)) {
+    const inputValue = e.target.value;
+
+    // Set the raw value immediately without validation for a smoother typing experience
+    // Use a temporary state variable to track what the user is typing
+    setAgeMaxInput(inputValue);
+
+    // Handle empty input
+    if (inputValue === "") {
       dispatch(setFilters({ ageMax: null }));
       return;
     }
 
-    // Set the value immediately without validation
-    dispatch(setFilters({ ageMax: value }));
+    const value = parseInt(inputValue, 10);
+    if (isNaN(value)) {
+      return; // Don't update if it's not a valid number
+    }
 
     // Clear previous timeout if it exists
-    if (validateTimeout) clearTimeout(validateTimeout);
+    if (validateTimeout) {
+      clearTimeout(validateTimeout);
+    }
 
-    // Set new timeout for validation
+    // Set new timeout for debounced validation
     const newTimeout = setTimeout(() => {
-      // Validate after timeout
+      // Only apply validation when the user has stopped typing
       if (filters.ageMin !== null && value < filters.ageMin) {
         alert("Maximum age cannot be less than minimum age.");
+        setAgeMaxInput(filters.ageMin.toString()); // Update input field
         dispatch(setFilters({ ageMax: filters.ageMin }));
+      } else {
+        dispatch(setFilters({ ageMax: value }));
       }
-    }, 1000);
+    }, 1000); // 1 second debounce
 
     setValidateTimeout(newTimeout);
   };
@@ -171,8 +185,21 @@ export default function Filters() {
         <input
           type="number"
           placeholder="Max Age"
-          value={filters.ageMax || ""}
+          value={ageMaxInput}
           onChange={handleAgeMax}
+          onBlur={() => {
+            // Also validate on blur for immediate feedback when user tabs/clicks away
+            const value = parseInt(ageMaxInput, 10);
+            if (
+              !isNaN(value) &&
+              filters.ageMin !== null &&
+              value < filters.ageMin
+            ) {
+              alert("Maximum age cannot be less than minimum age.");
+              setAgeMaxInput(filters.ageMin.toString());
+              dispatch(setFilters({ ageMax: filters.ageMin }));
+            }
+          }}
         />
       </div>
 

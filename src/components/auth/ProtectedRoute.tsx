@@ -23,7 +23,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (logoutDetected) {
       console.log("ProtectedRoute: Logout detected, bypassing protected route");
       setIsInLogoutFlow(true);
-      // Don't check auth, just initiate redirect
       setRedirecting(true);
       window.location.replace("/");
       return;

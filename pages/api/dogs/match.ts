@@ -1,6 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 
+// Add this at the top of your match.ts file
+const isTest = process.env.NODE_ENV === "test";
+
 // Helper function to fetch dog details (Ensure it returns full dog object or null)
 async function fetchDogDetails(
   dogId: string,
@@ -27,10 +30,11 @@ async function fetchDogDetails(
       return null; // Return null if data is invalid or missing ID
     }
   } catch (error: any) {
-    console.error(
-      `fetchDogDetails: Error during POST to external /dogs for ID ${dogId}. Status: ${error.response?.status}.`,
-      error.message
-    );
+    if (!isTest)
+      console.error(
+        `fetchDogDetails: Error during POST to external /dogs for ID ${dogId}. Status: ${error.response?.status}.`,
+        error.message
+      );
 
     return null; // Return null if fetching details fails
   }
@@ -59,10 +63,11 @@ export default async function handler(
 
     // Validate favoriteIds is an array
     if (!Array.isArray(favoriteIds)) {
-      console.error(
-        "Match API: Invalid request body received, expected array:",
-        favoriteIds
-      );
+      if (!isTest)
+        console.error(
+          "Match API: Invalid request body received, expected array:",
+          favoriteIds
+        );
       return res.status(400).json({
         message: "Invalid request body: favoriteIds must be an array.",
       });
@@ -94,20 +99,23 @@ export default async function handler(
         matchResponse.data.match
       ) {
         dogIdToFetch = matchResponse.data.match;
-        console.log(
-          `Match API: External API provided specific match ID: ${dogIdToFetch}`
-        );
+        if (!isTest)
+          console.log(
+            `Match API: External API provided specific match ID: ${dogIdToFetch}`
+          );
       } else {
-        console.log(
-          "Match API: External API did not return a specific match ID."
-        );
+        if (!isTest)
+          console.log(
+            "Match API: External API did not return a specific match ID."
+          );
       }
     } catch (matchError: any) {
       const status = matchError.response?.status;
-      console.error(
-        `Match API: Error during POST to external /dogs/match. Status: ${status}.`,
-        matchError.message
-      );
+      if (!isTest)
+        console.error(
+          `Match API: Error during POST to external /dogs/match. Status: ${status}.`,
+          matchError.message
+        );
 
       // If we got a 401, there's likely an issue with the cookies
       if (status === 401) {
