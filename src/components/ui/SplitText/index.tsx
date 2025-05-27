@@ -1,6 +1,5 @@
 "use client";
 import React, { Component, ReactNode } from "react";
-
 interface SplitTextProps {
   copy: string;
   role?: string;

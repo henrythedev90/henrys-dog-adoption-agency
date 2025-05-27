@@ -351,7 +351,7 @@ const dogsSlice = createSlice({
         // Add favorite dogs to the results without replacing existing dogs
         const newDogs = action.payload.dogs.filter(
           (dog: Dog) =>
-            !state.results.some((existingDog) => existingDog.id === dog.id)
+            !state.results.some((existingDog) => existingDog._id === dog._id)
         );
         state.results = [...state.results, ...newDogs];
       })
@@ -374,7 +374,7 @@ const dogsSlice = createSlice({
         if (
           action.payload &&
           typeof action.payload === "object" &&
-          action.payload.id
+          action.payload._id
         ) {
           state.loading = false;
           state.match = action.payload; // Expecting the dog object directly

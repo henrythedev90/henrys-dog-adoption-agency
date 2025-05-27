@@ -30,8 +30,8 @@ const Dashboard = React.memo(() => {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
-  const { name, isLoggedIn } = useAppSelector((state) => state.auth);
-
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth);
+  const name = user?.userName;
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
   const [hasFiltersOrPageChanged, setHasFiltersOrPageChanged] = useState(false);
 
@@ -157,7 +157,8 @@ const Dashboard = React.memo(() => {
           {isLoggedIn && (
             <div className={classes.dashboard_header_welcome}>
               <h4>
-                Welcome, <SplitColorText text={name} size="medium" tag="p" />!
+                Welcome,{" "}
+                <SplitColorText text={name || "User"} size="medium" tag="p" />!
                 You can now search for your ideal dog.
               </h4>
             </div>
@@ -221,7 +222,7 @@ const Dashboard = React.memo(() => {
           <>
             <div className={classes.dashboard_dog_card_result}>
               {dogs.map((dog: Dog) => (
-                <DogCard key={dog.id} dog={dog} />
+                <DogCard key={dog._id} dog={dog} />
               ))}
             </div>
             {totalPages > 1 && (

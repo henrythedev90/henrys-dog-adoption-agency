@@ -14,7 +14,7 @@ export default function Favorites() {
   const dispatch = useAppDispatch();
   const favorites = useAppSelector(selectDogFavorite) as string[];
   const dogs = useAppSelector(selectDogs);
-  const favoriteDogs = dogs.filter((dog) => favorites.includes(dog.id));
+  const favoriteDogs = dogs.filter((dog) => favorites.includes(dog._id));
 
   // Keep the state and actually use it
   const [matchState, setMatchState] = useState<{

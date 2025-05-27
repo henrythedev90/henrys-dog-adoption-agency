@@ -1,122 +1,80 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios, { AxiosError } from "axios";
+import clientPromise from "@/lib/mongodb";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-const route = "https://frontend-take-home-service.fetch.com/auth/login";
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const isTest = process.env.NODE_ENV === "test";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
-    if (!isTest) console.log("Login API: Invalid method:", req.method);
+    console.log("Login API: Invalid method:", req.method);
     return res.status(405).json({ error: "Method is not allowed" });
   }
 
-  const { name, email } = req.body;
+  const { userName, email, password } = req.body;
 
-  if (!email || !emailRegex.test(email)) {
-    return res.status(400).json({
-      message: "Please enter a valid email",
-    });
+  if (!password) {
+    return res.status(400).json({ message: "Password is required" });
   }
 
-  if (!name) {
-    return res.status(400).json({ message: "Please enter a valid name" });
+  if (!userName && !email) {
+    return res.status(400).json({ message: "Username or email is required" });
+  }
+
+  if (email && !emailRegex.test(email)) {
+    return res.status(400).json({ message: "Please enter a valid email" });
   }
 
   try {
-    // Make the login request directly to the Fetch API
-    const response = await axios.post(
-      route,
-      { name, email },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      }
-    );
+    const client = await clientPromise;
+    const db = client.db("AdoptionData");
 
-    // Get the cookies from the response
-    const cookies = response.headers["set-cookie"];
+    // Find user by username or email
+    const user = await db.collection("users").findOne({
+      $or: [{ userName: userName || "" }, { email: email || "" }],
+    });
 
-    if (cookies && cookies.length > 0) {
-      // Log each cookie for debugging
-      cookies.forEach((cookie: string, index: number) => {
-        // Only show part of the cookie for security
-        const cookieParts = cookie.split(";")[0].split("=");
-        const cookieName = cookieParts[0];
-        const cookieValuePreview = cookieParts[1]
-          ? `${cookieParts[1].substring(0, 10)}...`
-          : "[empty]";
-        if (!isTest)
-          console.log(
-            `Login API: Cookie ${
-              index + 1
-            }: ${cookieName}=${cookieValuePreview}`
-          );
-      });
-
-      // Check specifically for fetch-api token
-      const hasFetchApiToken = cookies.some((cookie: string) =>
-        cookie.includes("fetch-api-token")
-      );
-      const hasFetchRefreshToken = cookies.some((cookie: string) =>
-        cookie.includes("fetch-refresh-token")
-      );
-
-      if (!isTest)
-        console.log(`Login API: fetch-api-token present: ${hasFetchApiToken}`);
-      if (!isTest)
-        console.log(
-          `Login API: fetch-refresh-token present: ${hasFetchRefreshToken}`
-        );
-
-      // Forward each cookie exactly as received from the Fetch API
-      res.setHeader("Set-Cookie", cookies);
-    } else {
-      if (!isTest)
-        console.error("Login API: No cookies received from Fetch API");
-      return res.status(401).json({
-        error: "Authentication failed",
-        message: "No authentication cookies received from server",
-      });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    // Set the token in an HTTP-only cookie
+    res.setHeader(
+      "Set-Cookie",
+      `auth-token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=900`
+    );
 
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user: { name, email },
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userName: user.userName,
+        email: user.email,
+      },
     });
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (!isTest)
-        console.error("Login API: Login failed:", {
-          status: (error as AxiosError).response?.status,
-          data: (error as AxiosError).response?.data,
-          message: (error as AxiosError).message,
-          headers: (error as AxiosError).response?.headers ? "Present" : "None",
-        });
-
-      return res.status(error.response?.status || 500).json({
-        error: "Failed to login",
-        message:
-          error.response?.data?.message || error.message || "Unknown error",
-      });
-    }
-
-    // Handle non-Axios errors
-    if (!isTest)
-      console.error("Login API: Login failed:", {
-        status: (error as Error).message,
-        message: (error as Error).message,
-      });
-
+  } catch (error) {
+    console.error("Login API: Login failed:", error);
     return res.status(500).json({
       error: "Failed to login",
-      message: (error as Error).message || "Unknown error",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }

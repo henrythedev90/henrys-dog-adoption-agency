@@ -13,12 +13,12 @@ interface DogCardProps {
 const DogCard = React.memo(({ dog }: DogCardProps) => {
   const dispatch = useAppDispatch();
   const favorite = useAppSelector(selectDogFavorite);
-  const isFavorite = favorite.includes(dog.id);
+  const isFavorite = favorite.includes(dog._id);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(toggleFavorite(dog.id));
+    dispatch(toggleFavorite(dog._id));
   };
 
   return (
@@ -28,6 +28,7 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
         <p>Breed: {dog.breed}</p>
         <p>Age: {dog.age}</p>
         <p>Zip Code: {dog.zip_code}</p>
+        <p>Borough: {dog.borough}</p>
       </div>
       <div className={classes.dog_card_img}>
         <DogCardImage urlImage={dog.img} title={dog.name} />

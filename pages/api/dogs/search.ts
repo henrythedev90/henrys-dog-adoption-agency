@@ -1,7 +1,5 @@
 import { NextApiResponse, NextApiRequest } from "next";
-import axios from "axios";
-
-const route = "https://frontend-take-home-service.fetch.com/dogs/search";
+import clientPromise from "@/lib/mongodb";
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,49 +22,69 @@ export default async function handler(
   } = req.query;
 
   try {
-    const cookies = req.headers.cookie;
+    const client = await clientPromise;
+    const db = client.db("AdoptionData");
 
-    if (!cookies) {
-      return res.status(401).json({
-        error: "You are not authenticated",
-        message: "Cookies were not received",
-      });
-    }
+    // Build MongoDB query
+    const query: any = {};
 
-    const params: Record<string, string | string[] | undefined> = {
-      size: size as string,
-      from: from as string,
-    };
+    // Add breed filter
     if (breeds) {
-      if (Array.isArray(breeds)) {
-        params.breeds = breeds;
-      } else if (typeof breeds === "string") {
-        // Handle comma-separated breed strings
-        const breedsArray = breeds.split(",").map((breed) => breed.trim());
-        params.breeds = breedsArray;
-      }
+      const breedsArray = Array.isArray(breeds)
+        ? breeds
+        : breeds.split(",").map((breed: string) => breed.trim());
+      query.breed = { $in: breedsArray };
     }
-    if (zipCodes)
-      params.zipCodes = Array.isArray(zipCodes)
+
+    // Add zip code filter
+    if (zipCodes) {
+      const zipArray = Array.isArray(zipCodes)
         ? zipCodes
-        : zipCodes
-        ? [zipCodes]
-        : undefined;
-    if (ageMin) params.ageMin = ageMin as string;
-    if (ageMax) params.ageMax = ageMax as string;
-    if (sort) params.sort = sort as string;
+        : zipCodes.split(",").map((zip: string) => zip.trim());
+      query.zip_code = { $in: zipArray };
+    }
 
-    const response = await axios.get(route, {
-      params: params,
-      headers: {
-        Cookie: cookies,
-      },
+    // Add age range filter
+    if (ageMin || ageMax) {
+      query.age = {};
+      if (ageMin) query.age.$gte = parseInt(ageMin as string);
+      if (ageMax) query.age.$lte = parseInt(ageMax as string);
+    }
+
+    // Build sort object
+    let sortObj: any = {};
+    if (sort) {
+      const [field, order] = (sort as string).split(":");
+      sortObj[field] = order === "asc" ? 1 : -1;
+    }
+
+    // Execute query with pagination
+    const dogs = await db
+      .collection("dogs")
+      .find(query)
+      .sort(sortObj)
+      .skip(parseInt(from as string))
+      .limit(parseInt(size as string))
+      .toArray();
+
+    // Get total count for pagination
+    const total = await db.collection("dogs").countDocuments(query);
+    const fromNum = parseInt(from as string);
+    const sizeNum = parseInt(size as string);
+
+    // Extract IDs for the response
+    const resultIds = dogs.map((dog) => dog._id);
+
+    return res.status(200).json({
+      resultIds,
+      total,
+      next: fromNum + sizeNum < total ? fromNum + sizeNum : undefined,
+      prev: fromNum > 0 ? fromNum - sizeNum : undefined,
     });
-
-    return res.status(200).json(response.data);
   } catch (error: unknown) {
+    console.error("Error searching dogs in MongoDB:", error);
     return res.status(500).json({
-      error: "Failed to fetch search results from external service",
+      error: "Failed to fetch search results",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }

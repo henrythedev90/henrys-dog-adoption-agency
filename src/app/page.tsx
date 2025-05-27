@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import LoginForm from "@/components/auth/LoginForm";
+import SignUpForm from "@/components/auth/SignUpForm";
 import PublicRoute from "@/components/auth/PublicRoute";
 import classes from "@/components/auth/style/LoginForm.module.css";
 import pageClasses from "./page.module.css";
@@ -19,7 +21,10 @@ export default function Page() {
                   role="heading"
                 />
               </h1>
-              <LoginForm />
+              <div>
+                <LoginForm />
+                <SignUpForm />
+              </div>
             </div>
           </div>
         </Container>

@@ -1,10 +1,11 @@
 export interface Dog {
-  id: string;
+  _id: string;
   name: string;
   breed: string;
   age: number;
-  zip_code: string;
   img: string;
+  zip_code: string;
+  borough: string;
 }
 
 export interface DogListProps {

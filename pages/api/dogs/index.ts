@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
-
-const route = "https://frontend-take-home-service.fetch.com/dogs";
+import clientPromise from "@/lib/mongodb";
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,16 +11,8 @@ export default async function handler(
       message: "Must use the POST method",
     });
   }
+
   try {
-    const cookies = req.headers.cookie;
-
-    if (!cookies) {
-      return res.status(401).json({
-        error: "You do have access because you are not authenticated",
-        message: "Cookies are missing",
-      });
-    }
-
     const dogIds = req.body;
 
     if (dogIds.length > 100) {
@@ -37,16 +27,23 @@ export default async function handler(
       });
     }
 
-    const response = await axios.post(route, dogIds, {
-      withCredentials: true,
-      headers: {
-        Cookie: cookies,
-      },
-    });
-    return res.status(200).json(response.data);
+    const client = await clientPromise;
+    const db = client.db("AdoptionData");
+
+    // Find dogs by their _id
+    const dogs = await db
+      .collection("dogs")
+      .find({ _id: { $in: dogIds } })
+      .toArray();
+
+    // Log the results for debugging
+    console.log(`Found ${dogs.length} dogs out of ${dogIds.length} requested`);
+
+    return res.status(200).json(dogs);
   } catch (error) {
+    console.error("Error fetching dogs from MongoDB:", error);
     return res.status(500).json({
-      error: "Failed to fetch the dog id's",
+      error: "Failed to fetch the dogs",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
