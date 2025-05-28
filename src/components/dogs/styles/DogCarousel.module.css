@@ -17,12 +17,22 @@
   position: relative;
 }
 
+.carousel_slide_container.transitioning {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .carousel_slide {
   width: 100%;
   flex-shrink: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.carousel_slide_container.transitioning .carousel_slide {
+  opacity: 0.7;
 }
 
 .dog_card_carousel_container {
@@ -34,6 +44,11 @@
   align-items: center;
   padding: 10px;
   background: var(--background);
+  transition: transform 0.3s ease-in-out;
+}
+
+.carousel_slide_container.transitioning .dog_card_carousel_container {
+  transform: scale(0.98);
 }
 
 .carousel_button_previous,
@@ -90,6 +105,11 @@
   transition: all 0.2s ease;
 }
 
+.dot_indicator:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .dot_indicator.active {
   background-color: var(--secondary);
   transform: scale(1.2);
@@ -107,7 +127,13 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.generate_match_button:hover {
+.generate_match_button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate_match_button:hover:not(:disabled) {
   background-color: var(--secondary);
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -189,4 +215,25 @@
 .match_modal_actions button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 766px) {
+  .carousel_wrapper {
+    width: 100%;
+    max-width: 100vw;
+    margin: 120px auto 0;
+    padding: 10px;
+    border: 0px;
+    box-sizing: border-box;
+  }
+  .carousel_button_previous {
+    left: 20;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .carousel_button_next {
+    right: 20;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
 }

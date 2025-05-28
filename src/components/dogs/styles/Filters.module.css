@@ -1,13 +1,5 @@
-@media screen and (max-width: 575px) {
-  .filter_container {
-    padding: 20px;
-    max-width: 340px;
-  }
-}
-
 .filter_container {
-  padding: 20px;
-  max-width: 340px;
+  width: 100%;
 }
 .filter_container > * {
   margin-bottom: 1rem; /* Adjust the value as needed */
@@ -156,4 +148,34 @@
 
 .tag:hover .tag_remove {
   background-color: var(--primary);
+}
+
+.filter_options_container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--foreground);
+}
+.filter_select_container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.filter_input_container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+@media screen and (max-width: 990px) {
+  .filter_options_container {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+  }
 }

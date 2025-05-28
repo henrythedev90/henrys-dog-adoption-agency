@@ -30,8 +30,8 @@ const Dashboard = React.memo(() => {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
-  const { name, isLoggedIn } = useAppSelector((state) => state.auth);
-
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth);
+  const name = user?.userName;
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
   const [hasFiltersOrPageChanged, setHasFiltersOrPageChanged] = useState(false);
 
@@ -153,19 +153,22 @@ const Dashboard = React.memo(() => {
   return (
     <div className={classes.dashboard_parent_container}>
       <div className={classes.dashboard_container}>
-        <div className={classes.dashboard_filter_sections}>
-          {isLoggedIn && (
-            <div className={classes.dashboard_header_welcome}>
-              <h4>
-                Welcome, <SplitColorText text={name} size="medium" tag="p" />!
-                You can now search for your ideal dog.
-              </h4>
-            </div>
-          )}
-          <div>
-            <h3>Filter Dogs:</h3>
-            <Filters />
+        {isLoggedIn && (
+          <div className={classes.dashboard_header_welcome}>
+            <h4>
+              Welcome,{" "}
+              <SplitColorText
+                text={`${name}!` || "User"}
+                size="large"
+                tag="p"
+              />
+              You can now search for your ideal dog.
+            </h4>
           </div>
+        )}
+        <div>
+          <h3>Filter Dogs:</h3>
+          <Filters />
         </div>
       </div>
 
@@ -182,8 +185,8 @@ const Dashboard = React.memo(() => {
                 Breed{" "}
                 {currentSortKey === "breed"
                   ? currentSortDirection === "asc"
-                    ? "▲"
-                    : "▼"
+                    ? "(A-Z)"
+                    : "(Z-A)"
                   : ""}
               </Button>
               <Button
@@ -193,8 +196,8 @@ const Dashboard = React.memo(() => {
                 Name{" "}
                 {currentSortKey === "name"
                   ? currentSortDirection === "asc"
-                    ? "▲"
-                    : "▼"
+                    ? "(A-Z)"
+                    : "(Z-A)"
                   : ""}
               </Button>
               <Button
@@ -204,15 +207,26 @@ const Dashboard = React.memo(() => {
                 Age{" "}
                 {currentSortKey === "age"
                   ? currentSortDirection === "asc"
-                    ? "▲"
-                    : "▼"
+                    ? "(1-9)"
+                    : "(9-1)"
                   : ""}
               </Button>
             </div>
           )}
         </div>
+        {totalPages > 1 && (
+          <div className={classes.dashboard_pagination_sections_top}>
+            <Pagination
+              page={page}
+              setPage={handlePageChange}
+              totalPages={totalPages}
+            />
+          </div>
+        )}
         {loading ? (
-          <LoadingSpinner />
+          <div className={classes.loadingContainer}>
+            <LoadingSpinner />
+          </div>
         ) : error ? (
           <p>{error}</p>
         ) : !hasActiveFilters && dogs.length === 0 && !error ? (
@@ -221,7 +235,7 @@ const Dashboard = React.memo(() => {
           <>
             <div className={classes.dashboard_dog_card_result}>
               {dogs.map((dog: Dog) => (
-                <DogCard key={dog.id} dog={dog} />
+                <DogCard key={dog._id} dog={dog} />
               ))}
             </div>
             {totalPages > 1 && (
@@ -235,7 +249,17 @@ const Dashboard = React.memo(() => {
             )}
           </>
         ) : hasActiveFilters && dogs.length === 0 && !error ? (
-          <p>No dogs found. Try adjusting your search filters</p>
+          (() => {
+            console.log("Dashboard Debug:", {
+              hasActiveFilters,
+              dogsLength: dogs.length,
+              error,
+              filters: filters,
+              currentPage: page,
+              totalPages,
+            });
+            return <p>No dogs found. Try adjusting your search filters</p>;
+          })()
         ) : null}
       </div>
     </div>

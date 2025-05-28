@@ -9,23 +9,21 @@ import Modal from "../ui/Modal";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
-import { fetchMatch } from "@/store/slices/dogsSlice";
+import { clearFavorite, fetchMatch } from "@/store/slices/dogsSlice";
 import { resetFilter } from "@/store/slices/filtersSlice";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
+import { toggleFavorite } from "@/store/slices/dogsSlice";
 
 interface DogCarouselProps {
   favoriteDogs: Dog[];
   title?: string;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleOpenModal?: () => void;
 }
 
 const DogCarousel: React.FC<DogCarouselProps> = ({
   favoriteDogs,
   title = "Your Favorite Dogs",
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleOpenModal,
 }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -34,25 +32,47 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const favoriteIds = useAppSelector(selectDogFavorite);
-  const [error, setError] = useState<string | null>(null);
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth);
+  const [error, setError] = useState<string | React.ReactNode | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Add debug logging for auth state
+  useEffect(() => {
+    console.log("DogCarousel: Auth state:", {
+      user,
+      isLoggedIn,
+      userId: user?._id,
+      userName: user?.userName,
+    });
+  }, [user, isLoggedIn]);
+
   // Update current slide when favorites change
   useEffect(() => {
+    if (favoriteDogs.length === 0) return;
+
     // If we're at the last slide and a dog is removed, move back one slide
     if (currentSlide >= favoriteDogs.length) {
+      setIsTransitioning(true);
       setCurrentSlide(Math.max(0, favoriteDogs.length - 1));
+      // Reset transition state after animation completes
+      setTimeout(() => setIsTransitioning(false), 500);
     }
   }, [favoriteDogs.length, currentSlide]);
 
   const handlePrevSlide = () => {
+    setIsTransitioning(true);
     setCurrentSlide((prev) =>
       prev === 0 ? favoriteDogs.length - 1 : prev - 1
     );
+    setTimeout(() => setIsTransitioning(false), 500);
   };
 
   const handleNextSlide = () => {
+    setIsTransitioning(true);
     setCurrentSlide((prev) =>
       prev === favoriteDogs.length - 1 ? 0 : prev + 1
     );
+    setTimeout(() => setIsTransitioning(false), 500);
   };
 
   const fireConfetti = () => {
@@ -85,8 +105,41 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     setError(null);
     setIsModalOpen(true);
 
+    console.log("DogCarousel: Generating match with:", {
+      favoriteIds,
+      userId: user?._id,
+      isUserLoggedIn: !!user,
+    });
+
     try {
-      const result = await dispatch(fetchMatch(favoriteIds)).unwrap();
+      const result = await dispatch(
+        fetchMatch({ favoriteIds, userId: user?._id })
+      ).unwrap();
+      console.log("DogCarousel: Match result:", result);
+
+      if ("allMatched" in result) {
+        setError(
+          <div className={modalClasses.error_container}>
+            <p>{result.message}</p>
+            <p className={modalClasses.suggestion_text}>
+              Head to the Dashboard to discover more amazing dogs!
+            </p>
+            <div className={modalClasses.match_modal_actions}>
+              <Button
+                onClickFunction={() => {
+                  router.push("/dogs");
+                  dispatch(clearFavorite());
+                }}
+                variant="primary"
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+          </div>
+        );
+        setLoading(false);
+        return;
+      }
 
       if (favoriteIds.length > 2) {
         // Add a delay before showing the match for better UX when there are many favorites
@@ -102,7 +155,11 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
         fireConfetti(); // Fire confetti when the match is revealed
       }
     } catch (err: unknown) {
-      console.error("Match error:", err);
+      console.error("DogCarousel: Match error:", {
+        error: err,
+        message: err instanceof Error ? err.message : "Unknown error",
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       setError(
         err instanceof Error
           ? err.message
@@ -118,6 +175,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     setIsModalOpen(false);
     setMatchedDog(null);
   };
+
   // Don't render carousel if no favorites
   if (favoriteDogs.length === 0) {
     return (
@@ -147,7 +205,9 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
           </h2>
         )}
         <div
-          className={classes.carousel_slide_container}
+          className={`${classes.carousel_slide_container} ${
+            isTransitioning ? classes.transitioning : ""
+          }`}
           style={
             {
               "--slide-offset": `${-currentSlide * 100}%`,
@@ -155,9 +215,14 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
           }
         >
           {favoriteDogs.map((dog) => (
-            <div key={dog.id} className={classes.carousel_slide}>
+            <div key={dog._id} className={classes.carousel_slide}>
               <div className={classes.dog_card_carousel_container}>
-                <DogCard dog={dog} />
+                <DogCard
+                  dog={dog}
+                  onToggleFavorite={(dogId) =>
+                    dispatch(toggleFavorite({ dogId, removeFromResults: true }))
+                  }
+                />
               </div>
             </div>
           ))}
@@ -169,7 +234,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
             className={classes.carousel_button_previous}
             aria-label="Previous dog"
             variant="secondary"
-            disabled={favoriteDogs.length <= 1}
+            disabled={favoriteDogs.length <= 1 || isTransitioning}
           >
             ←
           </Button>
@@ -177,7 +242,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
           <Button
             onClickFunction={handleGenerateMatch}
             className={classes.generate_match_button}
-            disabled={loading}
+            disabled={loading || isTransitioning}
           >
             {loading ? "Finding Match..." : "Generate Match"}
           </Button>
@@ -187,7 +252,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
             className={classes.carousel_button_next}
             aria-label="Next dog"
             variant="secondary"
-            disabled={favoriteDogs.length <= 1}
+            disabled={favoriteDogs.length <= 1 || isTransitioning}
           >
             →
           </Button>
@@ -198,11 +263,16 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
             {favoriteDogs.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentSlide(index)}
+                onClick={() => {
+                  setIsTransitioning(true);
+                  setCurrentSlide(index);
+                  setTimeout(() => setIsTransitioning(false), 500);
+                }}
                 className={`${classes.dot_indicator} ${
                   currentSlide === index ? classes.active : ""
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
+                disabled={isTransitioning}
               />
             ))}
           </div>

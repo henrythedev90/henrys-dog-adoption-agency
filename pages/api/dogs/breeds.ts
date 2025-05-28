@@ -1,18 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
-
-const isTest = process.env.NODE_ENV === "test";
-
-const route = "https://frontend-take-home-service.fetch.com/dogs/breeds";
+import clientPromise from "@/lib/mongodb";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (!isTest) console.log("API Route: Received request for dog breeds");
-
   if (req.method !== "GET") {
-    if (!isTest) console.error(`Invalid method: ${req.method}`);
+    console.error(`Invalid method: ${req.method}`);
     return res.status(405).json({
       error: "Method is not allowed",
       message: "Must use GET method",
@@ -20,31 +14,21 @@ export default async function handler(
   }
 
   try {
-    const cookies = req.headers.cookie;
+    const client = await clientPromise;
+    const db = client.db("AdoptionData");
 
-    if (!cookies) {
-      if (!isTest) console.error("No cookies found in the request");
-      return res.status(401).json({
-        error: "Missing authentication",
-        message: "Cookies are missing",
-      });
-    }
+    // Get unique breeds from the dogs collection
+    const breeds = await db.collection("dogs").distinct("breed");
 
-    if (!isTest) console.log("Making request to dog breeds API");
-
-    // Make the API request with cookies forwarded
-    const response = await axios.get(route, {
-      withCredentials: true,
-      headers: {
-        Cookie: cookies,
-      },
-    });
-
-    return res.status(200).json(response.data);
+    // Sort breeds alphabetically
+    const sortedBreeds = breeds.sort((a: string, b: string) =>
+      a.localeCompare(b)
+    );
+    return res.status(200).json(sortedBreeds);
   } catch (error) {
-    // Handle general error if no response is available
+    console.error("Error fetching breeds from MongoDB:", error);
     return res.status(500).json({
-      error: "Failed to find the breeds",
+      error: "Failed to fetch breeds",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }

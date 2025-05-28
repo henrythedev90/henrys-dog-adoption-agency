@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
-
-const isTest = process.env.NODE_ENV === "test";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+import { verify } from "jsonwebtoken";
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,96 +12,85 @@ export default async function handler(
   }
 
   try {
-    // Get the raw cookie header
-    const cookieHeader = req.headers.cookie;
-    if (!isTest)
-      console.log("Logout API: Raw cookie header present:", !!cookieHeader);
+    // Get both tokens from cookies
 
-    // Forward the cookies from the client request to the Fetch API
-    const fetchApiToken = req.cookies["fetch-api-token"];
-    const fetchRefreshToken = req.cookies["fetch-refresh-token"];
+    const refreshToken = req.cookies["refreshToken"];
 
-    if (!fetchApiToken && !fetchRefreshToken) {
-      if (!isTest) console.log("Logout API: No authentication cookies found");
-      // Even if cookies are missing, clear any that might exist and consider it a successful logout
-      res.setHeader("Set-Cookie", [
-        "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-        "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-      ]);
-      return res
-        .status(200)
-        .json({ message: "Logged out successfully (no cookies)" });
-    }
+    if (refreshToken) {
+      try {
+        // Connect to MongoDB
+        const client = await clientPromise;
+        const db = client.db("AdoptionData");
 
-    // Call the backend logout endpoint with the auth cookies
-    try {
-      if (!isTest)
-        console.log("Logout API: Attempting to call Fetch API logout endpoint");
+        // Verify the refresh token to get userId
+        const decoded = verify(
+          refreshToken,
+          process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key"
+        ) as { userId: string };
 
-      // Use the raw cookie header if available, otherwise construct it
-      const cookieToSend =
-        cookieHeader || (fetchApiToken && fetchRefreshToken)
-          ? `fetch-api-token=${fetchApiToken}; fetch-refresh-token=${fetchRefreshToken}`
-          : "";
-
-      // Try with direct cookie header approach
-      await axios.post(
-        "https://frontend-take-home-service.fetch.com/auth/logout",
-        {},
-        {
-          headers: {
-            Cookie: cookieToSend,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!isTest) console.log("Logout API: Fetch API logout successful");
-    } catch (fetchError: unknown) {
-      if (axios.isAxiosError(fetchError)) {
-        if (!isTest)
-          console.error("Logout API: Error calling Fetch API:", {
-            message: fetchError.message,
-            status: fetchError.response?.status,
-            headers: fetchError.response?.headers ? "Present" : "None",
-            data: fetchError.response?.data,
+        if (decoded?.userId) {
+          // Delete all refresh tokens for this user
+          await db.collection("tokens").deleteMany({
+            userId: new ObjectId(decoded.userId),
           });
 
-        // If it's not a 401, rethrow to be handled by the outer catch
-        if (fetchError.response?.status !== 401) {
-          throw fetchError;
+          console.log(`Deleted all tokens for user: ${decoded.userId}`);
+        } else {
+          // If we can't verify the token, just delete the specific refresh token
+          await db.collection("tokens").deleteOne({ refreshToken });
         }
-
-        if (!isTest)
-          console.log(
-            "Logout API: Got 401 from Fetch API - treating as already logged out"
-          );
+      } catch (dbError) {
+        console.error("Error deleting tokens:", dbError);
+        // Continue with logout even if token deletion fails
       }
-
-      // Clear the cookies by setting them to expire
-      res.setHeader("Set-Cookie", [
-        "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-        "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-      ]);
-
-      if (!isTest)
-        console.log("Logout API: Cookies cleared, returning success");
-      return res.status(200).json({ message: "Logged out successfully" });
     }
-  } catch (error: unknown) {
-    if (!isTest)
-      console.error(
-        "Logout API: Error in logout API route:",
-        error instanceof Error ? error.message : "Unknown error"
-      );
+
+    // Clear all auth cookies with secure settings
+    const cookieOptions = {
+      Path: "/",
+      Expires: new Date(0),
+      HttpOnly: true,
+      SameSite: "Lax" as const,
+      ...(process.env.NODE_ENV === "production" && { Secure: true }),
+    };
 
     res.setHeader("Set-Cookie", [
-      "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-      "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
+      `accessToken=; ${Object.entries(cookieOptions)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("; ")}`,
+      `refreshToken=; ${Object.entries(cookieOptions)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("; ")}`,
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    // Even if there's an error, clear the cookies
+    const cookieOptions = {
+      Path: "/",
+      Expires: new Date(0),
+      HttpOnly: true,
+      SameSite: "Lax" as const,
+      ...(process.env.NODE_ENV === "production" && { Secure: true }),
+    };
+
+    res.setHeader("Set-Cookie", [
+      `accessToken=; ${Object.entries(cookieOptions)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("; ")}`,
+      `refreshToken=; ${Object.entries(cookieOptions)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("; ")}`,
     ]);
 
     return res.status(500).json({
-      message: "Logged out (with server error)",
+      success: false,
+      message: "Error during logout",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

@@ -9,14 +9,22 @@
 }
 
 .dog_card_text {
-  font-size: 12px;
-  padding-left: 5px;
+  font-size: 16px;
+  /* padding-left: 5px; */
   border: none;
+  text-align: center;
+  width: 100%;
+  padding: 0px 8px;
 }
 
 .dog_card_text p {
   margin: 2px;
   text-align: start;
+}
+
+.dog_card_text label {
+  font-weight: bold;
+  margin-right: 5px;
 }
 
 .dog_card_img {

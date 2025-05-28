@@ -53,6 +53,7 @@ export const fetchDogs = createAsyncThunk(
     const state = getState() as RootState;
     const filters = state.filters;
     const currentPage = state.dogs.page;
+    const favorites = state.dogs.favorites;
 
     // *** Get sort value from filters state ***
     const currentSort = filters.sort; // e.g., "breed:asc"
@@ -62,16 +63,6 @@ export const fetchDogs = createAsyncThunk(
         `fetchDogs Thunk: Fetching page ${currentPage} with sort: ${currentSort}`
       );
 
-      console.log("Client sending params:", {
-        breeds: filters.breeds,
-        zipCodes: filters.zipCodes,
-        ageMin: filters.ageMin,
-        ageMax: filters.ageMax,
-        size: filters.size,
-        from: currentPage * filters.size,
-        sort: currentSort,
-      });
-
       // Call *your* Next.js API route
       const searchResponse = await apiClient.get("/dogs/search", {
         params: {
@@ -79,39 +70,24 @@ export const fetchDogs = createAsyncThunk(
           zipCodes: filters.zipCodes.length
             ? filters.zipCodes.join(",")
             : undefined,
-          ageMin: filters.ageMin ?? undefined, // Use nullish coalescing
+          boroughs: filters.boroughs.length
+            ? filters.boroughs.join(",")
+            : undefined,
+          ageMin: filters.ageMin ?? undefined,
           ageMax: filters.ageMax ?? undefined,
           size: filters.size,
           from: currentPage * filters.size,
-          sort: currentSort, // *** Pass sort parameter ***
+          sort: currentSort,
         },
       });
 
-      // Debug the actual URL being sent
-      console.log(
-        "Client URL constructed:",
-        apiClient.getUri({
-          url: "/dogs/search",
-          params: {
-            breeds: filters.breeds.length
-              ? filters.breeds.join(",")
-              : undefined,
-            zipCodes: filters.zipCodes.length
-              ? filters.zipCodes.join(",")
-              : undefined,
-            ageMin: filters.ageMin ?? undefined,
-            ageMax: filters.ageMax ?? undefined,
-            size: filters.size,
-            from: currentPage * filters.size,
-            sort: currentSort,
-          },
-        })
-      );
+      console.log("fetchDogs Thunk: Search response:", {
+        status: searchResponse.status,
+        data: searchResponse.data,
+        resultIds: searchResponse.data?.resultIds,
+        total: searchResponse.data?.total,
+      });
 
-      console.log(
-        "fetchDogs Thunk: Search response status:",
-        searchResponse.status
-      );
       const resultIds = searchResponse.data?.resultIds || [];
       const total = searchResponse.data?.total || 0;
 
@@ -125,44 +101,30 @@ export const fetchDogs = createAsyncThunk(
         };
       }
 
-      console.log(
-        `fetchDogs Thunk: Found ${resultIds.length} IDs, fetching details.`
-      );
       // Fetch details using your Next.js API route
       const dogsResponse = await apiClient.post("/dogs", resultIds);
-      console.log(
-        "fetchDogs Thunk: Dog details response status:",
-        dogsResponse.status
-      );
 
-      console.log("Client received response:", searchResponse.data);
+      console.log("fetchDogs Thunk: Dogs response:", {
+        status: dogsResponse.status,
+        data: dogsResponse.data,
+        dogsFound: dogsResponse.data?.length,
+      });
+
+      // Filter out any dogs that are in favorites
+      const filteredDogs = dogsResponse.data.filter(
+        (dog: Dog) => !favorites.includes(dog._id)
+      );
 
       return {
         resultIds,
-        dogs: dogsResponse.data || [],
+        dogs: filteredDogs,
         total,
         size: filters.size,
       };
-    } catch (error: unknown) {
-      console.error("fetchDogs Thunk: Error occurred:", {
-        status: error instanceof AxiosError ? error.response?.status : null,
-        data: error instanceof AxiosError ? error.response?.data : null,
-        message:
-          error instanceof Error ? error.message : "Failed to fetch dogs",
-      });
-      // Handle specific errors or provide generic message
-      if (error instanceof AxiosError && error.response?.status === 401) {
-        // Optional: Redirect or specific handling for auth errors
-        console.error("fetchDogs Thunk: Authentication error (401).");
-        // window.location.href = "/"; // Example redirect
-        return rejectWithValue("Authentication failed. Please log in again.");
-      }
+    } catch (error) {
+      console.error("fetchDogs Thunk: Error:", error);
       return rejectWithValue(
-        error instanceof AxiosError
-          ? error.response?.data?.message ||
-              error.message ||
-              "Failed to fetch dogs"
-          : "Failed to fetch dogs"
+        error instanceof Error ? error.message : "Failed to fetch dogs"
       );
     }
   }
@@ -198,7 +160,10 @@ export const fetchFavoriteDogs = createAsyncThunk(
 
 export const fetchMatch = createAsyncThunk(
   "dogs/fetchMatch",
-  async (favoriteIds: string[], { rejectWithValue }) => {
+  async (
+    { favoriteIds, userId }: { favoriteIds: string[]; userId?: string },
+    { rejectWithValue }
+  ) => {
     try {
       console.log(
         `fetchMatch Thunk: Calling /api/dogs/match for ${favoriteIds.length} favorites.`
@@ -210,7 +175,7 @@ export const fetchMatch = createAsyncThunk(
       // Call your LOCAL API route with the array directly and ensure credentials are sent
       const response = await axios.post(
         "/api/dogs/match", // Target your Next.js route
-        favoriteIds, // Send the array directly as the body
+        { favoriteIds, userId }, // Send both favoriteIds and userId
         {
           withCredentials: true, // Ensure cookies are sent with the request
         }
@@ -229,8 +194,14 @@ export const fetchMatch = createAsyncThunk(
         headers: response.headers ? "Present" : "None",
       });
 
-      // Your /api/dogs/match route now returns the full dog object
-      if (response.data && response.data.id) {
+      // Handle the case when all dogs have been matched
+      if (response.data && "allMatched" in response.data) {
+        console.log("fetchMatch Thunk: All dogs have been matched.");
+        return response.data;
+      }
+
+      // Handle successful match response
+      if (response.data && response.data._id) {
         console.log("fetchMatch Thunk: Received valid dog data.");
         return response.data; // Return the full dog object
       } else {
@@ -297,10 +268,17 @@ const dogsSlice = createSlice({
     setResults: (state, action: PayloadAction<Dog[]>) => {
       state.results = action.payload;
     },
-    toggleFavorite: (state, action: PayloadAction<string>) => {
-      const dogId = action.payload;
+    toggleFavorite: (
+      state,
+      action: PayloadAction<{ dogId: string; removeFromResults?: boolean }>
+    ) => {
+      const { dogId, removeFromResults = false } = action.payload;
       if (state.favorites.includes(dogId)) {
         state.favorites = state.favorites.filter((id) => id !== dogId);
+        // Only remove from results if explicitly requested (for carousel)
+        if (removeFromResults) {
+          state.results = state.results.filter((dog) => dog._id !== dogId);
+        }
       } else {
         state.favorites.push(dogId);
       }
@@ -351,7 +329,7 @@ const dogsSlice = createSlice({
         // Add favorite dogs to the results without replacing existing dogs
         const newDogs = action.payload.dogs.filter(
           (dog: Dog) =>
-            !state.results.some((existingDog) => existingDog.id === dog.id)
+            !state.results.some((existingDog) => existingDog._id === dog._id)
         );
         state.results = [...state.results, ...newDogs];
       })
@@ -374,7 +352,7 @@ const dogsSlice = createSlice({
         if (
           action.payload &&
           typeof action.payload === "object" &&
-          action.payload.id
+          action.payload._id
         ) {
           state.loading = false;
           state.match = action.payload; // Expecting the dog object directly

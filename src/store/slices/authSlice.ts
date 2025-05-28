@@ -1,21 +1,20 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 import { clearFavorite, clearBreeds } from "./dogsSlice";
 import { resetFilter } from "./filtersSlice";
+import { apiClient } from "@/lib/apiClient";
 
 export interface LoginRequest {
-  name: string;
-  email: string;
-}
-
-export interface LoginResponse {
-  name: string;
-  email: string;
+  emailOrUserName: string;
+  password: string;
 }
 
 interface AuthState {
-  name: string;
-  email: string;
+  user: {
+    _id: string;
+    userName: string;
+    email: string;
+  } | null;
   isLoggedIn: boolean;
   loading: boolean;
   error: string | null;
@@ -39,8 +38,7 @@ const loadAuthFromStorage = (): Partial<AuthState> => {
 };
 
 const initialState: AuthState = {
-  name: "",
-  email: "",
+  user: null,
   isLoggedIn: false,
   loading: false,
   error: null,
@@ -53,8 +51,7 @@ const saveAuthToStorage = (auth: Partial<AuthState>) => {
       localStorage.setItem(
         "dogAuth",
         JSON.stringify({
-          name: auth.name,
-          email: auth.email,
+          user: auth.user,
           isLoggedIn: auth.isLoggedIn,
         })
       );
@@ -69,7 +66,13 @@ export const checkAuth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get("/api/auth/check", { withCredentials: true });
-      return res.status === 200;
+      if (res.status === 200 && res.data.user) {
+        return {
+          isLoggedIn: true,
+          user: res.data.user,
+        };
+      }
+      return { isLoggedIn: false, user: null };
     } catch (error: unknown) {
       return rejectWithValue(
         error instanceof Error ? error.message : "Authentication check failed"
@@ -78,90 +81,43 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
-export const loginUser = createAsyncThunk<
-  LoginResponse,
-  LoginRequest,
-  { rejectValue: string }
->("auth/loginUser", async ({ name, email }, { rejectWithValue }) => {
-  try {
-    console.log("Login thunk: Attempting login for:", { name, email });
-
-    // Use axios directly with the correct Next.js API route
-    const res = await axios.post(
-      "/api/auth/login",
-      { name, email },
-      { withCredentials: true } // Ensure cookies are properly saved
-    );
-
-    if (res.status === 200) {
-      console.log("Login thunk: Login successful");
-      return { name, email };
-    } else {
-      console.error("Login thunk: Login failed with status:", res.status);
-      return rejectWithValue("Login failed with status: " + res.status);
-    }
-  } catch (error: unknown) {
-    console.error("Login thunk: Error during login:", {
-      status: error instanceof AxiosError ? error.response?.status : null,
-      message:
-        error instanceof Error
-          ? error.message
-          : "An error occurred during login.",
-      data: error instanceof AxiosError ? error.response?.data : null,
-    });
-
-    return rejectWithValue(
-      error instanceof AxiosError
-        ? error.response?.data?.message || "An error occurred during login."
-        : "An error occurred during login."
-    );
+export const loginUser = createAsyncThunk(
+  "auth/login",
+  async (credentials: LoginRequest) => {
+    const response = await apiClient.post("/auth/login", credentials);
+    return response.data;
   }
-});
+);
 
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      console.log("Logout thunk: Attempting logout");
-
-      // Flag the logout in sessionStorage to prevent unnecessary API calls during logout
+      // Flag the logout in sessionStorage to prevent unnecessary API calls
       sessionStorage.setItem("logging_out", "true");
 
-      // Use axios directly with the correct Next.js API route
+      // Call logout API to delete token and clear cookies
       await axios.post("/api/auth/logout", {}, { withCredentials: true });
-
-      console.log("Logout thunk: Logout API call successful");
 
       // Clear all user data
       dispatch(clearFavorite());
       dispatch(clearBreeds());
       dispatch(resetFilter());
-      localStorage.clear(); // Clear all localStorage data
 
-      // Add a small delay before removing the logging_out flag
-      // This gives time for any in-flight requests to complete
-      setTimeout(() => {
-        sessionStorage.removeItem("logging_out");
-      }, 500);
+      // Clear all storage
+      localStorage.removeItem("dogAuth");
+      sessionStorage.clear();
 
       return true;
     } catch (error: unknown) {
-      console.error("Logout thunk: Error during logout:", {
-        status: error instanceof AxiosError ? error.response?.status : null,
-        message:
-          error instanceof Error
-            ? error.message
-            : "An error occurred during logout.",
-      });
+      console.error("Logout error:", error);
 
       // Even if the API call fails, clear local state
       dispatch(clearFavorite());
       dispatch(clearBreeds());
       dispatch(resetFilter());
-      localStorage.clear();
-
-      // Remove logout flag
-      sessionStorage.removeItem("logging_out");
+      localStorage.removeItem("dogAuth");
+      sessionStorage.clear();
 
       return rejectWithValue(
         error instanceof AxiosError
@@ -176,16 +132,9 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ name: string; email: string }>) => {
-      state.isLoggedIn = true;
-      state.name = action.payload.name;
-      state.email = action.payload.email;
-      saveAuthToStorage(state);
-    },
     logout: (state) => {
+      state.user = null;
       state.isLoggedIn = false;
-      state.name = "";
-      state.email = "";
       localStorage.removeItem("dogAuth");
     },
     resetAuth() {
@@ -198,32 +147,27 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        loginUser.fulfilled,
-        (state, action: PayloadAction<{ name: string; email: string }>) => {
-          state.loading = false;
-          state.isLoggedIn = true;
-          state.name = action.payload.name;
-          state.email = action.payload.email;
-          saveAuthToStorage(state);
-        }
-      )
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isLoggedIn = true;
+        state.user = action.payload.user;
+        saveAuthToStorage(state);
+      })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Login failed";
+        state.error = action.error.message || "Failed to login";
         state.isLoggedIn = false;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
-        state.isLoggedIn = action.payload;
-        if (!action.payload) {
-          state.name = "";
-          state.email = "";
+        state.isLoggedIn = action.payload.isLoggedIn;
+        state.user = action.payload.user;
+        if (action.payload.isLoggedIn) {
+          saveAuthToStorage(state);
         }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoggedIn = false;
-        state.name = "";
-        state.email = "";
+        state.user = null;
       })
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
@@ -239,5 +183,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { resetAuth, login, logout } = authSlice.actions;
+export const { resetAuth, logout } = authSlice.actions;
 export default authSlice.reducer;

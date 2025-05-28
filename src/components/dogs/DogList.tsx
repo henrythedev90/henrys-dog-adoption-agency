@@ -8,12 +8,12 @@ interface DogListProps {
 }
 export default function DogList({ dogIds }: DogListProps) {
   const dogs = useAppSelector((state) => state.dogs.results);
-  const filteredDogs = dogs.filter((dog) => dogIds.includes(dog.id));
+  const filteredDogs = dogs.filter((dog) => dogIds.includes(dog._id));
 
   return (
     <div>
       {filteredDogs.map((dog: Dog) => {
-        return <DogCard key={dog.id} dog={dog} />;
+        return <DogCard key={dog._id} dog={dog} />;
       })}
     </div>
   );

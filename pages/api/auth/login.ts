@@ -1,122 +1,100 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios, { AxiosError } from "axios";
-
-const route = "https://frontend-take-home-service.fetch.com/auth/login";
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const isTest = process.env.NODE_ENV === "test";
+import { compare } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import clientPromise from "@/lib/mongodb";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
-    if (!isTest) console.log("Login API: Invalid method:", req.method);
-    return res.status(405).json({ error: "Method is not allowed" });
-  }
-
-  const { name, email } = req.body;
-
-  if (!email || !emailRegex.test(email)) {
-    return res.status(400).json({
-      message: "Please enter a valid email",
-    });
-  }
-
-  if (!name) {
-    return res.status(400).json({ message: "Please enter a valid name" });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
-    // Make the login request directly to the Fetch API
-    const response = await axios.post(
-      route,
-      { name, email },
+    console.log("Login request body:", req.body);
+    const { emailOrUserName, password } = req.body;
+
+    if (!emailOrUserName || !password) {
+      console.log("Missing required fields:", { emailOrUserName, password });
+      return res
+        .status(400)
+        .json({ message: "Email/Username and password are required" });
+    }
+
+    const client = await clientPromise;
+    const db = client.db("AdoptionData");
+
+    // Try to find user by email or userName
+    const user = await db.collection("users").findOne({
+      $or: [{ email: emailOrUserName }, { userName: emailOrUserName }],
+    });
+
+    if (!user) {
+      console.log("User not found for:", emailOrUserName);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isPasswordValid = await compare(password, user.password);
+
+    if (!isPasswordValid) {
+      console.log("Invalid password for user:", emailOrUserName);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate access token
+    const accessToken = sign(
       {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      }
+        userId: user._id,
+        email: user.email,
+        userName: user.userName,
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "1h" }
     );
 
-    // Get the cookies from the response
-    const cookies = response.headers["set-cookie"];
+    // Generate refresh token
+    const refreshToken = sign(
+      {
+        userId: user._id,
+      },
+      process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key",
+      { expiresIn: "7d" }
+    );
 
-    if (cookies && cookies.length > 0) {
-      // Log each cookie for debugging
-      cookies.forEach((cookie: string, index: number) => {
-        // Only show part of the cookie for security
-        const cookieParts = cookie.split(";")[0].split("=");
-        const cookieName = cookieParts[0];
-        const cookieValuePreview = cookieParts[1]
-          ? `${cookieParts[1].substring(0, 10)}...`
-          : "[empty]";
-        if (!isTest)
-          console.log(
-            `Login API: Cookie ${
-              index + 1
-            }: ${cookieName}=${cookieValuePreview}`
-          );
-      });
-
-      // Check specifically for fetch-api token
-      const hasFetchApiToken = cookies.some((cookie: string) =>
-        cookie.includes("fetch-api-token")
-      );
-      const hasFetchRefreshToken = cookies.some((cookie: string) =>
-        cookie.includes("fetch-refresh-token")
-      );
-
-      if (!isTest)
-        console.log(`Login API: fetch-api-token present: ${hasFetchApiToken}`);
-      if (!isTest)
-        console.log(
-          `Login API: fetch-refresh-token present: ${hasFetchRefreshToken}`
-        );
-
-      // Forward each cookie exactly as received from the Fetch API
-      res.setHeader("Set-Cookie", cookies);
-    } else {
-      if (!isTest)
-        console.error("Login API: No cookies received from Fetch API");
-      return res.status(401).json({
-        error: "Authentication failed",
-        message: "No authentication cookies received from server",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      user: { name, email },
+    // Store refresh token in database
+    await db.collection("tokens").insertOne({
+      userId: user._id,
+      refreshToken,
+      isValid: true,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      createdAt: new Date(),
     });
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (!isTest)
-        console.error("Login API: Login failed:", {
-          status: (error as AxiosError).response?.status,
-          data: (error as AxiosError).response?.data,
-          message: (error as AxiosError).message,
-          headers: (error as AxiosError).response?.headers ? "Present" : "None",
-        });
 
-      return res.status(error.response?.status || 500).json({
-        error: "Failed to login",
-        message:
-          error.response?.data?.message || error.message || "Unknown error",
-      });
-    }
+    // Set cookies
+    res.setHeader("Set-Cookie", [
+      `accessToken=${accessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${
+        process.env.NODE_ENV === "production" ? "; Secure" : ""
+      }`,
+      `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax${
+        process.env.NODE_ENV === "production" ? "; Secure" : ""
+      }`,
+    ]);
 
-    // Handle non-Axios errors
-    if (!isTest)
-      console.error("Login API: Login failed:", {
-        status: (error as Error).message,
-        message: (error as Error).message,
-      });
-
+    console.log("Login successful for user:", user.userName);
+    return res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        userName: user.userName,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
     return res.status(500).json({
-      error: "Failed to login",
-      message: (error as Error).message || "Unknown error",
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }

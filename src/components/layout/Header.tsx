@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
-import { logout } from "@/store/slices/authSlice";
+import { logout, logoutUser } from "@/store/slices/authSlice";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Container from "../ui/Container";
@@ -20,27 +20,19 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const handleLogout = () => {
-    // 1. Dispatch redux action to update state
-    dispatch(logout());
+  const handleLogout = async () => {
+    try {
+      // Use the logout thunk which handles token deletion and state cleanup
+      await dispatch(logoutUser());
 
-    // 2. Clear all localStorage
-    localStorage.clear();
-
-    // 3. Set a flag to prevent redirect loops
-    sessionStorage.setItem("manual_logout", "true");
-
-    // 4. Clear any auth cookies by overwriting them
-    document.cookie =
-      "fetch-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; max-age=0;";
-    document.cookie =
-      "fetch-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; max-age=0;";
-
-    // 5. Add logout param to URL to signal we're logging out
-    console.log("Manual logout initiated, redirecting");
-
-    // 6. Force a complete page reload with logout param
-    window.location.replace("/?logout=true");
+      // Redirect to home page
+      router.replace("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if the API call fails, clear local state
+      dispatch(logout());
+      router.replace("/");
+    }
   };
 
   const handleFavoritesClick = (e: React.MouseEvent) => {

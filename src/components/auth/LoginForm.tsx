@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginUser } from "@/store/slices/authSlice";
 import { useRouter } from "next/navigation";
@@ -8,63 +8,67 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import classes from "./style/LoginForm.module.css";
 
 const LoginForm = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [isNavigating, setIsNavigating] = useState(false);
   const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((state) => state.auth);
+  const [emailOrUserName, setEmailOrUserName] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
-
-  const { loading, error, isLoggedIn } = useAppSelector((state) => state.auth);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      setIsNavigating(true);
-      router.push("/dogs");
-    }
-  }, [isLoggedIn, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(loginUser({ name, email }));
+    try {
+      const result = await dispatch(loginUser({ emailOrUserName, password }));
+      if (result.meta.requestStatus === "fulfilled") {
+        router.replace("/dogs");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
-  if (loading || isNavigating) {
+  if (loading) {
     return (
       <div className={classes.loading_container}>
         <LoadingSpinner />
-        <p className={classes.loading_text}>
-          {loading ? "Logging in..." : "Redirecting to dashboard..."}
-        </p>
+        <p className={classes.loading_text}>Signing in...</p>
       </div>
     );
   }
 
   return (
     <div className={classes.input_container}>
+      <div className={classes.form_title_container}>
+        <h2>Welcome Back!</h2>
+        <p>Please enter your details to sign in</p>
+      </div>
       {error && <div className={classes.error_message}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          placeholder="Name"
-          value={name}
-          autoComplete="name"
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <Button variant="primary" type="submit">
-          Login
+      <form onSubmit={handleSubmit} className={classes.form}>
+        <div className={classes.inputGroup}>
+          <input
+            id="emailOrUserName"
+            name="emailOrUserName"
+            type="text"
+            autoComplete="username"
+            placeholder="Email or Username"
+            value={emailOrUserName}
+            onChange={(e) => setEmailOrUserName(e.target.value)}
+            required
+          />
+        </div>
+        <div className={classes.inputGroup}>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <Button variant="primary" type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
     </div>

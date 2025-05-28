@@ -8,6 +8,7 @@ import {
   setFilters,
   resetFilter,
   PAGE_SIZES,
+  PageSize,
 } from "../../store/slices/filtersSlice";
 import {
   selectBreeds,
@@ -16,6 +17,7 @@ import {
 } from "../../store/selectors/breedSelectors";
 import Button from "../ui/Button";
 import styles from "./styles/Filters.module.css";
+import { BOROUGHS, Borough } from "@/enums/boroughs";
 
 export default function Filters() {
   const dispatch = useAppDispatch();
@@ -41,10 +43,31 @@ export default function Filters() {
     }
   };
 
+  const handleBoroughSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBorough = e.target.value as Borough;
+    if (selectedBorough && !filters.boroughs?.includes(selectedBorough)) {
+      dispatch(
+        setFilters({
+          boroughs: [...(filters.boroughs || []), selectedBorough],
+        })
+      );
+    }
+  };
+
   const handleRemoveBreed = (breedToRemove: string) => {
     dispatch(
       setFilters({
         breeds: filters.breeds.filter((breed) => breed !== breedToRemove),
+      })
+    );
+  };
+
+  const handleRemoveBorough = (boroughToRemove: Borough) => {
+    dispatch(
+      setFilters({
+        boroughs:
+          filters.boroughs?.filter((borough) => borough !== boroughToRemove) ||
+          [],
       })
     );
   };
@@ -125,86 +148,129 @@ export default function Filters() {
 
   return (
     <div className={classes.filter_container}>
-      <div className={classes.filter_breed_container}>
-        <label>Breed:</label>
-        <select
-          onChange={handleBreedsSelect}
-          value=""
-          disabled={filters.breeds.length >= 5}
-        >
-          <option value="" disabled>
-            Select a breed
-          </option>
-          {loadingBreeds ? (
-            <option>Loading breeds...</option>
-          ) : breedsError ? (
-            <option>Error loading breeds.</option>
-          ) : (
-            breeds.map((breed: string) => (
-              <option key={breed} value={breed}>
-                {breed}
+      <div className={classes.filter_options_container}>
+        <div className={classes.filter_select_container}>
+          <div className={classes.filter_breed_container}>
+            <label>Breed:</label>
+            <select
+              onChange={handleBreedsSelect}
+              value=""
+              disabled={filters.breeds.length >= 5}
+            >
+              <option value="" disabled>
+                Select a breed
               </option>
-            ))
-          )}
-        </select>
-      </div>
+              {loadingBreeds ? (
+                <option>Loading breeds...</option>
+              ) : breedsError ? (
+                <option>Error loading breeds.</option>
+              ) : (
+                breeds.map((breed: string) => (
+                  <option
+                    key={breed}
+                    value={breed}
+                    disabled={filters.breeds.includes(breed)}
+                    style={{
+                      color: filters.breeds.includes(breed)
+                        ? "#999"
+                        : "inherit",
+                    }}
+                  >
+                    {breed} {filters.breeds.includes(breed) ? "(Selected)" : ""}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
 
-      <div className={classes.filter_zipCode_container}>
-        <label>ZIP Codes:</label>
-        <div className={classes.filter_zipCode_input}>
-          <input
-            type="text"
-            placeholder="Enter ZIP Codes"
-            value={zipInput}
-            onChange={(e) => setZipInput(e.target.value)}
-          />
-          <Button
-            type="button"
-            disabled={zipInput.length > 5}
-            onClickFunction={handleZipCodes}
-          >
-            Add
-          </Button>
+          <div className={classes.filter_breed_container}>
+            <label>Borough:</label>
+            <select
+              onChange={handleBoroughSelect}
+              value=""
+              disabled={filters.boroughs?.length >= 5}
+            >
+              <option value="" disabled>
+                Select a borough
+              </option>
+              {Object.values(BOROUGHS).map((borough) => (
+                <option
+                  key={borough}
+                  value={borough}
+                  disabled={filters.boroughs?.includes(borough)}
+                  style={{
+                    color: filters.boroughs?.includes(borough)
+                      ? "#999"
+                      : "inherit",
+                  }}
+                >
+                  {borough}{" "}
+                  {filters.boroughs?.includes(borough) ? "(Selected)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={classes.filter_breed_container}>
+            <label>Results per page:</label>
+            <select value={filters.size} onChange={handleSizeChange}>
+              {PAGE_SIZES.map((size: PageSize) => (
+                <option key={size} value={size}>
+                  {size} dogs
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div className={classes.filter_breed_container}>
-        <label>Results per page:</label>
-        <select value={filters.size} onChange={handleSizeChange}>
-          {PAGE_SIZES.map((size) => (
-            <option key={size} value={size}>
-              {size} dogs
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className={classes.filter_age_container}>
-        <label>Age:</label>
-        <input
-          type="number"
-          placeholder="Min Age"
-          value={filters.ageMin || ""}
-          onChange={handleAgeMin}
-        />
-        <input
-          type="number"
-          placeholder="Max Age"
-          value={ageMaxInput}
-          onChange={handleAgeMax}
-          onBlur={() => {
-            // Also validate on blur for immediate feedback when user tabs/clicks away
-            const value = parseInt(ageMaxInput, 10);
-            if (
-              !isNaN(value) &&
-              filters.ageMin !== null &&
-              value < filters.ageMin
-            ) {
-              alert("Maximum age cannot be less than minimum age.");
-              setAgeMaxInput(filters.ageMin.toString());
-              dispatch(setFilters({ ageMax: filters.ageMin }));
-            }
-          }}
-        />
+        <div className={classes.filter_input_container}>
+          <div className={classes.filter_zipCode_container}>
+            <label>ZIP Codes:</label>
+            <div className={classes.filter_zipCode_input}>
+              <input
+                type="text"
+                placeholder="Enter ZIP Codes"
+                value={zipInput}
+                onChange={(e) => setZipInput(e.target.value)}
+              />
+              <Button
+                type="button"
+                disabled={zipInput.length > 5}
+                onClickFunction={handleZipCodes}
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+
+          <div className={classes.filter_age_container}>
+            <label>Age:</label>
+            <input
+              type="number"
+              placeholder="Min Age"
+              value={filters.ageMin || ""}
+              onChange={handleAgeMin}
+            />
+            <input
+              type="number"
+              placeholder="Max Age"
+              value={ageMaxInput}
+              onChange={handleAgeMax}
+              onBlur={() => {
+                // Also validate on blur for immediate feedback when user tabs/clicks away
+                const value = parseInt(ageMaxInput, 10);
+                if (
+                  !isNaN(value) &&
+                  filters.ageMin !== null &&
+                  value < filters.ageMin
+                ) {
+                  alert("Maximum age cannot be less than minimum age.");
+                  setAgeMaxInput(filters.ageMin.toString());
+                  dispatch(setFilters({ ageMax: filters.ageMin }));
+                }
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       <div className={styles.tags_container}>
@@ -228,6 +294,18 @@ export default function Filters() {
               onClick={() => handleRemoveBreed(breed)}
             >
               {breed}
+              <span className={styles.tag_remove}>×</span>
+            </span>
+          ))}
+        </div>
+        <div className={styles.tag_group}>
+          {filters.boroughs?.map((borough) => (
+            <span
+              key={borough}
+              className={styles.tag}
+              onClick={() => handleRemoveBorough(borough)}
+            >
+              {borough}
               <span className={styles.tag_remove}>×</span>
             </span>
           ))}
