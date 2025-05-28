@@ -43,7 +43,10 @@ export default async function handler(
     const db = client.db("AdoptionData");
 
     // Build MongoDB query
-    const query: any = {};
+    // Using 'any' here is pragmatic for dynamic MongoDB queries
+    // If your linter still complains, you may need to disable the rule for this line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: Record<string, any> = {};
 
     // Add breed filter with validation
     if (breeds) {
@@ -146,7 +149,7 @@ export default async function handler(
     console.log("Search API: Final MongoDB query:", query);
 
     // Build sort object
-    const sortObj: any = {};
+    const sortObj: Record<string, 1 | -1> = {};
     if (sort) {
       const [field, order] = (sort as string).split(":");
       const validFields = ["age", "breed", "zip_code", "name", "borough"];
