@@ -25,6 +25,11 @@ export async function middleware(request: NextRequest) {
         // If valid, redirect to dashboard
         return NextResponse.redirect(new URL("/dogs", request.url));
       } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error(error);
+        }
         // If access token is invalid, continue to auth page
         return NextResponse.next();
       }
@@ -96,6 +101,11 @@ export async function middleware(request: NextRequest) {
 
         return response;
       } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error(error);
+        }
         return NextResponse.redirect(new URL("/", request.url));
       }
     }
@@ -105,6 +115,11 @@ export async function middleware(request: NextRequest) {
       verify(accessToken, process.env.JWT_SECRET || "your-secret-key");
       return NextResponse.next();
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error(error);
+      }
       // If access token is invalid, try to use refresh token
       if (refreshToken) {
         return middleware(request); // Recursively try refresh token flow

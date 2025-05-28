@@ -89,7 +89,11 @@ export default async function handler(
           },
         });
       } catch (error) {
-        console.error("Refresh token validation failed:", error);
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error(error);
+        }
         return res.status(401).json({ message: "Invalid refresh token" });
       }
     }
