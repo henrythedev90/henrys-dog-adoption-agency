@@ -14,8 +14,8 @@ function DogCardImage({
     <Image
       src={imageSrc}
       alt={title}
-      width={120}
-      height={120}
+      width={180}
+      height={180}
       onError={() => setImageSrc("/placeholder.png")}
     />
   );

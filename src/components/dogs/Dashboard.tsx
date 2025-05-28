@@ -185,8 +185,8 @@ const Dashboard = React.memo(() => {
                 Breed{" "}
                 {currentSortKey === "breed"
                   ? currentSortDirection === "asc"
-                    ? "▲"
-                    : "▼"
+                    ? "(A-Z)"
+                    : "(Z-A)"
                   : ""}
               </Button>
               <Button
@@ -196,8 +196,8 @@ const Dashboard = React.memo(() => {
                 Name{" "}
                 {currentSortKey === "name"
                   ? currentSortDirection === "asc"
-                    ? "▲"
-                    : "▼"
+                    ? "(A-Z)"
+                    : "(Z-A)"
                   : ""}
               </Button>
               <Button
@@ -207,13 +207,22 @@ const Dashboard = React.memo(() => {
                 Age{" "}
                 {currentSortKey === "age"
                   ? currentSortDirection === "asc"
-                    ? "▲"
-                    : "▼"
+                    ? "(1-9)"
+                    : "(9-1)"
                   : ""}
               </Button>
             </div>
           )}
         </div>
+        {totalPages > 1 && (
+          <div className={classes.dashboard_pagination_sections_top}>
+            <Pagination
+              page={page}
+              setPage={handlePageChange}
+              totalPages={totalPages}
+            />
+          </div>
+        )}
         {loading ? (
           <div className={classes.loadingContainer}>
             <LoadingSpinner />

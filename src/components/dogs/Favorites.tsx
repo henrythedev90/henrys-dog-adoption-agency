@@ -67,13 +67,6 @@ export default function Favorites() {
   return (
     <Container>
       <div className={styles.favorites_container}>
-        {/* <div className={styles.header}>
-          <h2>Your Favorite Dogs</h2>
-          <button onClick={handleGenerateMatch} className={styles.match_button}>
-            Find Your Match!
-          </button>
-        </div> */}
-
         <DogCarousel favoriteDogs={favoriteDogs} />
 
         <Modal
