@@ -8,8 +8,6 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import classes from "./style/LoginForm.module.css";
 
 const SignUpForm = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,8 +28,6 @@ const SignUpForm = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstName,
-          lastName,
           userName,
           email,
           password,
@@ -67,31 +63,16 @@ const SignUpForm = () => {
 
   return (
     <div className={classes.input_container}>
+      <div className={classes.form_title_container}>
+        <h2>New here?</h2>
+        <p>Please enter your details to create an account</p>
+      </div>
       {error && <div className={classes.error_message}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input
-          id="firstName"
-          name="firstName"
-          type="text"
-          placeholder="First Name"
-          value={firstName}
-          autoComplete="given-name"
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-        />
-        <input
-          id="lastName"
-          name="lastName"
-          type="text"
-          placeholder="Last Name"
-          value={lastName}
-          autoComplete="family-name"
-          onChange={(e) => setLastName(e.target.value)}
-          required
-        />
+      <form onSubmit={handleSubmit} className={classes.form}>
         <input
           id="userName"
           name="userName"
+          className={classes.inputGroup}
           type="text"
           placeholder="Username"
           value={userName}
@@ -102,6 +83,7 @@ const SignUpForm = () => {
         <input
           id="email"
           name="email"
+          className={classes.inputGroup}
           type="email"
           autoComplete="email"
           placeholder="Email"
@@ -112,6 +94,7 @@ const SignUpForm = () => {
         <input
           id="password"
           name="password"
+          className={classes.inputGroup}
           type="password"
           autoComplete="new-password"
           placeholder="Password"

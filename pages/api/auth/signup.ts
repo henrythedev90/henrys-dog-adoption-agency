@@ -15,7 +15,7 @@ export default async function handler(
     return res.status(405).json({ error: "Method is not allowed" });
   }
 
-  const { firstName, lastName, userName, email, password } = req.body;
+  const { userName, email, password } = req.body;
 
   if (!email || !emailRegex.test(email)) {
     return res.status(400).json({
@@ -23,7 +23,7 @@ export default async function handler(
     });
   }
 
-  if (!userName || !firstName || !lastName) {
+  if (!userName || !email) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -49,8 +49,6 @@ export default async function handler(
     // Create new user
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
-      firstName,
-      lastName,
       userName,
       email,
       password: hashedPassword,
@@ -76,8 +74,6 @@ export default async function handler(
       message: "User created successfully",
       user: {
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
         userName: user.userName,
         email: user.email,
       },

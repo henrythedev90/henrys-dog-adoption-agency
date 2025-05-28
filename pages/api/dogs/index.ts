@@ -36,9 +36,6 @@ export default async function handler(
       .find({ _id: { $in: dogIds } })
       .toArray();
 
-    // Log the results for debugging
-    console.log(`Found ${dogs.length} dogs out of ${dogIds.length} requested`);
-
     return res.status(200).json(dogs);
   } catch (error) {
     console.error("Error fetching dogs from MongoDB:", error);

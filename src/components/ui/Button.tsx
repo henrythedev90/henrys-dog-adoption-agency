@@ -1,6 +1,6 @@
 import React from "react";
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "tertiary";
   isLoading?: boolean;
   onClickFunction?: () => void;
 }
@@ -25,9 +25,26 @@ const Button = ({
   };
 
   const variantStyle: Record<string, React.CSSProperties> = {
-    primary: { backgroundColor: "#5b9aff", color: "#fff" },
-    secondary: { backgroundColor: "#5ee6a3", color: "#4a4f57" },
-    danger: { backgroundColor: "#daa520", color: "#fff" },
+    primary: {
+      backgroundColor: "#5b9aff",
+      color: "#fff",
+      border: "2px solid #4a4f57",
+    },
+    secondary: {
+      backgroundColor: "#5ee6a3",
+      color: "#4a4f57",
+      border: "2px solid #4a4f57",
+    },
+    danger: {
+      backgroundColor: "#daa520",
+      color: "#fff",
+      border: "2px solid #4a4f57",
+    },
+    tertiary: {
+      backgroundColor: "#daa520",
+      color: "#4a4f57",
+      border: "2px solid #4a4f57",
+    },
   };
 
   return (

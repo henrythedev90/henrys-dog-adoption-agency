@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginUser } from "@/store/slices/authSlice";
 import { useRouter } from "next/navigation";
@@ -8,14 +8,12 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import classes from "./style/LoginForm.module.css";
 
 const LoginForm = () => {
-  const [userName, setUserName] = useState("");
-  const [email, setEmail] = useState("");
+  const dispatch = useAppDispatch();
+  const { loading, error, isLoggedIn } = useAppSelector((state) => state.auth);
+  const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
-  const dispatch = useAppDispatch();
   const router = useRouter();
-
-  const { loading, error, isLoggedIn } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -26,10 +24,7 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName && !email) {
-      return;
-    }
-    dispatch(loginUser({ userName, email, password }));
+    await dispatch(loginUser({ emailOrUsername, password }));
   };
 
   if (loading || isNavigating) {
@@ -45,39 +40,38 @@ const LoginForm = () => {
 
   return (
     <div className={classes.input_container}>
+      <div className={classes.form_title_container}>
+        <h2>Welcome Back!</h2>
+        <p>Please enter your details to sign in</p>
+      </div>
       {error && <div className={classes.error_message}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input
-          id="userName"
-          name="userName"
-          type="text"
-          placeholder="Username"
-          value={userName}
-          autoComplete="username"
-          onChange={(e) => setUserName(e.target.value)}
-        />
-        <div className={classes.or_divider}>OR</div>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <Button variant="primary" type="submit">
-          Login
+      <form onSubmit={handleSubmit} className={classes.form}>
+        <div className={classes.inputGroup}>
+          <input
+            id="emailOrUsername"
+            name="emailOrUsername"
+            type="text"
+            autoComplete="username"
+            placeholder="Email or Username"
+            value={emailOrUsername}
+            onChange={(e) => setEmailOrUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className={classes.inputGroup}>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <Button variant="primary" type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
     </div>

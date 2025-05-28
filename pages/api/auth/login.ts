@@ -1,67 +1,57 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import clientPromise from "@/lib/mongodb";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { compare } from "bcryptjs";
+import { sign } from "jsonwebtoken";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
-    console.log("Login API: Invalid method:", req.method);
-    return res.status(405).json({ error: "Method is not allowed" });
-  }
-
-  const { userName, email, password } = req.body;
-
-  if (!password) {
-    return res.status(400).json({ message: "Password is required" });
-  }
-
-  if (!userName && !email) {
-    return res.status(400).json({ message: "Username or email is required" });
-  }
-
-  if (email && !emailRegex.test(email)) {
-    return res.status(400).json({ message: "Please enter a valid email" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { emailOrUsername, password } = req.body;
+
+    if (!emailOrUsername || !password) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const client = await clientPromise;
     const db = client.db("AdoptionData");
 
-    // Find user by username or email
+    // Try to find user by email or username
     const user = await db.collection("users").findOne({
-      $or: [{ userName: userName || "" }, { email: email || "" }],
+      $or: [{ email: emailOrUsername }, { userName: emailOrUsername }],
     });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    const isValid = await compare(password, user.password);
+
+    if (!isValid) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: "15m",
-    });
-
-    // Set the token in an HTTP-only cookie
-    res.setHeader(
-      "Set-Cookie",
-      `auth-token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=900`
+    // Create JWT token
+    const token = sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
     );
 
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
+    // Set HTTP-only cookie
+    res.setHeader(
+      "Set-Cookie",
+      `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`
+    );
+
+    // Return user data (excluding password)
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(200).json({
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -69,12 +59,10 @@ export default async function handler(
         userName: user.userName,
         email: user.email,
       },
+      message: "Login successful",
     });
   } catch (error) {
-    console.error("Login API: Login failed:", error);
-    return res.status(500).json({
-      error: "Failed to login",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    console.error("Login error:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

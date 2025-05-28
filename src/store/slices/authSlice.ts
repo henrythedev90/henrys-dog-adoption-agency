@@ -5,15 +5,8 @@ import { resetFilter } from "./filtersSlice";
 import { apiClient } from "@/lib/apiClient";
 
 export interface LoginRequest {
-  userName: string;
-  email: string;
+  emailOrUsername: string;
   password: string;
-}
-
-export interface LoginResponse {
-  userName: string;
-  password: string;
-  email: string;
 }
 
 interface AuthState {
