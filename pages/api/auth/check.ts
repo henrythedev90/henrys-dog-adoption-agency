@@ -48,8 +48,14 @@ export default async function handler(
           });
         }
       } catch (error) {
-        // Access token is invalid, continue to refresh token check
-        console.log("Access token invalid, trying refresh token");
+        if (error instanceof Error) {
+          console.log(
+            "Access token invalid, trying refresh token",
+            error.message
+          );
+        } else {
+          console.log("Access token invalid, trying refresh token", error);
+        }
       }
     }
 

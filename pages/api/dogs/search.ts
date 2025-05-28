@@ -146,7 +146,7 @@ export default async function handler(
     console.log("Search API: Final MongoDB query:", query);
 
     // Build sort object
-    let sortObj: any = {};
+    const sortObj: any = {};
     if (sort) {
       const [field, order] = (sort as string).split(":");
       const validFields = ["age", "breed", "zip_code", "name", "borough"];
