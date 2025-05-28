@@ -148,38 +148,41 @@ export default function Filters() {
 
   return (
     <div className={classes.filter_container}>
-      <div>
-        <div className={classes.filter_breed_container}>
-          <label>Breed:</label>
-          <select
-            onChange={handleBreedsSelect}
-            value=""
-            disabled={filters.breeds.length >= 5}
-          >
-            <option value="" disabled>
-              Select a breed
-            </option>
-            {loadingBreeds ? (
-              <option>Loading breeds...</option>
-            ) : breedsError ? (
-              <option>Error loading breeds.</option>
-            ) : (
-              breeds.map((breed: string) => (
-                <option
-                  key={breed}
-                  value={breed}
-                  disabled={filters.breeds.includes(breed)}
-                  style={{
-                    color: filters.breeds.includes(breed) ? "#999" : "inherit",
-                  }}
-                >
-                  {breed} {filters.breeds.includes(breed) ? "(Selected)" : ""}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-        <div>
+      <div className={classes.filter_options_container}>
+        <div className={classes.filter_select_container}>
+          <div className={classes.filter_breed_container}>
+            <label>Breed:</label>
+            <select
+              onChange={handleBreedsSelect}
+              value=""
+              disabled={filters.breeds.length >= 5}
+            >
+              <option value="" disabled>
+                Select a breed
+              </option>
+              {loadingBreeds ? (
+                <option>Loading breeds...</option>
+              ) : breedsError ? (
+                <option>Error loading breeds.</option>
+              ) : (
+                breeds.map((breed: string) => (
+                  <option
+                    key={breed}
+                    value={breed}
+                    disabled={filters.breeds.includes(breed)}
+                    style={{
+                      color: filters.breeds.includes(breed)
+                        ? "#999"
+                        : "inherit",
+                    }}
+                  >
+                    {breed} {filters.breeds.includes(breed) ? "(Selected)" : ""}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
           <div className={classes.filter_breed_container}>
             <label>Borough:</label>
             <select
@@ -219,7 +222,7 @@ export default function Filters() {
           </div>
         </div>
 
-        <div>
+        <div className={classes.filter_input_container}>
           <div className={classes.filter_zipCode_container}>
             <label>ZIP Codes:</label>
             <div className={classes.filter_zipCode_input}>
@@ -268,44 +271,44 @@ export default function Filters() {
             />
           </div>
         </div>
+      </div>
 
-        <div className={styles.tags_container}>
-          <div className={styles.tag_group}>
-            {filters.zipCodes.map((zip) => (
-              <span
-                key={zip}
-                className={styles.tag_zipCode}
-                onClick={() => removeZip(zip)}
-              >
-                {zip}
-                <span className={styles.tag_remove}>×</span>
-              </span>
-            ))}
-          </div>
-          <div className={styles.tag_group}>
-            {filters.breeds.map((breed) => (
-              <span
-                key={breed}
-                className={styles.tag}
-                onClick={() => handleRemoveBreed(breed)}
-              >
-                {breed}
-                <span className={styles.tag_remove}>×</span>
-              </span>
-            ))}
-          </div>
-          <div className={styles.tag_group}>
-            {filters.boroughs?.map((borough) => (
-              <span
-                key={borough}
-                className={styles.tag}
-                onClick={() => handleRemoveBorough(borough)}
-              >
-                {borough}
-                <span className={styles.tag_remove}>×</span>
-              </span>
-            ))}
-          </div>
+      <div className={styles.tags_container}>
+        <div className={styles.tag_group}>
+          {filters.zipCodes.map((zip) => (
+            <span
+              key={zip}
+              className={styles.tag_zipCode}
+              onClick={() => removeZip(zip)}
+            >
+              {zip}
+              <span className={styles.tag_remove}>×</span>
+            </span>
+          ))}
+        </div>
+        <div className={styles.tag_group}>
+          {filters.breeds.map((breed) => (
+            <span
+              key={breed}
+              className={styles.tag}
+              onClick={() => handleRemoveBreed(breed)}
+            >
+              {breed}
+              <span className={styles.tag_remove}>×</span>
+            </span>
+          ))}
+        </div>
+        <div className={styles.tag_group}>
+          {filters.boroughs?.map((borough) => (
+            <span
+              key={borough}
+              className={styles.tag}
+              onClick={() => handleRemoveBorough(borough)}
+            >
+              {borough}
+              <span className={styles.tag_remove}>×</span>
+            </span>
+          ))}
         </div>
       </div>
       <div className={classes.filter_button_container}>

@@ -153,24 +153,22 @@ const Dashboard = React.memo(() => {
   return (
     <div className={classes.dashboard_parent_container}>
       <div className={classes.dashboard_container}>
-        <div className={classes.dashboard_filter_sections}>
-          {isLoggedIn && (
-            <div className={classes.dashboard_header_welcome}>
-              <h4>
-                Welcome,{" "}
-                <SplitColorText
-                  text={`${name}!` || "User"}
-                  size="large"
-                  tag="p"
-                />
-                You can now search for your ideal dog.
-              </h4>
-            </div>
-          )}
-          <div>
-            <h3>Filter Dogs:</h3>
-            <Filters />
+        {isLoggedIn && (
+          <div className={classes.dashboard_header_welcome}>
+            <h4>
+              Welcome,{" "}
+              <SplitColorText
+                text={`${name}!` || "User"}
+                size="large"
+                tag="p"
+              />
+              You can now search for your ideal dog.
+            </h4>
           </div>
+        )}
+        <div>
+          <h3>Filter Dogs:</h3>
+          <Filters />
         </div>
       </div>
 
