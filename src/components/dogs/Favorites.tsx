@@ -1,39 +1,27 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { selectDogs, selectDogFavorite } from "@/store/selectors/dogsSelectors";
-import { fetchFavoriteDogs } from "@/store/slices/dogsSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { RootState } from "@/store";
+import { fetchFavoriteDogs, fetchMatch } from "@/store/slices/dogsSlice";
+import DogCard from "./DogCard";
 import DogCarousel from "./DogCarousel";
-import { Dog } from "@/types/dog";
-import Container from "../ui/Container";
-import classes from "./styles/Favorites.module.css";
-import { apiClient } from "@/lib/apiClient";
+import styles from "./styles/Favorites.module.css";
 import Modal from "../ui/Modal";
 import Image from "next/image";
+import Container from "../ui/Container";
+
 export default function Favorites() {
   const dispatch = useAppDispatch();
-  const favorites = useAppSelector(selectDogFavorite) as string[];
-  const dogs = useAppSelector(selectDogs);
-  const favoriteDogs = dogs.filter((dog) => favorites.includes(dog._id));
-
-  // Keep the state and actually use it
-  const [matchState, setMatchState] = useState<{
-    isModalOpen: boolean;
-    matchedDog: Dog | null;
-    loading: boolean;
-    error: string | null;
-  }>({
-    isModalOpen: false,
-    matchedDog: null,
-    loading: false,
-    error: null,
-  });
-
-  // Actually use these variables by destructuring them
-  const { isModalOpen, matchedDog, loading, error } = matchState;
+  const {
+    results: dogs,
+    favorites,
+    match,
+    loading,
+    error,
+  } = useAppSelector((state: RootState) => state.dogs);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch favorite dogs when component mounts
     if (favorites.length > 0) {
       dispatch(fetchFavoriteDogs(favorites));
     }
@@ -44,95 +32,88 @@ export default function Favorites() {
       alert("Please favorite some dogs first!");
       return;
     }
-
-    setMatchState((prev) => ({
-      ...prev,
-      loading: true,
-      error: null,
-      isModalOpen: true,
-    }));
-    try {
-      const matchResponse = await apiClient.post("/dogs/match", favorites, {
-        withCredentials: true,
-      });
-      const matchId = matchResponse.data.match;
-
-      const dogResponse = await apiClient.post("/dogs", [matchId], {
-        withCredentials: true,
-      });
-      setMatchState((prev) => ({
-        ...prev,
-        matchedDog: dogResponse.data[0],
-        loading: false,
-      }));
-    } catch (err) {
-      console.error(err);
-      setMatchState((prev) => ({
-        ...prev,
-        error: "Failed to generate match. Please try again.",
-        loading: false,
-      }));
-    }
+    setIsModalOpen(true);
+    dispatch(fetchMatch({ favoriteIds: favorites }));
   };
 
-  // Actually use this function
   const handleCloseModal = () => {
-    setMatchState((prev) => ({
-      ...prev,
-      isModalOpen: false,
-      matchedDog: null,
-    }));
+    setIsModalOpen(false);
   };
+
+  if (favorites.length === 0) {
+    return (
+      <Container>
+        <div className={styles.empty_state}>
+          <h2>No Favorites Yet</h2>
+          <p>Add some dogs to your favorites to see them here!</p>
+        </div>
+      </Container>
+    );
+  }
+
+  const favoriteDogs = dogs.filter((dog) => favorites.includes(dog._id));
+
+  if (favoriteDogs.length === 0) {
+    return (
+      <Container>
+        <div className={styles.empty_state}>
+          <h2>Loading Favorites...</h2>
+          <p>Please wait while we fetch your favorite dogs.</p>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>
-      <div
-        className={
-          favoriteDogs.length === 0
-            ? classes.carousel_parent_wrapper
-            : undefined
-        }
-      >
-        {favoriteDogs.length > 0 ? (
-          <DogCarousel favoriteDogs={favoriteDogs} title="Your Favorite Dogs" />
-        ) : (
-          <div style={{ textAlign: "center", marginTop: "40px" }}>
-            <h2>You do not have any favorite Dogs</h2>
-            <p>
-              No favorite dogs yet. Add some dogs to your favorites to generate
-              a match!
-            </p>
-          </div>
-        )}
+      <div className={styles.favorites_container}>
+        {/* <div className={styles.header}>
+          <h2>Your Favorite Dogs</h2>
+          <button onClick={handleGenerateMatch} className={styles.match_button}>
+            Find Your Match!
+          </button>
+        </div> */}
 
-        {/* Add the modal to use the state */}
+        <DogCarousel favoriteDogs={favoriteDogs} />
+
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           title="Your Perfect Match!"
         >
-          <div className={classes.modal_content}>
+          <div className={styles.modal_content}>
             {loading ? (
               <p>Finding your perfect match...</p>
-            ) : matchedDog ? (
-              <div>
-                <h3>Meet {matchedDog.name}!</h3>
-                <p>Breed: {matchedDog.breed}</p>
-                <p>Age: {matchedDog.age} years</p>
-                {matchedDog.img && (
+            ) : match ? (
+              <div className={styles.match_result}>
+                <h3>Meet {match.name}!</h3>
+                <p>Breed: {match.breed}</p>
+                <p>Age: {match.age} years</p>
+                {match.img && (
                   <Image
-                    src={matchedDog.img}
-                    alt={matchedDog.name}
+                    src={match.img}
+                    alt={match.name}
                     width={300}
                     height={300}
+                    className={styles.match_image}
                   />
                 )}
-                <button onClick={handleGenerateMatch}>Try Again</button>
+                <button
+                  onClick={handleGenerateMatch}
+                  className={styles.try_again_button}
+                >
+                  Try Again
+                </button>
               </div>
             ) : error ? (
-              <div>
+              <div className={styles.error_state}>
                 <p>{error}</p>
-                <button onClick={handleGenerateMatch}>Try Again</button>
+                <button
+                  onClick={handleGenerateMatch}
+                  className={styles.try_again_button}
+                >
+                  Try Again
+                </button>
               </div>
             ) : null}
           </div>

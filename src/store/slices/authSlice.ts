@@ -11,9 +11,7 @@ export interface LoginRequest {
 
 interface AuthState {
   user: {
-    id: string;
-    firstName: string;
-    lastName: string;
+    _id: string;
     userName: string;
     email: string;
   } | null;
@@ -68,7 +66,13 @@ export const checkAuth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get("/api/auth/check", { withCredentials: true });
-      return res.status === 200;
+      if (res.status === 200 && res.data.user) {
+        return {
+          isLoggedIn: true,
+          user: res.data.user,
+        };
+      }
+      return { isLoggedIn: false, user: null };
     } catch (error: unknown) {
       return rejectWithValue(
         error instanceof Error ? error.message : "Authentication check failed"
@@ -170,9 +174,10 @@ const authSlice = createSlice({
         state.isLoggedIn = false;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
-        state.isLoggedIn = action.payload;
-        if (!action.payload) {
-          state.user = null;
+        state.isLoggedIn = action.payload.isLoggedIn;
+        state.user = action.payload.user;
+        if (action.payload.isLoggedIn) {
+          saveAuthToStorage(state);
         }
       })
       .addCase(checkAuth.rejected, (state) => {

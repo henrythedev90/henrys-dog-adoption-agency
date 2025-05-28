@@ -1,46 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
-
-// Add this at the top of your match.ts file
-const isTest = process.env.NODE_ENV === "test";
-
-// Helper function to fetch dog details (Ensure it returns full dog object or null)
-async function fetchDogDetails(
-  dogId: string,
-  cookieHeader: string | undefined
-) {
-  try {
-    const response = await axios.post(
-      "https://frontend-take-home-service.fetch.com/dogs",
-      [dogId], // API expects an array of IDs
-      {
-        headers: {
-          Cookie: cookieHeader, // Pass the received cookies
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const potentialDogData = response.data?.[0]; // Get the first item, could be {} or a dog
-
-    // Add validation: Check if the received data has an ID
-    if (potentialDogData && potentialDogData.id) {
-      return potentialDogData; // Return the valid dog object
-    } else {
-      return null; // Return null if data is invalid or missing ID
-    }
-  } catch (error: unknown) {
-    if (!isTest)
-      console.error(
-        `fetchDogDetails: Error during POST to external /dogs for ID ${dogId}. Status: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-        error instanceof Error ? error.message : "Unknown error"
-      );
-
-    return null; // Return null if fetching details fails
-  }
-}
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 export default async function handler(
   req: NextApiRequest,
@@ -50,117 +10,84 @@ export default async function handler(
     return res.status(405).json({ message: "Method not allowed" });
   }
 
+  const { favoriteIds, userId } = req.body;
+  console.log("Match API: Received request with:", { favoriteIds, userId });
+
+  if (!Array.isArray(favoriteIds) || favoriteIds.length === 0) {
+    console.log(
+      "Match API: Invalid request body - favoriteIds is not an array or is empty"
+    );
+    return res.status(400).json({ message: "Invalid request body" });
+  }
+
   try {
-    const favoriteIds = req.body;
+    const client = await clientPromise;
+    const db = client.db("AdoptionData");
 
-    // Get raw cookie header - critical for authentication
-    const cookieHeader = req.headers.cookie;
-
-    // Check for cookies
-    if (!cookieHeader) {
-      return res
-        .status(401)
-        .json({ message: "Authentication cookies missing" });
+    // If userId is provided, get existing matches
+    let existingMatches: string[] = [];
+    if (userId) {
+      const matches = await db
+        .collection("matches")
+        .find({ userId })
+        .project({ dogId: 1 })
+        .toArray();
+      existingMatches = matches.map((match) => match.dogId.toString());
     }
 
-    // Validate favoriteIds is an array
-    if (!Array.isArray(favoriteIds)) {
-      if (!isTest)
-        console.error(
-          "Match API: Invalid request body received, expected array:",
-          favoriteIds
-        );
-      return res.status(400).json({
-        message: "Invalid request body: favoriteIds must be an array.",
+    // Filter out dogs that have already been matched
+    const availableDogs = favoriteIds.filter(
+      (id) => !existingMatches.includes(id)
+    );
+
+    if (availableDogs.length === 0) {
+      console.log("Match API: All favorite dogs have already been matched");
+      return res.status(200).json({
+        message:
+          "You've already matched with all of these current dogs! Try using the filters to get more unique dogs!",
+        allMatched: true,
       });
     }
 
-    if (favoriteIds.length === 0) {
-      return res.status(400).json({
-        message: "Cannot find a match from an empty favorites list.",
-      });
+    // Get a random dog from the available favorites
+    const randomIndex = Math.floor(Math.random() * availableDogs.length);
+    const selectedDogId = availableDogs[randomIndex];
+    console.log("Match API: Selected random dog ID:", selectedDogId);
+
+    // Find the selected dog in the database
+    const dog = await db.collection("dogs").findOne({ _id: selectedDogId });
+    console.log("Match API: Found dog in database:", dog ? "Yes" : "No");
+
+    if (!dog) {
+      console.log("Match API: Dog not found with ID:", selectedDogId);
+      return res.status(404).json({ message: "Dog not found" });
     }
 
-    let dogIdToFetch: string | null = null;
-
-    try {
-      const matchResponse = await axios.post(
-        "https://frontend-take-home-service.fetch.com/dogs/match",
-        favoriteIds,
-        {
-          headers: {
-            Cookie: cookieHeader,
-            "Content-Type": "application/json",
-          },
-        }
+    // If userId is provided, store the match in the user's matches collection
+    if (userId) {
+      console.log("Match API: Creating match record for user:", userId);
+      const matchResult = await db.collection("matches").insertOne({
+        userId,
+        dogId: dog._id,
+        matchedAt: new Date(),
+      });
+      console.log("Match API: Match record created:", matchResult.insertedId);
+    } else {
+      console.log(
+        "Match API: No userId provided, skipping match record creation"
       );
-
-      if (
-        matchResponse.data &&
-        typeof matchResponse.data.match === "string" &&
-        matchResponse.data.match
-      ) {
-        dogIdToFetch = matchResponse.data.match;
-        if (!isTest)
-          console.log(
-            `Match API: External API provided specific match ID: ${dogIdToFetch}`
-          );
-      } else {
-        if (!isTest)
-          console.log(
-            "Match API: External API did not return a specific match ID."
-          );
-      }
-    } catch (matchError: unknown) {
-      const status =
-        matchError instanceof Error ? matchError.message : "Unknown error";
-      if (!isTest)
-        console.error(
-          `Match API: Error during POST to external /dogs/match. Status: ${status}.`,
-          matchError instanceof Error ? matchError.message : "Unknown error"
-        );
-
-      // If we got a 401, there's likely an issue with the cookies
-      if (status === "401") {
-        // Return a specific error message for unauthorized
-        return res.status(401).json({
-          message:
-            "Authentication failed when contacting Fetch API. Please log in again.",
-          error: "unauthorized",
-        });
-      }
-
-      // If external match fails, we proceed to pick a random favorite
-      dogIdToFetch = null;
     }
 
-    // 2. If external API didn't give a match, pick randomly from favorites
-    if (!dogIdToFetch) {
-      const randomIndex = Math.floor(Math.random() * favoriteIds.length);
-      dogIdToFetch = favoriteIds[randomIndex];
-    }
-
-    // Ensure dogIdToFetch is a non-null string before proceeding
-    if (!dogIdToFetch || typeof dogIdToFetch !== "string") {
-      return res.status(500).json({
-        message: "Internal error: Could not determine dog ID for matching.",
-      });
-    }
-
-    const dogToReturn = await fetchDogDetails(dogIdToFetch, cookieHeader);
-
-    // Handle case where fetching details failed
-    if (!dogToReturn) {
-      return res.status(500).json({
-        message: `Could not retrieve details for dog ID: ${dogIdToFetch}.`,
-      });
-    }
-
-    return res.status(200).json(dogToReturn);
-  } catch (error: unknown) {
-    return res.status(500).json({
-      message: "Internal server error processing match request.",
-      error: error instanceof Error ? error.message : "Unknown error",
+    return res.status(200).json({
+      ...dog,
+      remainingMatches: availableDogs.length - 1,
     });
+  } catch (error) {
+    console.error("Match API Error:", {
+      error,
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return res.status(500).json({ message: "Internal server error" });
   }
 }

@@ -141,8 +141,15 @@ export default function Filters() {
             <option>Error loading breeds.</option>
           ) : (
             breeds.map((breed: string) => (
-              <option key={breed} value={breed}>
-                {breed}
+              <option
+                key={breed}
+                value={breed}
+                disabled={filters.breeds.includes(breed)}
+                style={{
+                  color: filters.breeds.includes(breed) ? "#999" : "inherit",
+                }}
+              >
+                {breed} {filters.breeds.includes(breed) ? "(Selected)" : ""}
               </option>
             ))
           )}

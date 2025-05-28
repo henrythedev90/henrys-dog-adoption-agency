@@ -30,7 +30,7 @@ export default async function handler(
     const client = await clientPromise;
     const db = client.db("AdoptionData");
 
-    // Find dogs by their _id
+    // Find dogs by their string IDs
     const dogs = await db
       .collection("dogs")
       .find({ _id: { $in: dogIds } })

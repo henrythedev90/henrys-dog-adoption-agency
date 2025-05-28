@@ -77,17 +77,16 @@ export default async function handler(
             "Logout API: Got 401 from Fetch API - treating as already logged out"
           );
       }
-
-      // Clear the cookies by setting them to expire
-      res.setHeader("Set-Cookie", [
-        "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-        "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
-      ]);
-
-      if (!isTest)
-        console.log("Logout API: Cookies cleared, returning success");
-      return res.status(200).json({ message: "Logged out successfully" });
     }
+
+    // Clear the cookies by setting them to expire
+    res.setHeader("Set-Cookie", [
+      "fetch-api-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
+      "fetch-refresh-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict",
+    ]);
+
+    if (!isTest) console.log("Logout API: Cookies cleared, returning success");
+    return res.status(200).json({ message: "Logged out successfully" });
   } catch (error: unknown) {
     if (!isTest)
       console.error(

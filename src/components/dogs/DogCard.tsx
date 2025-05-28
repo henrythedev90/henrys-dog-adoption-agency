@@ -8,9 +8,10 @@ import DogCardImage from "./DogCardImage";
 
 interface DogCardProps {
   dog: Dog;
+  onToggleFavorite?: (dogId: string) => void;
 }
 
-const DogCard = React.memo(({ dog }: DogCardProps) => {
+const DogCard = React.memo(({ dog, onToggleFavorite }: DogCardProps) => {
   const dispatch = useAppDispatch();
   const favorite = useAppSelector(selectDogFavorite);
   const isFavorite = favorite.includes(dog._id);
@@ -18,7 +19,11 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(toggleFavorite(dog._id));
+    if (onToggleFavorite) {
+      onToggleFavorite(dog._id);
+    } else {
+      dispatch(toggleFavorite({ dogId: dog._id }));
+    }
   };
 
   return (
