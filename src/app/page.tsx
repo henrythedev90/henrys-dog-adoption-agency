@@ -56,7 +56,7 @@ export default function Page() {
                       className={classes.toggle_button}
                       onClickFunction={onToggleForm}
                     >
-                      Don't have an account?
+                      Don&apos;t have an account?
                     </Button>
                   ) : (
                     <Button

@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 
 export default async function handler(
   req: NextApiRequest,

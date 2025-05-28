@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import { checkAuth } from "@/store/slices/authSlice";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,7 +11,6 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const pathname = usePathname();
   const { isLoggedIn, loading } = useAppSelector((state) => state.auth);
   const [isChecking, setIsChecking] = useState(true);
 

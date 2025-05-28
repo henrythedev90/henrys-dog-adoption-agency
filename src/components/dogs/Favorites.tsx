@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { RootState } from "@/store";
 import { fetchFavoriteDogs, fetchMatch } from "@/store/slices/dogsSlice";
-import DogCard from "./DogCard";
 import DogCarousel from "./DogCarousel";
 import styles from "./styles/Favorites.module.css";
 import Modal from "../ui/Modal";

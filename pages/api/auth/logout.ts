@@ -13,7 +13,7 @@ export default async function handler(
 
   try {
     // Get both tokens from cookies
-    const accessToken = req.cookies["accessToken"];
+
     const refreshToken = req.cookies["refreshToken"];
 
     if (refreshToken) {
