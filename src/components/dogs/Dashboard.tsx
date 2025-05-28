@@ -158,7 +158,11 @@ const Dashboard = React.memo(() => {
             <div className={classes.dashboard_header_welcome}>
               <h4>
                 Welcome,{" "}
-                <SplitColorText text={name || "User"} size="medium" tag="p" />!
+                <SplitColorText
+                  text={`${name}!` || "User"}
+                  size="large"
+                  tag="p"
+                />
                 You can now search for your ideal dog.
               </h4>
             </div>
