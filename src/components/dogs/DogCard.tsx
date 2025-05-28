@@ -43,6 +43,7 @@ const DogCard = React.memo(({ dog, onToggleFavorite }: DogCardProps) => {
           <label>Borough:</label>
           {typeof dog.borough === "string"
             ? dog.borough
+                .replace(/_/g, " ")
                 .trim()
                 .split(/\s+/)
                 .map(
