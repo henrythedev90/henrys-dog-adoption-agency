@@ -53,6 +53,7 @@ export const fetchDogs = createAsyncThunk(
     const state = getState() as RootState;
     const filters = state.filters;
     const currentPage = state.dogs.page;
+    const favorites = state.dogs.favorites;
 
     // *** Get sort value from filters state ***
     const currentSort = filters.sort; // e.g., "breed:asc"
@@ -62,16 +63,6 @@ export const fetchDogs = createAsyncThunk(
         `fetchDogs Thunk: Fetching page ${currentPage} with sort: ${currentSort}`
       );
 
-      console.log("Client sending params:", {
-        breeds: filters.breeds,
-        zipCodes: filters.zipCodes,
-        ageMin: filters.ageMin,
-        ageMax: filters.ageMax,
-        size: filters.size,
-        from: currentPage * filters.size,
-        sort: currentSort,
-      });
-
       // Call *your* Next.js API route
       const searchResponse = await apiClient.get("/dogs/search", {
         params: {
@@ -79,43 +70,23 @@ export const fetchDogs = createAsyncThunk(
           zipCodes: filters.zipCodes.length
             ? filters.zipCodes.join(",")
             : undefined,
-          ageMin: filters.ageMin ?? undefined, // Use nullish coalescing
+          boroughs: filters.boroughs.length
+            ? filters.boroughs.join(",")
+            : undefined,
+          ageMin: filters.ageMin ?? undefined,
           ageMax: filters.ageMax ?? undefined,
           size: filters.size,
           from: currentPage * filters.size,
-          sort: currentSort, // *** Pass sort parameter ***
+          sort: currentSort,
         },
       });
 
-      // Debug the actual URL being sent
-      console.log(
-        "Client URL constructed:",
-        apiClient.getUri({
-          url: "/dogs/search",
-          params: {
-            breeds: filters.breeds.length
-              ? filters.breeds.join(",")
-              : undefined,
-            zipCodes: filters.zipCodes.length
-              ? filters.zipCodes.join(",")
-              : undefined,
-            ageMin: filters.ageMin ?? undefined,
-            ageMax: filters.ageMax ?? undefined,
-            size: filters.size,
-            from: currentPage * filters.size,
-            sort: currentSort,
-          },
-        })
-      );
-
-      console.log(
-        "fetchDogs Thunk: Search response status:",
-        searchResponse.status
-      );
-      console.log(
-        "fetchDogs Thunk: Search response data:",
-        searchResponse.data
-      );
+      console.log("fetchDogs Thunk: Search response:", {
+        status: searchResponse.status,
+        data: searchResponse.data,
+        resultIds: searchResponse.data?.resultIds,
+        total: searchResponse.data?.total,
+      });
 
       const resultIds = searchResponse.data?.resultIds || [];
       const total = searchResponse.data?.total || 0;
@@ -130,23 +101,23 @@ export const fetchDogs = createAsyncThunk(
         };
       }
 
-      console.log(
-        `fetchDogs Thunk: Found ${resultIds.length} IDs, fetching details.`
-      );
       // Fetch details using your Next.js API route
       const dogsResponse = await apiClient.post("/dogs", resultIds);
-      console.log(
-        "fetchDogs Thunk: Dog details response status:",
-        dogsResponse.status
-      );
-      console.log(
-        "fetchDogs Thunk: Dog details response data:",
-        dogsResponse.data
+
+      console.log("fetchDogs Thunk: Dogs response:", {
+        status: dogsResponse.status,
+        data: dogsResponse.data,
+        dogsFound: dogsResponse.data?.length,
+      });
+
+      // Filter out any dogs that are in favorites
+      const filteredDogs = dogsResponse.data.filter(
+        (dog: Dog) => !favorites.includes(dog._id)
       );
 
       return {
         resultIds,
-        dogs: dogsResponse.data || [],
+        dogs: filteredDogs,
         total,
         size: filters.size,
       };

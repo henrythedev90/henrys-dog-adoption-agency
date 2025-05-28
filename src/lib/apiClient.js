@@ -8,12 +8,22 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Example: Adding Authorization header
-
+// Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`Request being made to: ${config.baseURL}${config.url}`);
-    console.log(`Request method: ${config.method}`);
+    // Skip token refresh for auth-related endpoints
+    const isAuthEndpoint = config.url?.includes("/auth/");
+    if (!isAuthEndpoint) {
+      // Check if we need to refresh the token
+      const hasAccessToken = document.cookie.includes("accessToken=");
+      const hasRefreshToken = document.cookie.includes("refreshToken=");
+
+      if (!hasAccessToken && hasRefreshToken) {
+        // The middleware will handle token refresh
+        console.log("Access token missing, middleware will handle refresh...");
+      }
+    }
+
     return config;
   },
   (error) => {
@@ -22,22 +32,45 @@ apiClient.interceptors.request.use(
   }
 );
 
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`Response status: ${response.status}`);
     return response;
   },
-  (error) => {
-    console.error("API Error Details:");
+  async (error) => {
     if (axios.isAxiosError(error)) {
-      console.error("Request URL:", error.config?.url);
-      console.error("Request Method:", error.config?.method);
-      console.error("Status:", error.response?.status);
-      console.error("Status Text:", error.response?.statusText);
-      console.error("Response Data:", error.response?.data);
-    } else {
-      console.error("Non-Axios Error:", error);
+      const { config, response } = error;
+
+      // Handle token-related errors
+      if (response?.status === 401) {
+        const isAuthEndpoint = config?.url?.includes("/auth/");
+
+        if (!isAuthEndpoint) {
+          // Check if we have a refresh token
+          const hasRefreshToken = document.cookie.includes("refreshToken=");
+
+          if (hasRefreshToken) {
+            // The middleware will handle token refresh
+            console.log("Token expired, middleware will handle refresh...");
+            // Retry the original request after middleware refreshes token
+            return apiClient(config);
+          } else {
+            // No refresh token, redirect to root path
+            window.location.href = "/";
+            return Promise.reject(error);
+          }
+        }
+      }
+
+      // Log other errors
+      console.error("API Error:", {
+        url: config?.url,
+        method: config?.method,
+        status: response?.status,
+        data: response?.data,
+      });
     }
+
     return Promise.reject(error);
   }
 );

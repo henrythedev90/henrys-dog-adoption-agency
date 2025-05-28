@@ -11,53 +11,96 @@ export default async function handler(
 ) {
   if (req.method !== "GET") {
     if (!isTest) console.log("Auth check: Invalid method:", req.method);
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const cookies = req.headers.cookie;
-  if (!cookies) {
-    return res.status(401).json({ error: "Not authenticated" });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
-    // Extract token from cookies
-    const token = cookies
-      .split(";")
-      .find((c) => c.trim().startsWith("token="))
-      ?.split("=")[1];
-    if (!token) {
-      return res.status(401).json({ error: "No token found" });
-    }
+    const accessToken = req.cookies["accessToken"];
+    const refreshToken = req.cookies["refreshToken"];
 
-    // Verify token
-    const decoded = verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key"
-    ) as { id: string };
+    if (!accessToken && !refreshToken) {
+      return res.status(401).json({ message: "No tokens provided" });
+    }
 
     // Connect to MongoDB
     const client = await clientPromise;
     const db = client.db("AdoptionData");
 
-    // Get user data
-    const user = await db.collection("users").findOne({
-      _id: new ObjectId(decoded.id),
-    });
+    // First try to verify access token
+    if (accessToken) {
+      try {
+        const decoded = verify(
+          accessToken,
+          process.env.JWT_SECRET || "your-secret-key"
+        ) as { userId: string };
 
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
+        const user = await db.collection("users").findOne({
+          _id: new ObjectId(decoded.userId),
+        });
+
+        if (user) {
+          return res.status(200).json({
+            user: {
+              _id: user._id,
+              userName: user.userName,
+              email: user.email,
+            },
+          });
+        }
+      } catch (error) {
+        // Access token is invalid, continue to refresh token check
+        console.log("Access token invalid, trying refresh token");
+      }
     }
 
-    return res.status(200).json({
-      success: true,
-      user: {
-        _id: user._id,
-        userName: user.userName,
-        email: user.email,
-      },
-    });
+    // If access token is invalid or missing, try refresh token
+    if (refreshToken) {
+      try {
+        const decoded = verify(
+          refreshToken,
+          process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key"
+        ) as { userId: string };
+
+        // Check if refresh token exists and is valid in database
+        const tokenDoc = await db.collection("tokens").findOne({
+          refreshToken,
+          userId: new ObjectId(decoded.userId),
+          isValid: true,
+          expiresAt: { $gt: new Date() },
+        });
+
+        if (!tokenDoc) {
+          return res.status(401).json({ message: "Invalid refresh token" });
+        }
+
+        const user = await db.collection("users").findOne({
+          _id: new ObjectId(decoded.userId),
+        });
+
+        if (!user) {
+          return res.status(401).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+          user: {
+            _id: user._id,
+            userName: user.userName,
+            email: user.email,
+          },
+        });
+      } catch (error) {
+        console.error("Refresh token validation failed:", error);
+        return res.status(401).json({ message: "Invalid refresh token" });
+      }
+    }
+
+    // If we get here, no valid tokens were found
+    return res.status(401).json({ message: "Authentication required" });
   } catch (error) {
     console.error("Auth check error:", error);
-    return res.status(401).json({ error: "Invalid token" });
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

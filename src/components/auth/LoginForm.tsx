@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginUser } from "@/store/slices/authSlice";
 import { useRouter } from "next/navigation";
@@ -9,31 +9,28 @@ import classes from "./style/LoginForm.module.css";
 
 const LoginForm = () => {
   const dispatch = useAppDispatch();
-  const { loading, error, isLoggedIn } = useAppSelector((state) => state.auth);
-  const [emailOrUsername, setEmailOrUsername] = useState("");
+  const { loading, error } = useAppSelector((state) => state.auth);
+  const [emailOrUserName, setEmailOrUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      setIsNavigating(true);
-      router.push("/dogs");
-    }
-  }, [isLoggedIn, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(loginUser({ emailOrUsername, password }));
+    try {
+      const result = await dispatch(loginUser({ emailOrUserName, password }));
+      if (result.meta.requestStatus === "fulfilled") {
+        router.replace("/dogs");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
-  if (loading || isNavigating) {
+  if (loading) {
     return (
       <div className={classes.loading_container}>
         <LoadingSpinner />
-        <p className={classes.loading_text}>
-          {loading ? "Logging in..." : "Redirecting to dashboard..."}
-        </p>
+        <p className={classes.loading_text}>Signing in...</p>
       </div>
     );
   }
@@ -48,13 +45,13 @@ const LoginForm = () => {
       <form onSubmit={handleSubmit} className={classes.form}>
         <div className={classes.inputGroup}>
           <input
-            id="emailOrUsername"
-            name="emailOrUsername"
+            id="emailOrUserName"
+            name="emailOrUserName"
             type="text"
             autoComplete="username"
             placeholder="Email or Username"
-            value={emailOrUsername}
-            onChange={(e) => setEmailOrUsername(e.target.value)}
+            value={emailOrUserName}
+            onChange={(e) => setEmailOrUserName(e.target.value)}
             required
           />
         </div>

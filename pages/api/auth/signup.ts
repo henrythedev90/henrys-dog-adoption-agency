@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import clientPromise from "@/lib/mongodb";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { hash } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import { ObjectId } from "mongodb";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default async function handler(
@@ -47,33 +47,60 @@ export default async function handler(
     }
 
     // Create new user
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hash(password, 12);
     const newUser = {
       userName,
       email,
       password: hashedPassword,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const result = await db.collection("users").insertOne(newUser);
     const user = { ...newUser, _id: result.insertedId };
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: "15m",
+    // Generate access token
+    const accessToken = sign(
+      {
+        userId: user._id,
+        email: user.email,
+        userName: user.userName,
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "1h" }
+    );
+
+    // Generate refresh token
+    const refreshToken = sign(
+      { userId: user._id },
+      process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key",
+      { expiresIn: "7d" }
+    );
+
+    // Store refresh token in database
+    await db.collection("tokens").insertOne({
+      userId: new ObjectId(user._id),
+      refreshToken,
+      isValid: true,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      createdAt: new Date(),
     });
 
-    // Set the token in an HTTP-only cookie
-    res.setHeader(
-      "Set-Cookie",
-      `auth-token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=900`
-    );
+    // Set cookies
+    res.setHeader("Set-Cookie", [
+      `accessToken=${accessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${
+        process.env.NODE_ENV === "production" ? "; Secure" : ""
+      }`,
+      `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax${
+        process.env.NODE_ENV === "production" ? "; Secure" : ""
+      }`,
+    ]);
 
     res.status(201).json({
       success: true,
       message: "User created successfully",
       user: {
-        id: user._id,
+        _id: user._id,
         userName: user.userName,
         email: user.email,
       },

@@ -8,6 +8,7 @@ import {
   setFilters,
   resetFilter,
   PAGE_SIZES,
+  PageSize,
 } from "../../store/slices/filtersSlice";
 import {
   selectBreeds,
@@ -16,6 +17,7 @@ import {
 } from "../../store/selectors/breedSelectors";
 import Button from "../ui/Button";
 import styles from "./styles/Filters.module.css";
+import { BOROUGHS, Borough } from "@/enums/boroughs";
 
 export default function Filters() {
   const dispatch = useAppDispatch();
@@ -41,10 +43,31 @@ export default function Filters() {
     }
   };
 
+  const handleBoroughSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBorough = e.target.value as Borough;
+    if (selectedBorough && !filters.boroughs?.includes(selectedBorough)) {
+      dispatch(
+        setFilters({
+          boroughs: [...(filters.boroughs || []), selectedBorough],
+        })
+      );
+    }
+  };
+
   const handleRemoveBreed = (breedToRemove: string) => {
     dispatch(
       setFilters({
         breeds: filters.breeds.filter((breed) => breed !== breedToRemove),
+      })
+    );
+  };
+
+  const handleRemoveBorough = (boroughToRemove: Borough) => {
+    dispatch(
+      setFilters({
+        boroughs:
+          filters.boroughs?.filter((borough) => borough !== boroughToRemove) ||
+          [],
       })
     );
   };
@@ -156,6 +179,32 @@ export default function Filters() {
         </select>
       </div>
 
+      <div className={classes.filter_breed_container}>
+        <label>Borough:</label>
+        <select
+          onChange={handleBoroughSelect}
+          value=""
+          disabled={filters.boroughs?.length >= 5}
+        >
+          <option value="" disabled>
+            Select a borough
+          </option>
+          {Object.values(BOROUGHS).map((borough) => (
+            <option
+              key={borough}
+              value={borough}
+              disabled={filters.boroughs?.includes(borough)}
+              style={{
+                color: filters.boroughs?.includes(borough) ? "#999" : "inherit",
+              }}
+            >
+              {borough}{" "}
+              {filters.boroughs?.includes(borough) ? "(Selected)" : ""}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className={classes.filter_zipCode_container}>
         <label>ZIP Codes:</label>
         <div className={classes.filter_zipCode_input}>
@@ -178,7 +227,7 @@ export default function Filters() {
       <div className={classes.filter_breed_container}>
         <label>Results per page:</label>
         <select value={filters.size} onChange={handleSizeChange}>
-          {PAGE_SIZES.map((size) => (
+          {PAGE_SIZES.map((size: PageSize) => (
             <option key={size} value={size}>
               {size} dogs
             </option>
@@ -235,6 +284,18 @@ export default function Filters() {
               onClick={() => handleRemoveBreed(breed)}
             >
               {breed}
+              <span className={styles.tag_remove}>×</span>
+            </span>
+          ))}
+        </div>
+        <div className={styles.tag_group}>
+          {filters.boroughs?.map((borough) => (
+            <span
+              key={borough}
+              className={styles.tag}
+              onClick={() => handleRemoveBorough(borough)}
+            >
+              {borough}
               <span className={styles.tag_remove}>×</span>
             </span>
           ))}

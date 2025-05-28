@@ -1,11 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Borough } from "@/enums/boroughs";
 
-export const PAGE_SIZES = [8, 16, 20, 24] as const;
-export type PageSize = (typeof PAGE_SIZES)[number];
+export type PageSize = 20 | 40 | 60 | 80 | 100;
+
+export const PAGE_SIZES: PageSize[] = [20, 40, 60, 80, 100];
 
 interface FiltersState {
   breeds: string[];
   zipCodes: string[];
+  boroughs: Borough[];
   ageMin: number | null;
   ageMax: number | null;
   size: PageSize;
@@ -19,6 +22,7 @@ const loadFiltersFromStorage = (): FiltersState => {
     return {
       breeds: [],
       zipCodes: [],
+      boroughs: [],
       ageMin: null,
       ageMax: null,
       size: 20,
@@ -39,6 +43,7 @@ const loadFiltersFromStorage = (): FiltersState => {
   return {
     breeds: [],
     zipCodes: [],
+    boroughs: [],
     ageMin: null,
     ageMax: null,
     size: 20,
@@ -51,6 +56,7 @@ const loadFiltersFromStorage = (): FiltersState => {
 const defaultState: FiltersState = {
   breeds: [],
   zipCodes: [],
+  boroughs: [],
   ageMin: null,
   ageMax: null,
   size: 20,
@@ -76,12 +82,15 @@ const filterSlice = createSlice({
   initialState,
   reducers: {
     setFilters(state, action: PayloadAction<Partial<FiltersState>>) {
-      // For arrays (breeds and zipCodes), we need to handle them specially
+      // For arrays (breeds, zipCodes, and boroughs), we need to handle them specially
       if (action.payload.breeds !== undefined) {
         state.breeds = action.payload.breeds;
       }
       if (action.payload.zipCodes !== undefined) {
         state.zipCodes = action.payload.zipCodes;
+      }
+      if (action.payload.boroughs !== undefined) {
+        state.boroughs = action.payload.boroughs;
       }
 
       // For other properties, we can use direct assignment

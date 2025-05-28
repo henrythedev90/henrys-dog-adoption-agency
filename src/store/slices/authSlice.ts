@@ -5,7 +5,7 @@ import { resetFilter } from "./filtersSlice";
 import { apiClient } from "@/lib/apiClient";
 
 export interface LoginRequest {
-  emailOrUsername: string;
+  emailOrUserName: string;
   password: string;
 }
 
@@ -93,46 +93,31 @@ export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      console.log("Logout thunk: Attempting logout");
-
-      // Flag the logout in sessionStorage to prevent unnecessary API calls during logout
+      // Flag the logout in sessionStorage to prevent unnecessary API calls
       sessionStorage.setItem("logging_out", "true");
 
-      // Use axios directly with the correct Next.js API route
+      // Call logout API to delete token and clear cookies
       await axios.post("/api/auth/logout", {}, { withCredentials: true });
-
-      console.log("Logout thunk: Logout API call successful");
 
       // Clear all user data
       dispatch(clearFavorite());
       dispatch(clearBreeds());
       dispatch(resetFilter());
-      localStorage.clear(); // Clear all localStorage data
 
-      // Add a small delay before removing the logging_out flag
-      // This gives time for any in-flight requests to complete
-      setTimeout(() => {
-        sessionStorage.removeItem("logging_out");
-      }, 500);
+      // Clear all storage
+      localStorage.removeItem("dogAuth");
+      sessionStorage.clear();
 
       return true;
     } catch (error: unknown) {
-      console.error("Logout thunk: Error during logout:", {
-        status: error instanceof AxiosError ? error.response?.status : null,
-        message:
-          error instanceof Error
-            ? error.message
-            : "An error occurred during logout.",
-      });
+      console.error("Logout error:", error);
 
       // Even if the API call fails, clear local state
       dispatch(clearFavorite());
       dispatch(clearBreeds());
       dispatch(resetFilter());
-      localStorage.clear();
-
-      // Remove logout flag
-      sessionStorage.removeItem("logging_out");
+      localStorage.removeItem("dogAuth");
+      sessionStorage.clear();
 
       return rejectWithValue(
         error instanceof AxiosError

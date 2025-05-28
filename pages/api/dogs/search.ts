@@ -5,6 +5,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Disable caching
+  res.setHeader("Cache-Control", "no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   if (req.method !== "GET") {
     return res
       .status(405)
@@ -15,12 +20,24 @@ export default async function handler(
     const {
       breeds,
       zipCodes,
+      boroughs,
       ageMin,
       ageMax,
       size = 25,
       from = 0,
       sort,
     } = req.query;
+
+    console.log("Search API: Received query params:", {
+      breeds,
+      zipCodes,
+      boroughs,
+      ageMin,
+      ageMax,
+      size,
+      from,
+      sort,
+    });
 
     const client = await clientPromise;
     const db = client.db("AdoptionData");
@@ -43,6 +60,44 @@ export default async function handler(
       }
 
       query.breed = { $in: breedsArray };
+    }
+
+    // Add borough filter with validation
+    if (boroughs) {
+      const boroughArray = Array.isArray(boroughs)
+        ? boroughs
+        : boroughs.split(",").map((borough: string) => {
+            const trimmed = borough.trim().toUpperCase();
+            // Convert "STATEN ISLAND" to "STATEN_ISLAND"
+            return trimmed === "STATEN ISLAND" ? "STATEN_ISLAND" : trimmed;
+          });
+
+      // Validate boroughs
+      if (boroughArray.some((borough) => !borough)) {
+        return res.status(400).json({
+          error: "Invalid borough format",
+          message: "Boroughs cannot be empty",
+        });
+      }
+
+      // Log the borough values for debugging
+      console.log("Search API: Borough filter values:", {
+        requestedBoroughs: boroughArray,
+        query: { borough: { $in: boroughArray } },
+      });
+
+      // Get a sample of boroughs from the database to verify values
+      const sampleDogs = await db
+        .collection("dogs")
+        .find({})
+        .limit(5)
+        .toArray();
+      console.log(
+        "Search API: Sample boroughs from database:",
+        sampleDogs.map((dog) => dog.borough)
+      );
+
+      query.borough = { $in: boroughArray };
     }
 
     // Add zip code filter with validation
@@ -88,11 +143,13 @@ export default async function handler(
       }
     }
 
+    console.log("Search API: Final MongoDB query:", query);
+
     // Build sort object
     let sortObj: any = {};
     if (sort) {
       const [field, order] = (sort as string).split(":");
-      const validFields = ["age", "breed", "zip_code"];
+      const validFields = ["age", "breed", "zip_code", "name", "borough"];
       const validOrders = ["asc", "desc"];
 
       if (!validFields.includes(field) || !validOrders.includes(order)) {
@@ -119,6 +176,23 @@ export default async function handler(
 
       // Get total count for pagination
       const total = await db.collection("dogs").countDocuments(query);
+
+      console.log("Search API Debug:", {
+        query,
+        sortObj,
+        total,
+        dogsFound: dogs.length,
+        from: parseInt(from as string),
+        size: parseInt(size as string),
+        firstDog: dogs[0] || null,
+        sampleDogs: dogs.slice(0, 2).map((dog) => ({
+          id: dog._id,
+          breed: dog.breed,
+          borough: dog.borough,
+          age: dog.age,
+          zip_code: dog.zip_code,
+        })),
+      });
 
       const fromNum = parseInt(from as string);
       const sizeNum = parseInt(size as string);
@@ -148,9 +222,22 @@ export default async function handler(
               ? zipCodes
               : zipCodes.split(",")
             : undefined,
+          boroughs: boroughs
+            ? Array.isArray(boroughs)
+              ? boroughs
+              : boroughs.split(",")
+            : undefined,
           ageRange: ageMin || ageMax ? { min: ageMin, max: ageMax } : undefined,
         },
       };
+
+      console.log("Search API Response:", {
+        resultIdsCount: resultIds.length,
+        total,
+        hasNext: !!response.next,
+        hasPrev: !!response.prev,
+        filters: response.filters,
+      });
 
       return res.status(200).json(response);
     } catch (dbError) {

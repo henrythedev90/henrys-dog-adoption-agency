@@ -213,7 +213,9 @@ const Dashboard = React.memo(() => {
           )}
         </div>
         {loading ? (
-          <LoadingSpinner />
+          <div className={classes.loadingContainer}>
+            <LoadingSpinner />
+          </div>
         ) : error ? (
           <p>{error}</p>
         ) : !hasActiveFilters && dogs.length === 0 && !error ? (
@@ -236,7 +238,17 @@ const Dashboard = React.memo(() => {
             )}
           </>
         ) : hasActiveFilters && dogs.length === 0 && !error ? (
-          <p>No dogs found. Try adjusting your search filters</p>
+          (() => {
+            console.log("Dashboard Debug:", {
+              hasActiveFilters,
+              dogsLength: dogs.length,
+              error,
+              filters: filters,
+              currentPage: page,
+              totalPages,
+            });
+            return <p>No dogs found. Try adjusting your search filters</p>;
+          })()
         ) : null}
       </div>
     </div>
