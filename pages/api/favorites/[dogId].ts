@@ -3,6 +3,11 @@ import clientPromise from "@/lib/mongodb";
 import { getSessionUserId } from "@/utils/auth";
 import { ObjectId } from "mongodb";
 
+interface UserDocument {
+  _id: ObjectId;
+  favorites: string[];
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -26,10 +31,11 @@ export default async function handler(
     const db = client.db("AdoptionData");
 
     await db
-      .collection("users")
-      .updateOne({ _id: new ObjectId(userId as string) }, {
-        $pull: { favorites: { $in: [dogId] } },
-      } as any);
+      .collection<UserDocument>("users")
+      .updateOne(
+        { _id: new ObjectId(userId as string) },
+        { $pull: { favorites: dogId } }
+      );
 
     return res
       .status(200)
