@@ -1,13 +1,18 @@
 "use client";
 import React, { useEffect, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchDogs, setDogsPage } from "../../store/slices/dogsSlice";
+import {
+  fetchDogs,
+  setDogsPage,
+  toggleFavorite,
+} from "../../store/slices/dogsSlice";
 import {
   selectDogs,
   selectDogsLoading,
   selectDogsError,
   selectDogsTotalPages,
   selectDogsPage,
+  selectDogFavorite,
 } from "../../store/selectors/dogsSelectors";
 import { checkAuth } from "@/store/slices/authSlice";
 import Filters from "@/components/dogs/Filters";
@@ -30,6 +35,7 @@ const Dashboard = React.memo(() => {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
+  const favorite = useAppSelector(selectDogFavorite);
   const { user, isLoggedIn } = useAppSelector((state) => state.auth);
   const name = user?.userName;
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
@@ -246,7 +252,13 @@ const Dashboard = React.memo(() => {
           <>
             <div className={classes.dashboard_dog_card_result}>
               {sortedDogs.map((dog: Dog) => (
-                <DogCard key={dog._id} dog={dog} />
+                <DogCard
+                  key={dog._id}
+                  dog={dog}
+                  onToggleFavorite={(dogId: string) =>
+                    dispatch(toggleFavorite({ dogId, removeFromResults: true }))
+                  }
+                />
               ))}
             </div>
             {totalPages > 1 && (

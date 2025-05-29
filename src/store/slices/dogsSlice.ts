@@ -181,7 +181,7 @@ export const fetchMatch = createAsyncThunk(
       const startTime = new Date().getTime();
 
       // Call your LOCAL API route with the array directly and ensure credentials are sent
-      const response = await axios.post(
+      const response = await apiClient.post(
         "/dogs/match", // Target your Next.js route
         { favoriteIds, userId }, // Send both favoriteIds and userId
         {

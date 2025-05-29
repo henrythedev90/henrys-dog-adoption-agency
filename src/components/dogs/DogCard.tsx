@@ -25,9 +25,6 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
       dispatch(addFavorite(dog._id));
     }
   };
-  console.log("DogCard dog._id:", dog._id);
-  console.log("Favorites array:", favorite);
-  console.log("Is favorite?", isFavorite);
 
   return (
     <div className={classes.dog_card}>
