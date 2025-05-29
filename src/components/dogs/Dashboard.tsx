@@ -12,7 +12,6 @@ import {
   selectDogsError,
   selectDogsTotalPages,
   selectDogsPage,
-  selectDogFavorite,
 } from "../../store/selectors/dogsSelectors";
 import { checkAuth } from "@/store/slices/authSlice";
 import Filters from "@/components/dogs/Filters";
