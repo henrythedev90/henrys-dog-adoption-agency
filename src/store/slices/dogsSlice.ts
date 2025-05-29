@@ -147,6 +147,7 @@ export const addFavorite = createAsyncThunk(
       await apiClient.post("/favorites", { dogId });
       return dogId;
     } catch (error) {
+      console.error("Failed to add favorite:", error);
       return rejectWithValue("Failed to add favorite");
     }
   }
@@ -159,6 +160,7 @@ export const removeFavorite = createAsyncThunk(
       await apiClient.delete(`/favorites/${dogId}`);
       return dogId;
     } catch (error) {
+      console.error("Failed to remove favorite:", error);
       return rejectWithValue("Failed to remove favorite");
     }
   }

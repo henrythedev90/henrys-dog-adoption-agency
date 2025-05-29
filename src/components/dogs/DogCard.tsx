@@ -8,10 +8,9 @@ import DogCardImage from "./DogCardImage";
 
 interface DogCardProps {
   dog: Dog;
-  onToggleFavorite?: (dogId: string) => void;
 }
 
-const DogCard = React.memo(({ dog, onToggleFavorite }: DogCardProps) => {
+const DogCard = React.memo(({ dog }: DogCardProps) => {
   const dispatch = useAppDispatch();
   const favorite = useAppSelector(selectDogFavorite);
   const isFavorite = favorite.includes(dog._id);

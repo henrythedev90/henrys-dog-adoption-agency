@@ -21,9 +21,7 @@ export default function Favorites() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (favorites.length > 0) {
-      dispatch(fetchFavoriteDogs());
-    }
+    dispatch(fetchFavoriteDogs());
   }, [dispatch]);
 
   const handleGenerateMatch = async () => {
