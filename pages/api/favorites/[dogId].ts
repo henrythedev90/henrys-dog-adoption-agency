@@ -25,6 +25,7 @@ export default async function handler(
     const client = await clientPromise;
     const db = client.db("AdoptionData");
 
+    //@typescript-eslint/no-explicit-any
     await db
       .collection("users")
       .updateOne({ _id: new ObjectId(userId as string) }, {
