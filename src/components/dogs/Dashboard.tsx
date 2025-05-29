@@ -34,6 +34,7 @@ const Dashboard = React.memo(() => {
   const name = user?.userName;
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
   const [hasFiltersOrPageChanged, setHasFiltersOrPageChanged] = useState(false);
+  const resultIds = useAppSelector((state) => state.dogs.resultIds);
 
   const currentSortString = filters.sort;
   const [currentSortKey, currentSortDirection] = currentSortString.split(":");
@@ -137,6 +138,16 @@ const Dashboard = React.memo(() => {
     [dispatch]
   );
 
+  // Ensure dogs are displayed in the order of resultIds
+  const dogsById = React.useMemo(
+    () => Object.fromEntries(dogs.map((dog) => [dog._id, dog])),
+    [dogs]
+  );
+  const sortedDogs = React.useMemo(
+    () => resultIds.map((id) => dogsById[id]).filter(Boolean),
+    [resultIds, dogsById]
+  );
+
   if (!isAuthCheckComplete) {
     return (
       <div className={classes.loading_container_full_page}>
@@ -234,7 +245,7 @@ const Dashboard = React.memo(() => {
         ) : dogs.length > 0 ? (
           <>
             <div className={classes.dashboard_dog_card_result}>
-              {dogs.map((dog: Dog) => (
+              {sortedDogs.map((dog: Dog) => (
                 <DogCard key={dog._id} dog={dog} />
               ))}
             </div>

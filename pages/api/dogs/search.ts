@@ -1,5 +1,6 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import clientPromise from "@/lib/mongodb";
+import { CollationOptions } from "mongodb";
 
 export default async function handler(
   req: NextApiRequest,
@@ -137,6 +138,7 @@ export default async function handler(
 
     // Build sort object
     const sortObj: Record<string, 1 | -1> = {};
+    let collation: CollationOptions | undefined = undefined;
     if (sort) {
       const [field, order] = (sort as string).split(":");
       const validFields = ["age", "breed", "zip_code", "name", "borough"];
@@ -152,13 +154,26 @@ export default async function handler(
       }
 
       sortObj[field] = order === "asc" ? 1 : -1;
+
+      // Add collation for string fields
+      if (field !== "age") {
+        collation = {
+          locale: "en",
+          strength: 2, // Case-insensitive comparison
+          alternate: "shifted", // Handle special characters
+        };
+      }
     }
 
     try {
       // Execute query with pagination
-      const dogs = await db
-        .collection("dogs")
-        .find(query)
+      let mongoQuery = db.collection("dogs").find(query);
+
+      if (collation) {
+        mongoQuery = mongoQuery.collation(collation);
+      }
+
+      const dogs = await mongoQuery
         .sort(sortObj)
         .skip(parseInt(from as string))
         .limit(parseInt(size as string))
