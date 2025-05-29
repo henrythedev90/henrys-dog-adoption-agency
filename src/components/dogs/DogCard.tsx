@@ -8,6 +8,7 @@ import DogCardImage from "./DogCardImage";
 
 interface DogCardProps {
   dog: Dog;
+  onToggleFavorite: (dogId: string) => void;
 }
 
 const DogCard = React.memo(({ dog }: DogCardProps) => {

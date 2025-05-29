@@ -219,7 +219,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               <div className={classes.dog_card_carousel_container}>
                 <DogCard
                   dog={dog}
-                  onToggleFavorite={(dogId) =>
+                  onToggleFavorite={(dogId: string) =>
                     dispatch(toggleFavorite({ dogId, removeFromResults: true }))
                   }
                 />
@@ -302,7 +302,12 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               <h4 className={modalClasses.match_modal_title}>
                 Meet {matchedDog.name}!
               </h4>
-              <DogCard dog={matchedDog} />
+              <DogCard
+                dog={matchedDog}
+                onToggleFavorite={(dogId: string) =>
+                  dispatch(toggleFavorite({ dogId, removeFromResults: true }))
+                }
+              />
               <div className={modalClasses.match_modal_actions}>
                 <Button onClickFunction={handleGenerateMatch} variant="primary">
                   Try Again
