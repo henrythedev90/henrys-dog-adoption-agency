@@ -25,13 +25,11 @@ export default async function handler(
     const client = await clientPromise;
     const db = client.db("AdoptionData");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await db
       .collection("users")
-      .updateOne(
-        { _id: new ObjectId(userId as string) },
-        { $pull: { favorites: dogId as any } }
-      );
+      .updateOne({ _id: new ObjectId(userId as string) }, {
+        $pull: { favorites: { $in: [dogId] } },
+      } as any);
 
     return res
       .status(200)
