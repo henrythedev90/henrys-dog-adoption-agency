@@ -2,7 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { Dog } from "@/types/dog";
 import { RootState } from "..";
 import { apiClient } from "@/lib/apiClient";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
 interface DogState {
   resultIds: string[];

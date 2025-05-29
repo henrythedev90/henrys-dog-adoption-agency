@@ -35,7 +35,6 @@ const Dashboard = React.memo(() => {
   const totalPages = useAppSelector(selectDogsTotalPages);
   const page = useAppSelector(selectDogsPage);
   const filters = useAppSelector(selectFilters);
-  const favorite = useAppSelector(selectDogFavorite);
   const { user, isLoggedIn } = useAppSelector((state) => state.auth);
   const name = user?.userName;
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
