@@ -12,7 +12,6 @@ export default async function handler(
   }
 
   try {
-    console.log("Login request body:", req.body);
     const { emailOrUserName, password } = req.body;
 
     if (!emailOrUserName || !password) {
@@ -81,7 +80,6 @@ export default async function handler(
       }`,
     ]);
 
-    console.log("Login successful for user:", user.userName);
     return res.status(200).json({
       success: true,
       user: {

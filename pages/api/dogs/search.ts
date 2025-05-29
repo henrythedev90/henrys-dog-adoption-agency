@@ -28,17 +28,6 @@ export default async function handler(
       sort,
     } = req.query;
 
-    console.log("Search API: Received query params:", {
-      breeds,
-      zipCodes,
-      boroughs,
-      ageMin,
-      ageMax,
-      size,
-      from,
-      sort,
-    });
-
     const client = await clientPromise;
     const db = client.db("AdoptionData");
 
@@ -146,8 +135,6 @@ export default async function handler(
       }
     }
 
-    console.log("Search API: Final MongoDB query:", query);
-
     // Build sort object
     const sortObj: Record<string, 1 | -1> = {};
     if (sort) {
@@ -179,23 +166,6 @@ export default async function handler(
 
       // Get total count for pagination
       const total = await db.collection("dogs").countDocuments(query);
-
-      console.log("Search API Debug:", {
-        query,
-        sortObj,
-        total,
-        dogsFound: dogs.length,
-        from: parseInt(from as string),
-        size: parseInt(size as string),
-        firstDog: dogs[0] || null,
-        sampleDogs: dogs.slice(0, 2).map((dog) => ({
-          id: dog._id,
-          breed: dog.breed,
-          borough: dog.borough,
-          age: dog.age,
-          zip_code: dog.zip_code,
-        })),
-      });
 
       const fromNum = parseInt(from as string);
       const sizeNum = parseInt(size as string);
@@ -233,14 +203,6 @@ export default async function handler(
           ageRange: ageMin || ageMax ? { min: ageMin, max: ageMax } : undefined,
         },
       };
-
-      console.log("Search API Response:", {
-        resultIdsCount: resultIds.length,
-        total,
-        hasNext: !!response.next,
-        hasPrev: !!response.prev,
-        filters: response.filters,
-      });
 
       return res.status(200).json(response);
     } catch (dbError) {
