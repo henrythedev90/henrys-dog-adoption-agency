@@ -1,4 +1,3 @@
-import Footer from "@/components/layout/Footer";
 import "./globals.css";
 import { ReduxProvider } from "./providers";
 
@@ -23,10 +22,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ReduxProvider>
-          {children}
-          {/* <Footer /> */}
-        </ReduxProvider>
+        <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>
   );
