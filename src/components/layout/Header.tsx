@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import { logout, logoutUser } from "@/store/slices/authSlice";
@@ -10,6 +10,7 @@ import classes from "./styles/Header.module.css";
 import Button from "../ui/Button";
 import SplitColorText from "../ui/SplitColorText";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { clearFavorite, fetchFavoriteDogs } from "@/store/slices/dogsSlice";
 
 export default function Header() {
   const router = useRouter();
@@ -20,10 +21,17 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(fetchFavoriteDogs());
+    }
+  }, [isLoggedIn, dispatch]);
+
   const handleLogout = async () => {
     try {
       // Use the logout thunk which handles token deletion and state cleanup
       await dispatch(logoutUser());
+      dispatch(clearFavorite());
 
       // Redirect to home page
       router.replace("/");

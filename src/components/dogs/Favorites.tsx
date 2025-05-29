@@ -22,7 +22,7 @@ export default function Favorites() {
 
   useEffect(() => {
     if (favorites.length > 0) {
-      dispatch(fetchFavoriteDogs(favorites));
+      dispatch(fetchFavoriteDogs());
     }
   }, [dispatch, favorites]);
 
