@@ -27,10 +27,9 @@ export default async function handler(
 
     await db
       .collection("users")
-      .updateOne(
-        { _id: new ObjectId(userId as string) },
-        { $pull: { favorites: dogId as any } }
-      );
+      .updateOne({ _id: new ObjectId(userId as string) }, {
+        $pull: { favorites: { dogId } },
+      } as any);
 
     return res
       .status(200)
