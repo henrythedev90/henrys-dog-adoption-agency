@@ -24,7 +24,7 @@ export default function Favorites() {
     if (favorites.length > 0) {
       dispatch(fetchFavoriteDogs());
     }
-  }, [dispatch, favorites]);
+  }, [dispatch]);
 
   const handleGenerateMatch = async () => {
     if (favorites.length === 0) {
