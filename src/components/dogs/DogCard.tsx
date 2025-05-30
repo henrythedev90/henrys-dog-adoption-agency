@@ -1,17 +1,17 @@
 import React from "react";
 import { Dog } from "@/types/dog";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleFavorite } from "@/store/slices/dogsSlice";
+import { addFavorite, removeFavorite } from "@/store/slices/dogsSlice";
 import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import classes from "./styles/DogCard.module.css";
 import DogCardImage from "./DogCardImage";
 
 interface DogCardProps {
   dog: Dog;
-  onToggleFavorite?: (dogId: string) => void;
+  onToggleFavorite: (dogId: string) => void;
 }
 
-const DogCard = React.memo(({ dog, onToggleFavorite }: DogCardProps) => {
+const DogCard = React.memo(({ dog }: DogCardProps) => {
   const dispatch = useAppDispatch();
   const favorite = useAppSelector(selectDogFavorite);
   const isFavorite = favorite.includes(dog._id);
@@ -19,10 +19,10 @@ const DogCard = React.memo(({ dog, onToggleFavorite }: DogCardProps) => {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onToggleFavorite) {
-      onToggleFavorite(dog._id);
+    if (isFavorite) {
+      dispatch(removeFavorite(dog._id));
     } else {
-      dispatch(toggleFavorite({ dogId: dog._id }));
+      dispatch(addFavorite(dog._id));
     }
   };
 

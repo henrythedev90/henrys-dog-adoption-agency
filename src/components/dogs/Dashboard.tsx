@@ -1,7 +1,11 @@
 "use client";
 import React, { useEffect, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchDogs, setDogsPage } from "../../store/slices/dogsSlice";
+import {
+  fetchDogs,
+  setDogsPage,
+  toggleFavorite,
+} from "../../store/slices/dogsSlice";
 import {
   selectDogs,
   selectDogsLoading,
@@ -246,7 +250,13 @@ const Dashboard = React.memo(() => {
           <>
             <div className={classes.dashboard_dog_card_result}>
               {sortedDogs.map((dog: Dog) => (
-                <DogCard key={dog._id} dog={dog} />
+                <DogCard
+                  key={dog._id}
+                  dog={dog}
+                  onToggleFavorite={(dogId: string) =>
+                    dispatch(toggleFavorite({ dogId, removeFromResults: true }))
+                  }
+                />
               ))}
             </div>
             {totalPages > 1 && (

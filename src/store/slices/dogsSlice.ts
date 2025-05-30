@@ -2,27 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { Dog } from "@/types/dog";
 import { RootState } from "..";
 import { apiClient } from "@/lib/apiClient";
-import axios, { AxiosError } from "axios";
-
-// Load initial favorites from localStorage
-const loadFavorites = (): string[] => {
-  try {
-    const serializedFavorites = localStorage.getItem("favorites");
-    if (serializedFavorites === null) {
-      return [];
-    }
-    return JSON.parse(serializedFavorites);
-  } catch (err: unknown) {
-    console.error("loadFavorites error:", {
-      status: err instanceof AxiosError ? err.response?.status : null,
-      message:
-        err instanceof Error
-          ? err.message
-          : "Failed to load favorites from localStorage",
-    });
-    return [];
-  }
-};
+import { AxiosError } from "axios";
 
 interface DogState {
   resultIds: string[];
@@ -38,7 +18,7 @@ interface DogState {
 const initialState: DogState = {
   resultIds: [],
   results: [],
-  favorites: loadFavorites(),
+  favorites: [],
   match: null,
   loading: false,
   error: null,
@@ -132,18 +112,20 @@ export const fetchDogs = createAsyncThunk(
 
 export const fetchFavoriteDogs = createAsyncThunk(
   "dogs/fetchFavoriteDogs",
-  async (favoriteIds: string[], { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      if (favoriteIds.length === 0) {
-        return { dogs: [] };
+      // Get the favorite IDs from the API
+      const favoritesResponse = await apiClient.get("/favorites");
+      const userFavorites = favoritesResponse.data.favorites || [];
+
+      if (userFavorites.length === 0) {
+        return { dogs: [], favorites: [] };
       }
-      console.log(
-        `fetchFavoriteDogs Thunk: Fetching ${favoriteIds.length} favorites.`
-      );
-      // Call your /api/dogs route
-      const response = await apiClient.post("/dogs", favoriteIds);
-      console.log("fetchFavoriteDogs Thunk: Received details.");
-      return { dogs: response.data || [] };
+
+      // Fetch the dog details for those favorites
+      // Send the array directly, not as { dogId: ... }
+      const response = await apiClient.post("/dogs", userFavorites);
+      return { dogs: response.data || [], favorites: userFavorites };
     } catch (error: unknown) {
       console.error("fetchFavoriteDogs Thunk: Error:", {
         /* ... */
@@ -154,6 +136,32 @@ export const fetchFavoriteDogs = createAsyncThunk(
       return rejectWithValue(
         error instanceof Error ? error.message : "Failed to fetch favorite dogs"
       );
+    }
+  }
+);
+
+export const addFavorite = createAsyncThunk(
+  "dogs/addFavorite",
+  async (dogId: string, { rejectWithValue }) => {
+    try {
+      await apiClient.post("/favorites", { dogId });
+      return dogId;
+    } catch (error) {
+      console.error("Failed to add favorite:", error);
+      return rejectWithValue("Failed to add favorite");
+    }
+  }
+);
+
+export const removeFavorite = createAsyncThunk(
+  "dogs/removeFavorite",
+  async (dogId: string, { rejectWithValue }) => {
+    try {
+      await apiClient.delete(`/favorites/${dogId}`);
+      return dogId;
+    } catch (error) {
+      console.error("Failed to remove favorite:", error);
+      return rejectWithValue("Failed to remove favorite");
     }
   }
 );
@@ -173,8 +181,8 @@ export const fetchMatch = createAsyncThunk(
       const startTime = new Date().getTime();
 
       // Call your LOCAL API route with the array directly and ensure credentials are sent
-      const response = await axios.post(
-        "/api/dogs/match", // Target your Next.js route
+      const response = await apiClient.post(
+        "/dogs/match", // Target your Next.js route
         { favoriteIds, userId }, // Send both favoriteIds and userId
         {
           withCredentials: true, // Ensure cookies are sent with the request
@@ -273,17 +281,21 @@ const dogsSlice = createSlice({
       action: PayloadAction<{ dogId: string; removeFromResults?: boolean }>
     ) => {
       const { dogId, removeFromResults = false } = action.payload;
+
       if (state.favorites.includes(dogId)) {
+        // Remove from favourites
         state.favorites = state.favorites.filter((id) => id !== dogId);
-        // Only remove from results if explicitly requested (for carousel)
+
+        // Optionally remove from results (e.g., carousel)
         if (removeFromResults) {
           state.results = state.results.filter((dog) => dog._id !== dogId);
         }
       } else {
+        // Add to favourites
         state.favorites.push(dogId);
       }
-      // Persist favorites to localStorage
-      localStorage.setItem("favorites", JSON.stringify(state.favorites));
+
+      // No longer persisting favourites to localStorage
     },
     setMatch: (state, action: PayloadAction<Dog>) => {
       state.match = action.payload;
@@ -332,10 +344,19 @@ const dogsSlice = createSlice({
             !state.results.some((existingDog) => existingDog._id === dog._id)
         );
         state.results = [...state.results, ...newDogs];
+        state.favorites = action.payload.favorites;
       })
       .addCase(fetchFavoriteDogs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch favorite dogs";
+      })
+      .addCase(addFavorite.fulfilled, (state, action) => {
+        if (!state.favorites.includes(action.payload)) {
+          state.favorites.push(action.payload);
+        }
+      })
+      .addCase(removeFavorite.fulfilled, (state, action) => {
+        state.favorites = state.favorites.filter((id) => id !== action.payload);
       })
       .addCase(fetchMatch.pending, (state) => {
         state.loading = true;
