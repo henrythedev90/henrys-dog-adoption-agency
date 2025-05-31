@@ -39,6 +39,8 @@
 }
 .filter_zipCode_container label {
   text-align: start;
+  align-self: center;
+  margin-right: 2px;
 }
 .filter_zipCode_container input {
   background-color: var(--background);
@@ -75,7 +77,9 @@
   width: 100px;
 }
 .filter_age_container label {
-  align-self: start;
+  text-align: start;
+  align-self: center;
+  margin-right: 2px;
 }
 .filter_button_container {
   display: flex;

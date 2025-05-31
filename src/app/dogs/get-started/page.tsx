@@ -33,6 +33,7 @@ interface SurveyData {
   good_with_strangers: boolean;
   good_with_other_animals: boolean;
   borough: string;
+  gender: string;
 }
 
 const steps = [
@@ -57,6 +58,7 @@ export default function GetStarted() {
     good_with_strangers: true,
     good_with_other_animals: true,
     borough: "Manhattan",
+    gender: "any",
   });
 
   const handleNext = async () => {
@@ -65,7 +67,7 @@ export default function GetStarted() {
       try {
         await apiClient.post("/auth/user/preferences", surveyData);
         localStorage.setItem("dogPreferences", JSON.stringify(surveyData));
-        router.push("/dogs");
+        router.push("/dogs/suggested");
       } catch (error) {
         console.error("Error saving preferences:", error);
         router.push("/dogs");
@@ -108,6 +110,32 @@ export default function GetStarted() {
                   value="large"
                   control={<Radio />}
                   label="Large"
+                />
+              </RadioGroup>
+            </FormControl>
+
+            <FormControl component="fieldset" sx={{ mb: 4 }}>
+              <FormLabel>Preferred Gender</FormLabel>
+              <RadioGroup
+                value={surveyData.gender}
+                onChange={(e) =>
+                  setSurveyData({ ...surveyData, gender: e.target.value })
+                }
+              >
+                <FormControlLabel
+                  value="male"
+                  control={<Radio />}
+                  label="Male"
+                />
+                <FormControlLabel
+                  value="female"
+                  control={<Radio />}
+                  label="Female"
+                />
+                <FormControlLabel
+                  value="any"
+                  control={<Radio />}
+                  label="No Preference"
                 />
               </RadioGroup>
             </FormControl>

@@ -43,7 +43,10 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
           <label>Age:</label>
           {dog.age}
         </p>
-
+        <p>
+          <label>Gender:</label>
+          {dog.gender}
+        </p>
         <p>
           <label>Borough:</label>
           {typeof dog.borough === "string"
