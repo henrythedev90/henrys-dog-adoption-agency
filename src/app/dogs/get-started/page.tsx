@@ -143,9 +143,9 @@ export default function GetStarted() {
             <FormControl fullWidth sx={{ mt: 4 }}>
               <FormLabel>Preferred Age Range (years)</FormLabel>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Select the age range you're comfortable with. Puppies (0-1 year)
-                require more training and attention, while older dogs may be
-                calmer but could have health considerations.
+                Select the age range you&apos;re comfortable with. Puppies (0-1
+                year) require more training and attention, while older dogs may
+                be calmer but could have health considerations.
               </Typography>
               <Slider
                 value={surveyData.ageRange}
