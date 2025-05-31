@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSessionUserId } from "@/utils/auth";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 
 // Update MongoDB connection string to use local MongoDB
 const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
@@ -66,8 +66,12 @@ export default async function handler(
           query.age = { $gte: minAge, $lte: maxAge };
           console.log("Added age range:", { minAge, maxAge });
         }
-      } catch (e) {
-        console.log("Error parsing ageRange:", preferences["ageRange[]"]);
+      } catch (error) {
+        console.log(
+          "Error parsing ageRange:",
+          preferences["ageRange[]"],
+          error
+        );
       }
     }
 
