@@ -20,7 +20,7 @@
 .Container > div {
   border: 4px solid var(--foreground);
   border-radius: 16px;
-  box-shadow: 18px 18px 0 0 var(--accent), 18px 18px 0 4px var(--foreground);
+  box-shadow: 18px 18px 0 0 var(--secondary), 18px 18px 0 4px var(--foreground);
 }
 .Container label,
 .Container p {
