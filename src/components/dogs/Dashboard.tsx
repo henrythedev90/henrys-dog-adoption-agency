@@ -167,7 +167,12 @@ const Dashboard = React.memo(() => {
 
   return (
     <div className={classes.dashboard_parent_container}>
-      <div className={classes.dashboard_container}>
+      <div
+        className={classes.dashboard_container}
+        style={{
+          background: "white",
+        }}
+      >
         {isLoggedIn && (
           <div className={classes.dashboard_header_welcome}>
             <h4>

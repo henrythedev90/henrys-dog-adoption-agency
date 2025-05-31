@@ -27,7 +27,12 @@ const DogCard = React.memo(({ dog }: DogCardProps) => {
   };
 
   return (
-    <div className={classes.dog_card}>
+    <div
+      className={classes.dog_card}
+      style={{
+        background: "white",
+      }}
+    >
       <div className={classes.dog_card_img}>
         <DogCardImage urlImage={dog.img} title={dog.name} />
       </div>

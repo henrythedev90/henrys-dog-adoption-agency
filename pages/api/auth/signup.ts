@@ -11,7 +11,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
-    console.log("Signup API: Invalid method:", req.method);
     return res.status(405).json({ error: "Method is not allowed" });
   }
 
@@ -96,9 +95,10 @@ export default async function handler(
       }`,
     ]);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User created successfully",
+      token: accessToken,
       user: {
         _id: user._id,
         userName: user.userName,
