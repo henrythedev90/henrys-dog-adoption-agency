@@ -87,7 +87,18 @@ export default function GetStarted() {
     switch (step) {
       case 0:
         return (
-          <Box sx={{ mt: 4 }}>
+          <Box
+            sx={{
+              mt: 4,
+              display: "grid",
+              gridTemplateRows: "auto auto",
+              gridTemplateColumns: "1fr 1fr",
+              "& > *:last-child": {
+                gridColumn: "1 / -1",
+              },
+              gap: 1,
+            }}
+          >
             <FormControl component="fieldset" sx={{ mb: 4 }}>
               <FormLabel>Preferred Dog Size</FormLabel>
               <RadioGroup
@@ -299,9 +310,13 @@ export default function GetStarted() {
           <Box
             sx={{
               mt: 4,
-              display: "flex",
-              flexDirection: "column",
-              gap: 4, // provides consistent spacing between each FormControl
+              display: "grid",
+              gridTemplateRows: "auto auto",
+              gridTemplateColumns: "1fr 1fr",
+              "& > *:last-child": {
+                gridColumn: "1 / -1",
+              },
+              gap: 1,
             }}
           >
             {/* Children question */}

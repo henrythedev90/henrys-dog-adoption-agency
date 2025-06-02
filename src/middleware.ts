@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verify, sign } from "jsonwebtoken";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-
-// Add paths that should be protected
-const protectedPaths = ["/dogs", "/dogs/favorites", "/dashboard", "/profile"];
-// Add paths that should only be accessible when NOT authenticated
-const authPaths = ["/"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -47,8 +39,6 @@ export async function middleware(request: NextRequest) {
       });
 
       if (response.ok) {
-        const data = await response.json();
-
         // Create response with new tokens
         const res = NextResponse.next();
 
