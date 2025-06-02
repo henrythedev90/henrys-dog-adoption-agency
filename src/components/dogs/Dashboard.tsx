@@ -25,6 +25,7 @@ import SplitColorText from "../ui/SplitColorText";
 import { fetchBreeds } from "@/store/slices/breedSlice";
 import Button from "../ui/Button";
 import { setFilters } from "@/store/slices/filtersSlice";
+import DogDetailsModal from "@/components/dogs/DogDetailsModal";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
@@ -39,6 +40,9 @@ const Dashboard = React.memo(() => {
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
   const [hasFiltersOrPageChanged, setHasFiltersOrPageChanged] = useState(false);
   const resultIds = useAppSelector((state) => state.dogs.resultIds);
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
+  const favorite = useAppSelector((state) => state.dogs.favorites);
+  const isFavorite = (dogId: string) => favorite.includes(dogId);
 
   const currentSortString = filters.sort;
   const [currentSortKey, currentSortDirection] = currentSortString.split(":");
@@ -261,9 +265,21 @@ const Dashboard = React.memo(() => {
                   onToggleFavorite={(dogId: string) =>
                     dispatch(toggleFavorite({ dogId, removeFromResults: true }))
                   }
+                  onClick={setSelectedDog}
                 />
               ))}
             </div>
+            {selectedDog && (
+              <DogDetailsModal
+                dog={selectedDog}
+                isOpen={!!selectedDog}
+                onClose={() => setSelectedDog(null)}
+                onToggleFavorite={(dogId: string) =>
+                  dispatch(toggleFavorite({ dogId, removeFromResults: true }))
+                }
+                isFavorite={isFavorite(selectedDog._id)}
+              />
+            )}
             {totalPages > 1 && (
               <div className={classes.dashboard_pagination_sections}>
                 <Pagination

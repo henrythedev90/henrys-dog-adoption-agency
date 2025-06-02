@@ -8,11 +8,14 @@ import styles from "./suggested.module.css";
 import { Dog } from "@/types/dog";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Header from "@/components/layout/Header";
+import DogCarousel from "@/components/dogs/DogCarousel";
+import DogDetailsModal from "@/components/dogs/DogDetailsModal";
 
 export default function SuggestedChoices() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
   useEffect(() => {
     const fetchSuggestedDogs = async () => {
@@ -66,14 +69,20 @@ export default function SuggestedChoices() {
       <div className={styles.page}>
         <Container>
           <div className={styles.container}>
-            <Typography variant="h4" component="h1" gutterBottom>
-              Your Perfect Matches
-            </Typography>
-            <Box className={styles.dogGrid}>
-              {dogs.map((dog) => (
-                <DogCard key={dog._id} dog={dog} onToggleFavorite={() => {}} />
-              ))}
-            </Box>
+            <DogCarousel
+              title="Your Perfect Matches"
+              dogs={dogs}
+              onDogClick={setSelectedDog}
+            />
+            {selectedDog && (
+              <DogDetailsModal
+                dog={selectedDog}
+                isOpen={!!selectedDog}
+                onClose={() => setSelectedDog(null)}
+                onToggleFavorite={() => {}}
+                isFavorite={false}
+              />
+            )}
           </div>
         </Container>
       </div>

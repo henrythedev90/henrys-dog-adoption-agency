@@ -18,6 +18,9 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith("/api/")) {
       return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
         status: 401,
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     }
     return NextResponse.redirect(new URL("/", request.url));
@@ -31,34 +34,77 @@ export async function middleware(request: NextRequest) {
   // If only refresh token exists, try to refresh
   if (refreshToken) {
     try {
-      const response = await fetch(new URL("/api/auth/refresh", request.url), {
-        method: "POST",
-        headers: {
-          Cookie: `refreshToken=${refreshToken}`,
-        },
-      });
+      // Create a new request to the refresh endpoint
+      const refreshResponse = await fetch(
+        new URL("/api/auth/refresh", request.url),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `refreshToken=${refreshToken}`,
+          },
+          credentials: "include",
+        }
+      );
 
-      if (response.ok) {
-        // Create response with new tokens
-        const res = NextResponse.next();
+      if (refreshResponse.ok) {
+        // Get the new cookies from the refresh response
+        const cookies = refreshResponse.headers.getSetCookie();
 
-        // Copy cookies from refresh response
-        const cookies = response.headers.getSetCookie();
+        // Create a response that will continue to the requested page
+        const response = NextResponse.next();
+
+        // Add the new cookies to the response
         cookies.forEach((cookie) => {
-          res.headers.append("Set-Cookie", cookie);
+          response.headers.append("Set-Cookie", cookie);
         });
 
-        return res;
+        return response;
+      } else {
+        // If refresh failed, clear cookies and redirect
+        const response = pathname.startsWith("/api/")
+          ? new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
+              status: 401,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            })
+          : NextResponse.redirect(new URL("/", request.url));
+
+        // Clear the cookies
+        response.cookies.delete("accessToken");
+        response.cookies.delete("refreshToken");
+
+        return response;
       }
     } catch (error) {
       console.error("Token refresh failed:", error);
+
+      // On error, clear cookies and redirect
+      const response = pathname.startsWith("/api/")
+        ? new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+        : NextResponse.redirect(new URL("/", request.url));
+
+      // Clear the cookies
+      response.cookies.delete("accessToken");
+      response.cookies.delete("refreshToken");
+
+      return response;
     }
   }
 
-  // If refresh failed, redirect to login
+  // If we get here, something went wrong
   if (pathname.startsWith("/api/")) {
     return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
   return NextResponse.redirect(new URL("/", request.url));

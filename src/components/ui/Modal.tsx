@@ -6,6 +6,7 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title: string;
+  style?: React.CSSProperties;
 }
 
 export default function Modal({
@@ -13,12 +14,13 @@ export default function Modal({
   onClose,
   children,
   title,
+  style,
 }: ModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className={styles.modal_overlay}>
-      <div className={styles.modal_content}>
+      <div className={styles.modal_content} style={style}>
         <div className={styles.modal_header}>
           <h2 className={styles.modal_title}>{title}</h2>
           <button onClick={onClose} className={styles.close_button}>

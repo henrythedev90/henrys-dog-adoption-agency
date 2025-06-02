@@ -8,6 +8,8 @@ import styles from "./styles/Favorites.module.css";
 import Modal from "../ui/Modal";
 import Image from "next/image";
 import Container from "../ui/Container";
+import DogDetailsModal from "./DogDetailsModal";
+import { Dog } from "@/types/dog";
 
 export default function Favorites() {
   const dispatch = useAppDispatch();
@@ -19,7 +21,7 @@ export default function Favorites() {
     error,
   } = useAppSelector((state: RootState) => state.dogs);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
   useEffect(() => {
     dispatch(fetchFavoriteDogs());
   }, [dispatch]);
@@ -64,13 +66,26 @@ export default function Favorites() {
   return (
     <Container>
       <div className={styles.favorites_container}>
-        <DogCarousel favoriteDogs={favoriteDogs} />
+        <DogCarousel
+          title="Your Favorite Dogs"
+          dogs={favoriteDogs}
+          onDogClick={setSelectedDog}
+        />
 
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           title="Your Perfect Match!"
         >
+          {selectedDog && (
+            <DogDetailsModal
+              dog={selectedDog}
+              isOpen={!!selectedDog}
+              onClose={() => setSelectedDog(null)}
+              onToggleFavorite={() => {}}
+              isFavorite={false}
+            />
+          )}
           <div className={styles.modal_content}>
             {loading ? (
               <p>Finding your perfect match...</p>
