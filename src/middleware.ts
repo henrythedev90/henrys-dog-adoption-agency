@@ -16,131 +16,70 @@ export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  // Handle auth paths (login, register, etc.)
-  if (authPaths.includes(pathname)) {
-    if (accessToken) {
-      try {
-        // Verify access token
-        verify(accessToken, process.env.JWT_SECRET || "your-secret-key");
-        // If valid, redirect to dashboard
-        return NextResponse.redirect(new URL("/dogs", request.url));
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error(error.message);
-        } else {
-          console.error(error);
-        }
-        // If access token is invalid, continue to auth page
-        return NextResponse.next();
-      }
-    }
+  // Skip middleware for auth-related endpoints
+  if (pathname.startsWith("/api/auth/")) {
     return NextResponse.next();
   }
 
-  // Handle protected paths
-  if (protectedPaths.some((path) => pathname.startsWith(path))) {
-    // If there's no access token, try to use refresh token
-    if (!accessToken) {
-      if (!refreshToken) {
-        return NextResponse.redirect(new URL("/", request.url));
-      }
-
-      try {
-        // Verify refresh token
-        const decoded = verify(
-          refreshToken,
-          process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key"
-        ) as { userId: string };
-
-        // Connect to MongoDB
-        const client = await clientPromise;
-        const db = client.db("AdoptionData");
-
-        // Check if refresh token exists and is valid
-        const tokenDoc = await db.collection("tokens").findOne({
-          refreshToken,
-          userId: new ObjectId(decoded.userId),
-          isValid: true,
-          expiresAt: { $gt: new Date() },
-        });
-
-        if (!tokenDoc) {
-          return NextResponse.redirect(new URL("/", request.url));
-        }
-
-        // Get user data
-        const user = await db.collection("users").findOne({
-          _id: new ObjectId(decoded.userId),
-        });
-
-        if (!user) {
-          return NextResponse.redirect(new URL("/", request.url));
-        }
-
-        // Create new access token
-        const newAccessToken = sign(
-          {
-            userId: user._id,
-            email: user.email,
-            userName: user.userName,
-          },
-          process.env.JWT_SECRET || "your-secret-key",
-          { expiresIn: "1h" }
-        );
-
-        // Create response with new access token
-        const response = NextResponse.next();
-        response.cookies.set({
-          name: "accessToken",
-          value: newAccessToken,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 3600, // 1 hour
-        });
-
-        return response;
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error(error.message);
-        } else {
-          console.error(error);
-        }
-        return NextResponse.redirect(new URL("/", request.url));
-      }
+  // If no tokens exist, redirect to login
+  if (!accessToken && !refreshToken) {
+    if (pathname.startsWith("/api/")) {
+      return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
+        status: 401,
+      });
     }
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
+  // If access token exists, proceed
+  if (accessToken) {
+    return NextResponse.next();
+  }
+
+  // If only refresh token exists, try to refresh
+  if (refreshToken) {
     try {
-      // Verify access token
-      verify(accessToken, process.env.JWT_SECRET || "your-secret-key");
-      return NextResponse.next();
+      const response = await fetch(new URL("/api/auth/refresh", request.url), {
+        method: "POST",
+        headers: {
+          Cookie: `refreshToken=${refreshToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Create response with new tokens
+        const res = NextResponse.next();
+
+        // Copy cookies from refresh response
+        const cookies = response.headers.getSetCookie();
+        cookies.forEach((cookie) => {
+          res.headers.append("Set-Cookie", cookie);
+        });
+
+        return res;
+      }
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.message);
-      } else {
-        console.error(error);
-      }
-      // If access token is invalid, try to use refresh token
-      if (refreshToken) {
-        return middleware(request); // Recursively try refresh token flow
-      }
-      return NextResponse.redirect(new URL("/", request.url));
+      console.error("Token refresh failed:", error);
     }
   }
 
-  return NextResponse.next();
+  // If refresh failed, redirect to login
+  if (pathname.startsWith("/api/")) {
+    return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+  return NextResponse.redirect(new URL("/", request.url));
 }
 
 // Configure which routes to protect
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/api/:path*",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/favorites/:path*",
   ],
 };

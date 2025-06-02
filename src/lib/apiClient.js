@@ -50,12 +50,18 @@ apiClient.interceptors.response.use(
           const hasRefreshToken = document.cookie.includes("refreshToken=");
 
           if (hasRefreshToken) {
-            // The middleware will handle token refresh
-            console.log("Token expired, middleware will handle refresh...");
-            // Retry the original request after middleware refreshes token
-            return apiClient(config);
+            try {
+              // Try to refresh the token
+              await apiClient.post("/auth/refresh");
+              // Retry the original request
+              return apiClient(config);
+            } catch (refreshError) {
+              // If refresh fails, redirect to login
+              window.location.href = "/";
+              return Promise.reject(refreshError);
+            }
           } else {
-            // No refresh token, redirect to root path
+            // No refresh token, redirect to login
             window.location.href = "/";
             return Promise.reject(error);
           }
