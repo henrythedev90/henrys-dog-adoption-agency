@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
         cookies.forEach((cookie) => {
           response.headers.append("Set-Cookie", cookie);
         });
-
+        console.log("refreshResponse", refreshResponse);
         return response;
       } else {
         // If refresh failed, clear cookies and redirect
