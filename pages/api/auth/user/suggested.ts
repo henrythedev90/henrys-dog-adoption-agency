@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSessionUserId } from "@/utils/auth";
 import { MongoClient } from "mongodb";
+import { ObjectId } from "mongodb";
 
 // Update MongoDB connection string to use local MongoDB
 const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
@@ -8,6 +9,7 @@ const DB_NAME = "AdoptionData";
 const DOGS_COLLECTION = "dogs";
 
 interface DogQuery {
+  _id?: { $nin: any[] };
   size?: string;
   age?: { $gte: number; $lte: number };
   energy_level?: { $gte: number; $lte: number };
@@ -46,8 +48,16 @@ export default async function handler(
     const preferences = req.query;
     console.log("Raw preferences received:", preferences);
 
+    // Get user's previously suggested dogs
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(userId) });
+    const previouslySuggested = user?.suggested || [];
+
     // Build the query based on preferences
-    const query: DogQuery = {};
+    const query: DogQuery = {
+      _id: { $nin: previouslySuggested }, // Exclude previously suggested dogs
+    };
 
     // Size preference
     if (preferences.size) {
@@ -359,6 +369,15 @@ export default async function handler(
     console.log("Number of dogs found:", dogs.length);
     if (dogs.length > 0) {
       console.log("Sample dog:", JSON.stringify(dogs[0], null, 2));
+
+      // Store suggested dog IDs in user's document
+      const suggestedDogIds = dogs.map((dog) => dog._id);
+      await db
+        .collection("users")
+        .updateOne(
+          { _id: new ObjectId(userId) },
+          { $addToSet: { suggested: { $each: suggestedDogIds } } }
+        );
     }
 
     await client.close();
