@@ -14,6 +14,7 @@ interface AuthState {
     _id: string;
     userName: string;
     email: string;
+    suggested?: string[];
   } | null;
   isLoggedIn: boolean;
   loading: boolean;

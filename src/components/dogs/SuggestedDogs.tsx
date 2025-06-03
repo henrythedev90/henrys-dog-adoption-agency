@@ -1,17 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import Container from "@/components/ui/Container";
-import DogCard from "@/components/dogs/DogCard";
 import { apiClient } from "@/lib/apiClient";
-import styles from "./suggested.module.css";
 import { Dog } from "@/types/dog";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import Header from "@/components/layout/Header";
 import DogCarousel from "@/components/dogs/DogCarousel";
 import DogDetailsModal from "@/components/dogs/DogDetailsModal";
 
-export default function SuggestedChoices() {
+export default function SuggestedDogs() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +29,7 @@ export default function SuggestedChoices() {
         });
 
         console.log("Received response:", response.data);
+        console.log("Number of dogs received:", response.data.length);
         setDogs(response.data);
       } catch (err) {
         console.error("Error fetching suggested dogs:", err);
@@ -45,9 +42,11 @@ export default function SuggestedChoices() {
     fetchSuggestedDogs();
   }, []);
 
+  console.log("Current dogs state:", dogs.length);
+
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div>
         <Typography variant="h4">Loading your perfect matches...</Typography>
       </div>
     );
@@ -55,7 +54,7 @@ export default function SuggestedChoices() {
 
   if (error) {
     return (
-      <div className={styles.container}>
+      <div>
         <Typography variant="h4" color="error">
           {error}
         </Typography>
@@ -64,28 +63,33 @@ export default function SuggestedChoices() {
   }
 
   return (
-    <ProtectedRoute>
-      <Header />
-      <div className={styles.page}>
-        <Container>
-          <div className={styles.container}>
-            <DogCarousel
-              title="Your Perfect Matches"
-              dogs={dogs}
-              onDogClick={setSelectedDog}
+    <div>
+      <Container>
+        <div>
+          <DogCarousel
+            title="Suggested Matches"
+            dogs={dogs}
+            onDogClick={setSelectedDog}
+            controls={{
+              showNavigation: true,
+              showDots: false,
+              showMatchButton: false,
+              autoPlay: false,
+              autoPlayInterval: 5000,
+              slidesPerView: 4,
+            }}
+          />
+          {selectedDog && (
+            <DogDetailsModal
+              dog={selectedDog}
+              isOpen={!!selectedDog}
+              onClose={() => setSelectedDog(null)}
+              onToggleFavorite={() => {}}
+              isFavorite={false}
             />
-            {selectedDog && (
-              <DogDetailsModal
-                dog={selectedDog}
-                isOpen={!!selectedDog}
-                onClose={() => setSelectedDog(null)}
-                onToggleFavorite={() => {}}
-                isFavorite={false}
-              />
-            )}
-          </div>
-        </Container>
-      </div>
-    </ProtectedRoute>
+          )}
+        </div>
+      </Container>
+    </div>
   );
 }

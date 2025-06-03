@@ -40,31 +40,19 @@ export default async function handler(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log("Connecting to MongoDB...");
     client = await MongoClient.connect(MONGO_URI);
-    console.log("Connected to MongoDB successfully");
 
     const db = client.db(DB_NAME);
     const preferences = req.query;
-    console.log("Raw preferences received:", preferences);
-
-    // Get user's previously suggested dogs
-    const user = await db
-      .collection("users")
-      .findOne({ _id: new ObjectId(userId) });
-    const previouslySuggested = user?.suggested || [];
 
     // Build the query based on preferences
-    const query: DogQuery = {
-      _id: { $nin: previouslySuggested }, // Exclude previously suggested dogs
-    };
+    const query: DogQuery = {};
 
     // Size preference
     if (preferences.size) {
       query.size = Array.isArray(preferences.size)
         ? preferences.size[0]
         : preferences.size;
-      console.log("Added size preference:", query.size);
     }
 
     // Age range
@@ -74,7 +62,6 @@ export default async function handler(
         const maxAge = parseInt(preferences["ageRange[]"][1]);
         if (!isNaN(minAge) && !isNaN(maxAge)) {
           query.age = { $gte: minAge, $lte: maxAge };
-          console.log("Added age range:", { minAge, maxAge });
         }
       } catch (error) {
         console.log(
@@ -97,10 +84,6 @@ export default async function handler(
           $gte: Math.max(1, energyLevel - 1),
           $lte: Math.min(5, energyLevel + 1),
         };
-        console.log("Added energy level range:", {
-          min: Math.max(1, energyLevel - 1),
-          max: Math.min(5, energyLevel + 1),
-        });
       }
     }
 
@@ -116,10 +99,6 @@ export default async function handler(
           $gte: Math.max(1, barkingLevel - 1),
           $lte: Math.min(5, barkingLevel + 1),
         };
-        console.log("Added barking level range:", {
-          min: Math.max(1, barkingLevel - 1),
-          max: Math.min(5, barkingLevel + 1),
-        });
       }
     }
 
@@ -135,10 +114,6 @@ export default async function handler(
           $gte: Math.max(1, sheddingLevel - 1),
           $lte: Math.min(5, sheddingLevel + 1),
         };
-        console.log("Added shedding level range:", {
-          min: Math.max(1, sheddingLevel - 1),
-          max: Math.min(5, sheddingLevel + 1),
-        });
       }
     }
 
@@ -150,7 +125,6 @@ export default async function handler(
           : preferences.borough
       ).toUpperCase();
       query.borough = borough === "STATEN ISLAND" ? "STATEN_ISLAND" : borough;
-      console.log("Added borough preference:", query.borough);
     }
 
     // Gender preference
@@ -158,7 +132,6 @@ export default async function handler(
       query.gender = Array.isArray(preferences.gender)
         ? preferences.gender[0]
         : preferences.gender;
-      console.log("Added gender preference:", query.gender);
     }
 
     // Compatibility preferences - make them optional
@@ -178,10 +151,7 @@ export default async function handler(
 
     if (compatibilityQuery.length > 0) {
       query.$or = compatibilityQuery;
-      console.log("Added compatibility preferences:", compatibilityQuery);
     }
-
-    console.log("Final query:", JSON.stringify(query, null, 2));
 
     // Get suggested dogs with scoring
     const pipeline = [
@@ -285,23 +255,6 @@ export default async function handler(
                   },
                 ],
               },
-              // Size match (weight: 3)
-              { $cond: [{ $eq: ["$size", preferences.size] }, 3, 0] },
-              // Borough match (weight: 2)
-              { $cond: [{ $eq: ["$borough", query.borough] }, 2, 0] },
-              // Gender match (weight: 2)
-              {
-                $cond: [
-                  {
-                    $or: [
-                      { $eq: [preferences.gender, "any"] },
-                      { $eq: ["$gender", preferences.gender] },
-                    ],
-                  },
-                  2,
-                  0,
-                ],
-              },
               // Compatibility bonuses
               {
                 $cond: [
@@ -359,8 +312,6 @@ export default async function handler(
       { $limit: 20 },
     ];
 
-    console.log("Aggregation pipeline:", JSON.stringify(pipeline, null, 2));
-
     const dogs = await db
       .collection(DOGS_COLLECTION)
       .aggregate(pipeline)
@@ -368,16 +319,16 @@ export default async function handler(
 
     console.log("Number of dogs found:", dogs.length);
     if (dogs.length > 0) {
-      console.log("Sample dog:", JSON.stringify(dogs[0], null, 2));
-
-      // Store suggested dog IDs in user's document
+      // Store suggested dog IDs in user's document, maintaining a limit of 20
       const suggestedDogIds = dogs.map((dog) => dog._id);
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: new ObjectId(userId) },
-          { $addToSet: { suggested: { $each: suggestedDogIds } } }
-        );
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        {
+          $set: {
+            suggested: suggestedDogIds, // Replace the entire array with new suggestions
+          },
+        }
+      );
     }
 
     await client.close();
