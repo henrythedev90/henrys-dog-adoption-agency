@@ -35,7 +35,7 @@ export async function getSessionUserId(req: NextApiRequest) {
       ) as { userId: string };
       const tokenDoc = await db
         .collection("tokens")
-        .findOne({ userId: decoded.userId, token: refreshToken });
+        .findOne({ userId: decoded.userId, refreshToken: refreshToken });
       if (tokenDoc) {
         const user = await db
           .collection("users")
