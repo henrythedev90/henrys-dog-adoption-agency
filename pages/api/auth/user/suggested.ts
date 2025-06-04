@@ -9,7 +9,7 @@ const DB_NAME = "AdoptionData";
 const DOGS_COLLECTION = "dogs";
 
 interface DogQuery {
-  _id?: { $nin: any[] };
+  _id?: { $nin: string[] };
   size?: string;
   age?: { $gte: number; $lte: number };
   energy_level?: { $gte: number; $lte: number };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import DogCard from "./DogCard";
 import classes from "./styles/DogCarousel.module.css";
 import modalClasses from "../ui/styles/Modal.module.css";
@@ -93,8 +93,35 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   const favoriteIds = useAppSelector(selectDogFavorite);
   const { user } = useAppSelector((state) => state.auth);
 
-  // Calculate total number of slides based on cardsPerSlide
   const totalSlides = Math.ceil(dogs.length / cardsPerSlide);
+
+  const handleNextSlide = useCallback(() => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
+    setTimeout(() => setIsTransitioning(false), controls.transitionSpeed);
+    callbacks.onSlideChange?.(currentSlide);
+  }, [
+    isTransitioning,
+    totalSlides,
+    controls.transitionSpeed,
+    callbacks.onSlideChange,
+    currentSlide,
+  ]);
+
+  const handlePrevSlide = useCallback(() => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
+    setTimeout(() => setIsTransitioning(false), controls.transitionSpeed);
+    callbacks.onSlideChange?.(currentSlide);
+  }, [
+    isTransitioning,
+    totalSlides,
+    controls.transitionSpeed,
+    callbacks.onSlideChange,
+    currentSlide,
+  ]);
 
   // Auto-play functionality
   useEffect(() => {
@@ -105,7 +132,13 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     }, controls.autoPlayInterval);
 
     return () => clearInterval(interval);
-  }, [controls.autoPlay, controls.autoPlayInterval, currentSlide, dogs.length]);
+  }, [
+    controls.autoPlay,
+    controls.autoPlayInterval,
+    currentSlide,
+    dogs.length,
+    handleNextSlide,
+  ]);
 
   // Update current slide when dogs change
   useEffect(() => {
@@ -124,22 +157,6 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
       setCurrentSlide(Math.max(0, totalSlides - 1));
     }
   }, [totalSlides, currentSlide]);
-
-  const handlePrevSlide = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-    setTimeout(() => setIsTransitioning(false), controls.transitionSpeed);
-    callbacks.onSlideChange?.(currentSlide);
-  };
-
-  const handleNextSlide = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-    setTimeout(() => setIsTransitioning(false), controls.transitionSpeed);
-    callbacks.onSlideChange?.(currentSlide);
-  };
 
   const fireConfetti = () => {
     confetti({

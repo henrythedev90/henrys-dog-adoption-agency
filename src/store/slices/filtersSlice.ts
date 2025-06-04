@@ -18,44 +18,6 @@ interface FiltersState {
   sort: string;
 }
 
-// Load filters from localStorage if they exist
-const loadFiltersFromStorage = (): FiltersState => {
-  if (typeof window === "undefined") {
-    return {
-      breeds: [],
-      zipCodes: [],
-      boroughs: [],
-      genders: [],
-      ageMin: null,
-      ageMax: null,
-      size: 20,
-      from: null,
-      sort: "breed:asc",
-    };
-  }
-
-  try {
-    const storedFilters = localStorage.getItem("dogFilters");
-    if (storedFilters) {
-      return JSON.parse(storedFilters);
-    }
-  } catch (error) {
-    console.error("Failed to load filters from localStorage:", error);
-  }
-
-  return {
-    breeds: [],
-    zipCodes: [],
-    boroughs: [],
-    genders: [],
-    ageMin: null,
-    ageMax: null,
-    size: 20,
-    from: null,
-    sort: "breed:asc",
-  };
-};
-
 // Define default state as fallback
 const defaultState: FiltersState = {
   breeds: [],
@@ -69,17 +31,25 @@ const defaultState: FiltersState = {
   sort: "breed:asc",
 };
 
-const initialState: FiltersState = {
-  breeds: [],
-  zipCodes: [],
-  boroughs: [],
-  genders: [],
-  ageMin: null,
-  ageMax: null,
-  size: 20,
-  from: null,
-  sort: "breed:asc",
+// Load filters from localStorage if they exist
+const loadFiltersFromStorage = (): FiltersState => {
+  if (typeof window === "undefined") {
+    return defaultState;
+  }
+
+  try {
+    const storedFilters = localStorage.getItem("dogFilters");
+    if (storedFilters) {
+      return JSON.parse(storedFilters);
+    }
+  } catch (error) {
+    console.error("Failed to load filters from localStorage:", error);
+  }
+
+  return defaultState;
 };
+
+const initialState: FiltersState = loadFiltersFromStorage();
 
 // Helper function to save filters to localStorage
 const saveFiltersToStorage = (filters: FiltersState) => {
