@@ -12,7 +12,8 @@ import { selectDogFavorite } from "@/store/selectors/dogsSelectors";
 import {
   clearFavorite,
   fetchMatch,
-  toggleFavorite,
+  addFavorite,
+  removeFavorite,
 } from "@/store/slices/dogsSlice";
 import { resetFilter } from "@/store/slices/filtersSlice";
 import confetti from "canvas-confetti";
@@ -334,11 +335,14 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
                         key={dog._id}
                         dog={dog}
                         className={dogCardClassName}
-                        onToggleFavorite={(dogId: string) =>
-                          dispatch(
-                            toggleFavorite({ dogId, removeFromResults: true })
-                          )
-                        }
+                        onToggleFavorite={(dogId: string) => {
+                          const isFavorite = favoriteIds.includes(dogId);
+                          if (isFavorite) {
+                            dispatch(removeFavorite(dogId));
+                          } else {
+                            dispatch(addFavorite(dogId));
+                          }
+                        }}
                         onClick={handleDogClick}
                       />
                     )
@@ -451,9 +455,14 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
                 <DogCard
                   dog={matchedDog}
                   className={dogCardClassName}
-                  onToggleFavorite={(dogId: string) =>
-                    dispatch(toggleFavorite({ dogId, removeFromResults: true }))
-                  }
+                  onToggleFavorite={(dogId: string) => {
+                    const isFavorite = favoriteIds.includes(dogId);
+                    if (isFavorite) {
+                      dispatch(removeFavorite(dogId));
+                    } else {
+                      dispatch(addFavorite(dogId));
+                    }
+                  }}
                   onClick={() => {}}
                 />
                 <div className={modalClasses.match_modal_actions}>

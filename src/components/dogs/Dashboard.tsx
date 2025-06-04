@@ -4,7 +4,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchDogs,
   setDogsPage,
-  toggleFavorite,
+  addFavorite,
+  removeFavorite,
 } from "../../store/slices/dogsSlice";
 import {
   selectDogs,
@@ -276,9 +277,14 @@ const Dashboard = React.memo(() => {
                 <DogCard
                   key={dog._id}
                   dog={dog}
-                  onToggleFavorite={(dogId: string) =>
-                    dispatch(toggleFavorite({ dogId, removeFromResults: true }))
-                  }
+                  onToggleFavorite={(dogId: string) => {
+                    const isFavorite = favorite.includes(dogId);
+                    if (isFavorite) {
+                      dispatch(removeFavorite(dogId));
+                    } else {
+                      dispatch(addFavorite(dogId));
+                    }
+                  }}
                   onClick={setSelectedDog}
                 />
               ))}
@@ -288,9 +294,14 @@ const Dashboard = React.memo(() => {
                 dog={selectedDog}
                 isOpen={!!selectedDog}
                 onClose={() => setSelectedDog(null)}
-                onToggleFavorite={(dogId: string) =>
-                  dispatch(toggleFavorite({ dogId, removeFromResults: true }))
-                }
+                onToggleFavorite={(dogId: string) => {
+                  const isFavorite = favorite.includes(dogId);
+                  if (isFavorite) {
+                    dispatch(removeFavorite(dogId));
+                  } else {
+                    dispatch(addFavorite(dogId));
+                  }
+                }}
                 isFavorite={isFavorite(selectedDog._id)}
               />
             )}

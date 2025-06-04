@@ -8,7 +8,7 @@ import { Dog } from "@/types/dog";
 import DogCarousel from "@/components/dogs/DogCarousel";
 import DogDetailsModal from "@/components/dogs/DogDetailsModal";
 import classes from "./styles/SuggestedDogs.module.css";
-import { toggleFavorite } from "@/store/slices/dogsSlice";
+import { addFavorite, removeFavorite } from "@/store/slices/dogsSlice";
 
 export default function SuggestedDogs() {
   const dispatch = useAppDispatch();
@@ -94,9 +94,14 @@ export default function SuggestedDogs() {
               dog={selectedDog}
               isOpen={!!selectedDog}
               onClose={() => setSelectedDog(null)}
-              onToggleFavorite={(dogId: string) =>
-                dispatch(toggleFavorite({ dogId, removeFromResults: true }))
-              }
+              onToggleFavorite={(dogId: string) => {
+                const isFavorite = favorite.includes(dogId);
+                if (isFavorite) {
+                  dispatch(removeFavorite(dogId));
+                } else {
+                  dispatch(addFavorite(dogId));
+                }
+              }}
               isFavorite={isFavorite(selectedDog._id)}
             />
           )}
