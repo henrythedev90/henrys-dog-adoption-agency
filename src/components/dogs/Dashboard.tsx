@@ -26,6 +26,7 @@ import { fetchBreeds } from "@/store/slices/breedSlice";
 import Button from "../ui/Button";
 import { setFilters } from "@/store/slices/filtersSlice";
 import DogDetailsModal from "@/components/dogs/DogDetailsModal";
+import SuggestedDogs from "./SuggestedDogs";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
@@ -172,9 +173,17 @@ const Dashboard = React.memo(() => {
   return (
     <div className={classes.dashboard_parent_container}>
       <div
+        className={classes.dashboard_suggested_dogs}
+        style={{ gridArea: "suggested" }}
+      >
+        <h2>Dashboard</h2>
+        <SuggestedDogs />
+      </div>
+      <div
         className={classes.dashboard_container}
         style={{
           background: "white",
+          gridArea: "filters",
         }}
       >
         {isLoggedIn && (
@@ -196,7 +205,10 @@ const Dashboard = React.memo(() => {
         </div>
       </div>
 
-      <div className={classes.dashboard_dogs_result}>
+      <div
+        className={classes.dashboard_dogs_result}
+        style={{ gridArea: "dogs" }}
+      >
         <div className={classes.dashboard_dogs_result_header}>
           <h4>Available Dogs</h4>
           {dogs.length > 0 && !loading && (

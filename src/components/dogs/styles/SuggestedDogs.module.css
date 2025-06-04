@@ -1,0 +1,14 @@
+.suggested_dogs_carousel_wrapper {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 800px;
+}
+
+.suggested_dogs_carousel_slide {
+  max-width: 100%;
+}
+
+.suggestedDogCardMargin {
+  margin-left: 20px;
+}

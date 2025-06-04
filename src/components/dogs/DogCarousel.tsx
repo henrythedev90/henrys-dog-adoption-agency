@@ -55,6 +55,8 @@ interface DogCarouselProps {
   renderCustomSlide?: (props: { dog: Dog; index: number }) => React.ReactNode;
   renderCustomFooter?: () => React.ReactNode;
   onDogClick?: (dog: Dog) => void;
+  cardsPerSlide?: number;
+  dogCardClassName?: string;
 }
 
 const defaultControls: CarouselControls = {
@@ -70,12 +72,15 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   dogs,
   title,
   controls = defaultControls,
+
   styles = {},
   callbacks = {},
   renderCustomHeader,
   renderCustomSlide,
   renderCustomFooter,
   onDogClick,
+  cardsPerSlide = 1,
+  dogCardClassName,
 }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -87,6 +92,9 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const favoriteIds = useAppSelector(selectDogFavorite);
   const { user } = useAppSelector((state) => state.auth);
+
+  // Calculate total number of slides based on cardsPerSlide
+  const totalSlides = Math.ceil(dogs.length / cardsPerSlide);
 
   // Auto-play functionality
   useEffect(() => {
@@ -110,16 +118,25 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     }
   }, [dogs.length, currentSlide, controls.transitionSpeed]);
 
+  // Clamp currentSlide to valid range when totalSlides changes
+  useEffect(() => {
+    if (currentSlide >= totalSlides) {
+      setCurrentSlide(Math.max(0, totalSlides - 1));
+    }
+  }, [totalSlides, currentSlide]);
+
   const handlePrevSlide = () => {
+    if (isTransitioning) return;
     setIsTransitioning(true);
-    setCurrentSlide((prev) => (prev === 0 ? dogs.length - 1 : prev - 1));
+    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
     setTimeout(() => setIsTransitioning(false), controls.transitionSpeed);
     callbacks.onSlideChange?.(currentSlide);
   };
 
   const handleNextSlide = () => {
+    if (isTransitioning) return;
     setIsTransitioning(true);
-    setCurrentSlide((prev) => (prev === dogs.length - 1 ? 0 : prev + 1));
+    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
     setTimeout(() => setIsTransitioning(false), controls.transitionSpeed);
     callbacks.onSlideChange?.(currentSlide);
   };
@@ -239,7 +256,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
         }`}
       >
         {renderCustomHeader
-          ? renderCustomHeader({ currentSlide, totalSlides: dogs.length })
+          ? renderCustomHeader({ currentSlide, totalSlides })
           : title && (
               <h2
                 className={`${classes.carousel_header} ${
@@ -247,9 +264,9 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
                 }`}
               >
                 {title}
-                {dogs.length > 0 && (
+                {totalSlides > 0 && (
                   <span className={classes.carousel_count}>
-                    ({currentSlide + 1} of {dogs.length})
+                    ({currentSlide + 1} of {totalSlides})
                   </span>
                 )}
               </h2>
@@ -262,28 +279,42 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
           style={
             {
               "--slide-offset": `${-currentSlide * 100}%`,
+              "--slides-per-view": cardsPerSlide,
             } as React.CSSProperties
           }
         >
-          {dogs.map((dog, index) => (
-            <div key={dog._id} className={classes.carousel_slide}>
-              <div className={classes.dog_card_carousel_container}>
-                {renderCustomSlide ? (
-                  renderCustomSlide({ dog, index })
-                ) : (
-                  <DogCard
-                    dog={dog}
-                    onToggleFavorite={(dogId: string) =>
-                      dispatch(
-                        toggleFavorite({ dogId, removeFromResults: true })
-                      )
-                    }
-                    onClick={handleDogClick}
-                  />
-                )}
+          {Array.from({ length: totalSlides }).map((_, slideIndex) => {
+            const startIndex = slideIndex * cardsPerSlide;
+            const endIndex = Math.min(startIndex + cardsPerSlide, dogs.length);
+            const slideDogs = dogs.slice(startIndex, endIndex);
+            return (
+              <div key={slideIndex} className={classes.carousel_slide}>
+                <div
+                  className={`${classes.dog_card_carousel_container} ${
+                    styles.slideClassName || ""
+                  }`}
+                >
+                  {slideDogs.map((dog, index) =>
+                    renderCustomSlide ? (
+                      renderCustomSlide({ dog, index: startIndex + index })
+                    ) : (
+                      <DogCard
+                        key={dog._id}
+                        dog={dog}
+                        className={dogCardClassName}
+                        onToggleFavorite={(dogId: string) =>
+                          dispatch(
+                            toggleFavorite({ dogId, removeFromResults: true })
+                          )
+                        }
+                        onClick={handleDogClick}
+                      />
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div
@@ -296,9 +327,9 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               <Button
                 onClickFunction={handlePrevSlide}
                 className={classes.carousel_button_previous}
-                aria-label="Previous dog"
+                aria-label="Previous slide"
                 variant="secondary"
-                disabled={dogs.length <= 1 || isTransitioning}
+                disabled={totalSlides <= 1 || isTransitioning}
               >
                 ←
               </Button>
@@ -318,9 +349,9 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
               <Button
                 onClickFunction={handleNextSlide}
                 className={classes.carousel_button_next}
-                aria-label="Next dog"
+                aria-label="Next slide"
                 variant="secondary"
-                disabled={dogs.length <= 1 || isTransitioning}
+                disabled={totalSlides <= 1 || isTransitioning}
               >
                 →
               </Button>
@@ -335,7 +366,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
             }`}
           >
             <div className={classes.carousel_dot}>
-              {dogs.map((_, index) => (
+              {Array.from({ length: totalSlides }).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => {
@@ -387,6 +418,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
                 </h4>
                 <DogCard
                   dog={matchedDog}
+                  className={dogCardClassName}
                   onToggleFavorite={(dogId: string) =>
                     dispatch(toggleFavorite({ dogId, removeFromResults: true }))
                   }

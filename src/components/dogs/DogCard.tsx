@@ -11,10 +11,11 @@ interface DogCardProps {
   dog: Dog;
   onToggleFavorite: (dogId: string) => void;
   onClick: (dog: Dog) => void;
+  className?: string;
 }
 
 const DogCard = React.memo(
-  ({ dog, onToggleFavorite, onClick }: DogCardProps) => {
+  ({ dog, onToggleFavorite, onClick, className }: DogCardProps) => {
     const dispatch = useAppDispatch();
     const favorite = useAppSelector(selectDogFavorite);
     const isFavorite = favorite.includes(dog._id);
@@ -35,7 +36,7 @@ const DogCard = React.memo(
 
     return (
       <div
-        className={classes.dog_card}
+        className={`${classes.dog_card} ${className || ""}`}
         style={{
           background: "white",
         }}

@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/apiClient";
 import { Dog } from "@/types/dog";
 import DogCarousel from "@/components/dogs/DogCarousel";
 import DogDetailsModal from "@/components/dogs/DogDetailsModal";
+import classes from "./styles/SuggestedDogs.module.css";
 
 export default function SuggestedDogs() {
   const [dogs, setDogs] = useState<Dog[]>([]);
@@ -70,14 +71,12 @@ export default function SuggestedDogs() {
             title="Suggested Matches"
             dogs={dogs}
             onDogClick={setSelectedDog}
-            controls={{
-              showNavigation: true,
-              showDots: false,
-              showMatchButton: false,
-              autoPlay: false,
-              autoPlayInterval: 5000,
-              slidesPerView: 4,
+            cardsPerSlide={3}
+            styles={{
+              wrapperClassName: classes.suggested_dogs_carousel_wrapper,
+              slideClassName: classes.suggested_dogs_carousel_slide,
             }}
+            dogCardClassName={classes.suggestedDogCardMargin}
           />
           {selectedDog && (
             <DogDetailsModal
