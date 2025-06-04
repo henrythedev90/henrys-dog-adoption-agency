@@ -195,7 +195,7 @@ const Dashboard = React.memo(() => {
             </h4>
           </div>
         )}
-        <div>
+        <div className={classes.dashboard_filters_container}>
           <h3>Filter Dogs:</h3>
           <Filters />
         </div>
