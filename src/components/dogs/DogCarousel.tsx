@@ -57,6 +57,9 @@ interface DogCarouselProps {
   onDogClick?: (dog: Dog) => void;
   cardsPerSlide?: number;
   dogCardClassName?: string;
+  autoNextSlide?: boolean;
+  autoNextInterval?: number;
+  showDots?: boolean;
 }
 
 const defaultControls: CarouselControls = {
@@ -72,7 +75,8 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   dogs,
   title,
   controls = defaultControls,
-
+  autoNextSlide = false,
+  autoNextInterval = 5000,
   styles = {},
   callbacks = {},
   renderCustomHeader,
@@ -81,6 +85,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
   onDogClick,
   cardsPerSlide = 1,
   dogCardClassName,
+  showDots = true,
 }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -157,6 +162,16 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
       setCurrentSlide(Math.max(0, totalSlides - 1));
     }
   }, [totalSlides, currentSlide]);
+
+  useEffect(() => {
+    if (!autoNextSlide || dogs.length <= 1) return;
+
+    const interval = setInterval(() => {
+      handleNextSlide();
+    }, autoNextInterval);
+
+    return () => clearInterval(interval);
+  }, [autoNextSlide, autoNextInterval, dogs.length, handleNextSlide]);
 
   const fireConfetti = () => {
     confetti({
@@ -376,7 +391,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
           )}
         </div>
 
-        {controls.showDots && (
+        {showDots && (
           <div
             className={`${classes.carousel_button_container} ${
               styles.dotClassName || ""

@@ -13,6 +13,16 @@ A modern web application for browsing and finding your perfect canine companion!
 - **Interactive UI**: Smooth animations and intuitive interface
 - **Improved UI/UX**: Enhanced layout, accessibility, and mobile experience
 
+## 🆕 Recent Enhancements
+
+- **Suggested Dogs**: Users now receive personalized suggested dog matches, stored and displayed per user.
+- **Customizable Carousel**: The DogCarousel component supports a variable number of cards per slide, auto-advance (autoNextSlide), and optional dot navigation (showDots prop).
+- **Robust Authentication**: Improved JWT authentication with automatic access token refresh using refresh tokens, and defensive handling of expired/malformed tokens.
+- **Error Handling**: Enhanced error and loading state management throughout the app, including graceful handling of 401 errors and infinite loop prevention.
+- **UI Controls**: Carousel navigation, dot indicators, and match generation are now fully customizable via props.
+- **Client-Side State Guards**: All localStorage and client-only logic is guarded to prevent hydration mismatches and layout issues on navigation.
+- **Security**: Defensive checks for malformed/expired tokens, and secure cookie management.
+
 ## 🚀 Tech Stack
 
 - **Frontend Framework**: [Next.js](https://nextjs.org/) 15.3.0 with React 19

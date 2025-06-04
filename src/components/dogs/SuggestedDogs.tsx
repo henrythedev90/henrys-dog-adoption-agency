@@ -80,6 +80,9 @@ export default function SuggestedDogs() {
             dogs={dogs}
             onDogClick={setSelectedDog}
             cardsPerSlide={3}
+            autoNextSlide={true}
+            autoNextInterval={3000}
+            showDots={false}
             styles={{
               wrapperClassName: classes.suggested_dogs_carousel_wrapper,
               slideClassName: classes.suggested_dogs_carousel_slide,
