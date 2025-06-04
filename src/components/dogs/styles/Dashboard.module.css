@@ -58,8 +58,8 @@
 }
 
 @media screen and (min-width: 576px) {
-  .dashboard_parent_container {
-    /* display: flex;
+  /* .dashboard_parent_container {
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
@@ -67,8 +67,8 @@
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    gap: 40px; */
-  }
+    gap: 40px;
+  }*/
 
   .dashboard_dogs_result {
     flex: 1;
@@ -181,15 +181,15 @@
 }
 
 @media screen and (min-width: 576px) and (max-width: 767px) {
-  .dashboard_parent_container {
-    /* display: flex;
+  /*.dashboard_parent_container {
+     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start; */
-    /* padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px); */
-    /* width: 100%;
-    gap: clamp(20px, 3vw, 40px); */
-  }
+  /* padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px); */
+  /* width: 100%;
+    gap: clamp(20px, 3vw, 40px); 
+  }*/
   .dashboard_container {
     align-self: center;
     max-width: 420px;
@@ -206,14 +206,14 @@
 }
 
 @media screen and (min-width: 768px) and (max-width: 991px) {
-  .dashboard_parent_container {
-    /* display: flex;
+  /* dashboard_parent_container {
+display: flex;
     flex-direction: column;
     align-items: center; */
-    /* padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px); */
-    /* width: 100%;
-    gap: 30px; */
-  }
+  /* padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px); */
+  /* width: 100%;
+    gap: 30px; 
+  }*/
 
   .dashboard_dogs_result {
     width: 100%;
@@ -221,15 +221,15 @@
 }
 
 @media screen and (min-width: 992px) {
-  .dashboard_parent_container {
-    /* display: flex;
+  /*.dashboard_parent_container {
+     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start; */
-    /* padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px); */
-    /* width: 100%;
-    gap: clamp(20px, 3vw, 40px); */
-  }
+  /* padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px); */
+  /* width: 100%;
+    gap: clamp(20px, 3vw, 40px);
+  }*/
 }
 
 @media screen and (min-width: 1222px) {
@@ -241,11 +241,11 @@
 }
 
 @media screen and (min-width: 768px) {
-  .dashboard_parent_container {
+  /*.dashboard_parent_container {
     /* flex-direction: column;
     align-items: center;
-    width: 100%; */
-  }
+    width: 100%; 
+  }*/
 
   .dashboard_dogs_result {
     width: 100%;
