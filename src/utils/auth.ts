@@ -1,9 +1,12 @@
-import { verify } from "jsonwebtoken";
-import { NextApiRequest } from "next";
+import { verify, sign } from "jsonwebtoken";
+import { NextApiRequest, NextApiResponse } from "next";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 
-export async function getSessionUserId(req: NextApiRequest) {
+export async function getSessionUserId(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const accessToken = req.cookies["accessToken"];
   const refreshToken = req.cookies["refreshToken"];
   const client = await clientPromise;
@@ -15,6 +18,7 @@ export async function getSessionUserId(req: NextApiRequest) {
         accessToken,
         process.env.JWT_SECRET || "your-secret-key"
       ) as { userId: string };
+      console.log("This is the access token:", accessToken);
       const user = await db
         .collection("users")
         .findOne({ _id: new ObjectId(decoded.userId) });
@@ -23,7 +27,7 @@ export async function getSessionUserId(req: NextApiRequest) {
       }
     } catch (error) {
       console.error("Access token verification failed:", error);
-      return null;
+      // Do NOT return here! Try refreshToken next.
     }
   }
 
@@ -41,7 +45,33 @@ export async function getSessionUserId(req: NextApiRequest) {
           .collection("users")
           .findOne({ _id: new ObjectId(tokenDoc.userId as string) });
         if (user) {
-          return user._id.toString();
+          // --- Issue new access token ---
+          const newAccessToken = sign(
+            {
+              userId: user._id,
+              email: user.email,
+              userName: user.userName,
+            },
+            process.env.JWT_SECRET || "your-secret-key",
+            { expiresIn: "7d" }
+          );
+
+          // Optionally, issue a new refresh token as well
+          // const newRefreshToken = sign(...);
+
+          res.setHeader("Set-Cookie", [
+            `accessToken=${newAccessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax`,
+            // Optionally, set new refresh token here
+            // `refreshToken=${newRefreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`,
+          ]);
+
+          return res.status(200).json({
+            user: {
+              _id: user._id,
+              userName: user.userName,
+              email: user.email,
+            },
+          });
         }
       }
     } catch (error) {
@@ -49,4 +79,6 @@ export async function getSessionUserId(req: NextApiRequest) {
       return null;
     }
   }
+
+  return null; // Only return null if both fail
 }

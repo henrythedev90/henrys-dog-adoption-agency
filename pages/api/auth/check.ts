@@ -118,9 +118,20 @@ export default async function handler(
           return res.status(401).json({ message: "User not found" });
         }
 
-        console.log("/api/auth/check: Refresh token valid, user found");
+        // --- Issue new access token ---
+        const { sign } = require("jsonwebtoken"); // or import at the top
+        const newAccessToken = sign(
+          {
+            userId: user._id,
+            email: user.email,
+            userName: user.userName,
+          },
+          process.env.JWT_SECRET || "your-secret-key",
+          { expiresIn: "7d" }
+        );
+
         res.setHeader("Set-Cookie", [
-          `accessToken=${accessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax`,
+          `accessToken=${newAccessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax`,
           `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`,
         ]);
         return res.status(200).json({

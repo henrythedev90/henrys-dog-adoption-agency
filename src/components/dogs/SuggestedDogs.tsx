@@ -22,9 +22,12 @@ export default function SuggestedDogs() {
   useEffect(() => {
     const fetchSuggestedDogs = async () => {
       try {
+        if (typeof window === "undefined") return; // Only run on client
         const preferences = localStorage.getItem("dogPreferences");
         if (!preferences) {
-          throw new Error("No preferences found");
+          setError("No preferences found. Please set your preferences first.");
+          setLoading(false);
+          return;
         }
 
         const parsedPreferences = JSON.parse(preferences);

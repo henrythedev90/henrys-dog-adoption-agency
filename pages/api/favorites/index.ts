@@ -14,7 +14,7 @@ export default async function handler(
         return res.status(400).json({ message: "The Dogs ID is required" });
       }
 
-      const userId = await getSessionUserId(req);
+      const userId = await getSessionUserId(req, res);
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -32,7 +32,7 @@ export default async function handler(
       return res.status(200).json({ message: "Dog added to favorites" });
     }
     if (req.method === "GET") {
-      const userId = await getSessionUserId(req);
+      const userId = await getSessionUserId(req, res);
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
