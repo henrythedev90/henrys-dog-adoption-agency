@@ -3,6 +3,7 @@ import { Dog } from "@/types/dog";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import classes from "./styles/DogDetailsModal.module.css";
+import Image from "next/image";
 
 interface DogDetailsModalProps {
   dog: Dog;
@@ -41,7 +42,13 @@ const DogDetailsModal: React.FC<DogDetailsModalProps> = ({
     >
       <div className={classes.modal_content}>
         <div className={classes.image_container}>
-          <img src={dog.img} alt={dog.name} className={classes.dog_image} />
+          <Image
+            src={dog.img}
+            alt={dog.name}
+            className={classes.dog_image}
+            width={500}
+            height={500}
+          />
         </div>
 
         <div className={classes.details_container}>
