@@ -80,15 +80,8 @@ export default async function handler(
       });
 
       // Get a sample of boroughs from the database to verify values
-      const sampleDogs = await db
-        .collection("dogs")
-        .find({})
-        .limit(5)
-        .toArray();
-      console.log(
-        "Search API: Sample boroughs from database:",
-        sampleDogs.map((dog) => dog.borough)
-      );
+      const sampleBoroughs = await db.collection("dogs").distinct("borough");
+      console.log("Search API: Sample boroughs from database:", sampleBoroughs);
 
       query.borough = { $in: boroughArray };
     }

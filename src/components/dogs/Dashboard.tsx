@@ -173,13 +173,6 @@ const Dashboard = React.memo(() => {
   return (
     <div className={classes.dashboard_parent_container}>
       <div
-        className={classes.dashboard_suggested_dogs}
-        style={{ gridArea: "suggested" }}
-      >
-        <h2>Dashboard</h2>
-        <SuggestedDogs />
-      </div>
-      <div
         className={classes.dashboard_container}
         style={{
           background: "white",
@@ -203,6 +196,12 @@ const Dashboard = React.memo(() => {
           <h3>Filter Dogs:</h3>
           <Filters />
         </div>
+      </div>
+      <div
+        className={classes.dashboard_suggested_dogs}
+        style={{ gridArea: "suggested" }}
+      >
+        <SuggestedDogs />
       </div>
 
       <div
