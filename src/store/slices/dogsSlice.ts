@@ -53,6 +53,9 @@ export const fetchDogs = createAsyncThunk(
           boroughs: filters.boroughs.length
             ? filters.boroughs.join(",")
             : undefined,
+          genders: filters.genders?.length
+            ? filters.genders.join(",")
+            : undefined,
           ageMin: filters.ageMin ?? undefined,
           ageMax: filters.ageMax ?? undefined,
           size: filters.size,
@@ -127,9 +130,7 @@ export const fetchFavoriteDogs = createAsyncThunk(
       const response = await apiClient.post("/dogs", userFavorites);
       return { dogs: response.data || [], favorites: userFavorites };
     } catch (error: unknown) {
-      console.error("fetchFavoriteDogs Thunk: Error:", {
-        /* ... */
-      });
+      console.error("fetchFavoriteDogs Thunk: Error:", error);
       if (error instanceof AxiosError && error.response?.status === 401) {
         return rejectWithValue("Authentication failed.");
       }

@@ -18,6 +18,7 @@ import {
 import Button from "../ui/Button";
 import styles from "./styles/Filters.module.css";
 import { BOROUGHS, Borough } from "@/enums/boroughs";
+import { GENDERS, Gender } from "@/enums/genders";
 
 export default function Filters() {
   const dispatch = useAppDispatch();
@@ -54,6 +55,16 @@ export default function Filters() {
     }
   };
 
+  const handleGenderSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedGender = e.target.value as Gender;
+    if (selectedGender && !filters.genders?.includes(selectedGender)) {
+      dispatch(
+        setFilters({
+          genders: [...(filters.genders || []), selectedGender],
+        })
+      );
+    }
+  };
   const handleRemoveBreed = (breedToRemove: string) => {
     dispatch(
       setFilters({
@@ -68,6 +79,15 @@ export default function Filters() {
         boroughs:
           filters.boroughs?.filter((borough) => borough !== boroughToRemove) ||
           [],
+      })
+    );
+  };
+
+  const handleRemoveGender = (genderToRemove: Gender) => {
+    dispatch(
+      setFilters({
+        genders:
+          filters.genders?.filter((gender) => gender !== genderToRemove) || [],
       })
     );
   };
@@ -182,6 +202,23 @@ export default function Filters() {
               )}
             </select>
           </div>
+          <div className={classes.filter_breed_container}>
+            <label>Gender:</label>
+            <select
+              onChange={handleGenderSelect}
+              value=""
+              disabled={(filters.genders || []).length >= 2}
+            >
+              <option value="" disabled>
+                Select a gender
+              </option>
+              {Object.values(GENDERS).map((gender) => (
+                <option key={gender} value={gender}>
+                  {gender}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className={classes.filter_breed_container}>
             <label>Borough:</label>
@@ -294,6 +331,18 @@ export default function Filters() {
               onClick={() => handleRemoveBreed(breed)}
             >
               {breed}
+              <span className={styles.tag_remove}>×</span>
+            </span>
+          ))}
+        </div>
+        <div className={styles.tag_group}>
+          {(filters.genders || []).map((gender) => (
+            <span
+              key={gender}
+              className={styles.tag}
+              onClick={() => handleRemoveGender(gender)}
+            >
+              {gender}
               <span className={styles.tag_remove}>×</span>
             </span>
           ))}

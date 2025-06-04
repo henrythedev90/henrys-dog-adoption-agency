@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Typography } from "@mui/material";
 import Container from "@/components/ui/Container";
 import { apiClient } from "@/lib/apiClient";
@@ -7,12 +8,16 @@ import { Dog } from "@/types/dog";
 import DogCarousel from "@/components/dogs/DogCarousel";
 import DogDetailsModal from "@/components/dogs/DogDetailsModal";
 import classes from "./styles/SuggestedDogs.module.css";
+import { toggleFavorite } from "@/store/slices/dogsSlice";
 
 export default function SuggestedDogs() {
+  const dispatch = useAppDispatch();
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
+  const favorite = useAppSelector((state) => state.dogs.favorites);
+  const isFavorite = (dogId: string) => favorite.includes(dogId);
 
   useEffect(() => {
     const fetchSuggestedDogs = async () => {
@@ -83,8 +88,10 @@ export default function SuggestedDogs() {
               dog={selectedDog}
               isOpen={!!selectedDog}
               onClose={() => setSelectedDog(null)}
-              onToggleFavorite={() => {}}
-              isFavorite={false}
+              onToggleFavorite={(dogId: string) =>
+                dispatch(toggleFavorite({ dogId, removeFromResults: true }))
+              }
+              isFavorite={isFavorite(selectedDog._id)}
             />
           )}
         </div>

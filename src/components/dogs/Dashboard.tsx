@@ -52,7 +52,8 @@ const Dashboard = React.memo(() => {
     filters.breeds.length > 0 ||
     filters.zipCodes.length > 0 ||
     filters.ageMin !== null ||
-    filters.ageMax !== null;
+    filters.ageMax !== null ||
+    (filters.genders && filters.genders.length > 0);
 
   useEffect(() => {
     console.log("Dashboard: Mount - Dispatching checkAuth");
@@ -105,6 +106,7 @@ const Dashboard = React.memo(() => {
     filters.ageMax,
     filters.size,
     filters.sort,
+    filters.genders,
     dispatch,
     isAuthCheckComplete,
     isLoggedIn,
@@ -124,6 +126,7 @@ const Dashboard = React.memo(() => {
     filters.ageMax,
     filters.size,
     filters.sort,
+    filters.genders,
     isAuthCheckComplete,
   ]);
 

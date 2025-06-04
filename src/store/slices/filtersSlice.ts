@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Borough } from "@/enums/boroughs";
+import { Gender } from "@/enums/genders";
 
 export type PageSize = 20 | 40 | 60 | 80 | 100;
 
@@ -9,6 +10,7 @@ interface FiltersState {
   breeds: string[];
   zipCodes: string[];
   boroughs: Borough[];
+  genders: Gender[];
   ageMin: number | null;
   ageMax: number | null;
   size: PageSize;
@@ -23,6 +25,7 @@ const loadFiltersFromStorage = (): FiltersState => {
       breeds: [],
       zipCodes: [],
       boroughs: [],
+      genders: [],
       ageMin: null,
       ageMax: null,
       size: 20,
@@ -44,6 +47,7 @@ const loadFiltersFromStorage = (): FiltersState => {
     breeds: [],
     zipCodes: [],
     boroughs: [],
+    genders: [],
     ageMin: null,
     ageMax: null,
     size: 20,
@@ -57,6 +61,7 @@ const defaultState: FiltersState = {
   breeds: [],
   zipCodes: [],
   boroughs: [],
+  genders: [],
   ageMin: null,
   ageMax: null,
   size: 20,
@@ -64,7 +69,17 @@ const defaultState: FiltersState = {
   sort: "breed:asc",
 };
 
-const initialState: FiltersState = loadFiltersFromStorage();
+const initialState: FiltersState = {
+  breeds: [],
+  zipCodes: [],
+  boroughs: [],
+  genders: [],
+  ageMin: null,
+  ageMax: null,
+  size: 20,
+  from: null,
+  sort: "breed:asc",
+};
 
 // Helper function to save filters to localStorage
 const saveFiltersToStorage = (filters: FiltersState) => {
@@ -92,6 +107,9 @@ const filterSlice = createSlice({
       if (action.payload.boroughs !== undefined) {
         state.boroughs = action.payload.boroughs;
       }
+      if (action.payload.genders !== undefined) {
+        state.genders = action.payload.genders;
+      }
 
       // For other properties, we can use direct assignment
       if (action.payload.ageMin !== undefined) {
@@ -108,6 +126,9 @@ const filterSlice = createSlice({
       }
       if (action.payload.sort !== undefined) {
         state.sort = action.payload.sort;
+      }
+      if (action.payload.genders !== undefined) {
+        state.genders = action.payload.genders;
       }
 
       // Save updated state to localStorage

@@ -22,6 +22,7 @@ export default async function handler(
       breeds,
       zipCodes,
       boroughs,
+      genders,
       ageMin,
       ageMax,
       size = 25,
@@ -129,12 +130,36 @@ export default async function handler(
       }
     }
 
+    // Add gender filter with validation
+    if (genders) {
+      const genderArray = Array.isArray(genders)
+        ? genders
+        : genders.split(",").map((gender: string) => gender.trim());
+
+      // Validate genders
+      if (genderArray.some((gender) => !gender)) {
+        return res.status(400).json({
+          error: "Invalid gender format",
+          message: "Genders cannot be empty",
+        });
+      }
+
+      query.gender = { $in: genderArray };
+    }
+
     // Build sort object
     const sortObj: Record<string, 1 | -1> = {};
     let collation: CollationOptions | undefined = undefined;
     if (sort) {
       const [field, order] = (sort as string).split(":");
-      const validFields = ["age", "breed", "zip_code", "name", "borough"];
+      const validFields = [
+        "age",
+        "breed",
+        "zip_code",
+        "name",
+        "borough",
+        "gender",
+      ];
       const validOrders = ["asc", "desc"];
 
       if (!validFields.includes(field) || !validOrders.includes(order)) {
@@ -197,6 +222,11 @@ export default async function handler(
             ? Array.isArray(breeds)
               ? breeds
               : breeds.split(",")
+            : undefined,
+          genders: genders
+            ? Array.isArray(genders)
+              ? genders
+              : genders.split(",")
             : undefined,
           zipCodes: zipCodes
             ? Array.isArray(zipCodes)
