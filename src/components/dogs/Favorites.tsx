@@ -13,6 +13,7 @@ import { Dog } from "@/types/dog";
 
 export default function Favorites() {
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
   const {
     results: dogs,
     favorites,
@@ -23,8 +24,10 @@ export default function Favorites() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
   useEffect(() => {
-    dispatch(fetchFavoriteDogs());
-  }, [dispatch]);
+    if (user) {
+      dispatch(fetchFavoriteDogs());
+    }
+  }, [dispatch, user]);
 
   const handleGenerateMatch = async () => {
     if (favorites.length === 0) {
