@@ -110,7 +110,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     isTransitioning,
     totalSlides,
     controls.transitionSpeed,
-    callbacks.onSlideChange,
+    callbacks,
     currentSlide,
   ]);
 
@@ -124,7 +124,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     isTransitioning,
     totalSlides,
     controls.transitionSpeed,
-    callbacks.onSlideChange,
+    callbacks,
     currentSlide,
   ]);
 

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { verify } from "jsonwebtoken";
+import { verify, sign } from "jsonwebtoken";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
@@ -119,7 +119,6 @@ export default async function handler(
         }
 
         // --- Issue new access token ---
-        const { sign } = require("jsonwebtoken"); // or import at the top
         const newAccessToken = sign(
           {
             userId: user._id,
