@@ -5,7 +5,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  title: string;
+  title?: string;
   style?: React.CSSProperties;
 }
 
@@ -22,7 +22,7 @@ export default function Modal({
     <div className={styles.modal_overlay}>
       <div className={styles.modal_content} style={style}>
         <div className={styles.modal_header}>
-          <h2 className={styles.modal_title}>{title}</h2>
+          {title && <h2 className={styles.modal_title}>{title}</h2>}
           <button onClick={onClose} className={styles.close_button}>
             <svg
               className="w-6 h-6"

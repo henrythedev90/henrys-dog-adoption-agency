@@ -67,7 +67,7 @@ export default function GetStarted() {
       try {
         await apiClient.post("/auth/user/preferences", surveyData);
         localStorage.setItem("dogPreferences", JSON.stringify(surveyData));
-        router.push("/dogs/suggested");
+        router.push("/dogs/");
       } catch (error) {
         console.error("Error saving preferences:", error);
         router.push("/dogs");

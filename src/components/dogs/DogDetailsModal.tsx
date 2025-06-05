@@ -32,13 +32,15 @@ const DogDetailsModal: React.FC<DogDetailsModalProps> = ({
   return (
     <Modal
       style={{
-        maxWidth: "min(800px, 95vw)",
+        maxWidth: "min(750px, 90vw)",
+        maxHeight: "78vh",
         width: "100%",
-        margin: "0 auto",
+        padding: 0,
+        overflow: "auto",
       }}
       isOpen={isOpen}
       onClose={onClose}
-      title={`Meet ${dog.name}!`}
+      // title={`Meet ${dog.name}!`}
     >
       <div className={classes.modal_content}>
         <div className={classes.image_container}>
@@ -48,9 +50,9 @@ const DogDetailsModal: React.FC<DogDetailsModalProps> = ({
             className={classes.dog_image}
             width={500}
             height={500}
+            priority
           />
         </div>
-
         <div className={classes.details_container}>
           <div className={classes.header}>
             <h2>{dog.name}</h2>
@@ -79,7 +81,7 @@ const DogDetailsModal: React.FC<DogDetailsModalProps> = ({
           <div className={classes.info_grid}>
             <div className={classes.info_item}>
               <label>Age</label>
-              <span>{dog.age}</span>
+              <span>{dog.age} years</span>
             </div>
             <div className={classes.info_item}>
               <label>Gender</label>
@@ -100,7 +102,7 @@ const DogDetailsModal: React.FC<DogDetailsModalProps> = ({
           </div>
 
           <div className={classes.traits_section}>
-            <h3>Traits</h3>
+            <h3>Traits & Personality</h3>
             <div className={classes.traits_grid}>
               <div className={classes.trait_item}>
                 <label>Good with Dogs</label>

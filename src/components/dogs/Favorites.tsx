@@ -11,6 +11,7 @@ import Container from "../ui/Container";
 import DogDetailsModal from "./DogDetailsModal";
 import Button from "../ui/Button";
 import { Dog } from "@/types/dog";
+import Link from "next/link";
 
 export default function Favorites() {
   const dispatch = useAppDispatch();
@@ -71,11 +72,37 @@ export default function Favorites() {
     <Container>
       <div className={styles.favorites_container}>
         <div className={styles.favorites_header}>
-          <h2>Your Favorite Dogs</h2>
-          <Button onClickFunction={handleGenerateMatch} variant="primary">
-            Generate Match
-          </Button>
+          <Link href="/dogs" className={styles.back_link}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 12H5M5 12L12 19M5 12L12 5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Back to Home
+          </Link>
+          <h2 className={styles.favorites_title}>Your Favorite Dogs</h2>
+          <p className={styles.favorites_count}>
+            {favoriteDogs.length} {favoriteDogs.length === 1 ? "dog" : "dogs"}{" "}
+            in your favorites
+          </p>
+
+          <div className={styles.favorites_actions}>
+            <Button onClickFunction={handleGenerateMatch} variant="primary">
+              Generate Match
+            </Button>
+          </div>
         </div>
+
         <DogCarousel
           dogs={favoriteDogs}
           onDogClick={setSelectedDog}
@@ -89,18 +116,11 @@ export default function Favorites() {
           onClose={handleCloseModal}
           title="Your Perfect Match!"
         >
-          {selectedDog && (
-            <DogDetailsModal
-              dog={selectedDog}
-              isOpen={!!selectedDog}
-              onClose={() => setSelectedDog(null)}
-              onToggleFavorite={() => {}}
-              isFavorite={false}
-            />
-          )}
           <div className={styles.modal_content}>
             {loading ? (
-              <p>Finding your perfect match...</p>
+              <div className={styles.loading_state}>
+                <p>Finding your perfect match...</p>
+              </div>
             ) : match ? (
               <div className={styles.match_result}>
                 <h3>Meet {match.name}!</h3>
@@ -115,27 +135,36 @@ export default function Favorites() {
                     className={styles.match_image}
                   />
                 )}
-                <button
-                  onClick={handleGenerateMatch}
-                  className={styles.try_again_button}
+                <Button
+                  onClickFunction={handleGenerateMatch}
+                  variant="secondary"
                 >
                   Try Again
-                </button>
+                </Button>
               </div>
             ) : error ? (
               <div className={styles.error_state}>
                 <p>{error}</p>
-                <button
-                  onClick={handleGenerateMatch}
-                  className={styles.try_again_button}
+                <Button
+                  onClickFunction={handleGenerateMatch}
+                  variant="secondary"
                 >
                   Try Again
-                </button>
+                </Button>
               </div>
             ) : null}
           </div>
         </Modal>
       </div>
+      {selectedDog && (
+        <DogDetailsModal
+          dog={selectedDog}
+          isOpen={!!selectedDog}
+          onClose={() => setSelectedDog(null)}
+          onToggleFavorite={() => {}}
+          isFavorite={false}
+        />
+      )}
     </Container>
   );
 }
