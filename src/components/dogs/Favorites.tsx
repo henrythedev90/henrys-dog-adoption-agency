@@ -9,6 +9,7 @@ import Modal from "../ui/Modal";
 import Image from "next/image";
 import Container from "../ui/Container";
 import DogDetailsModal from "./DogDetailsModal";
+import Button from "../ui/Button";
 import { Dog } from "@/types/dog";
 
 export default function Favorites() {
@@ -35,7 +36,7 @@ export default function Favorites() {
       return;
     }
     setIsModalOpen(true);
-    dispatch(fetchMatch({ favoriteIds: favorites }));
+    dispatch(fetchMatch({ favoriteIds: favorites, userId: user?._id }));
   };
 
   const handleCloseModal = () => {
@@ -69,10 +70,18 @@ export default function Favorites() {
   return (
     <Container>
       <div className={styles.favorites_container}>
+        <div className={styles.favorites_header}>
+          <h2>Your Favorite Dogs</h2>
+          <Button onClickFunction={handleGenerateMatch} variant="primary">
+            Generate Match
+          </Button>
+        </div>
         <DogCarousel
-          title="Your Favorite Dogs"
           dogs={favoriteDogs}
           onDogClick={setSelectedDog}
+          styles={{
+            wrapperClassName: styles.favorites_dogs_carousel_wrapper,
+          }}
         />
 
         <Modal
