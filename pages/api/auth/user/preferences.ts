@@ -14,7 +14,7 @@ export default async function handler(
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const userId = await getSessionUserId(req);
+  const userId = await getSessionUserId(req, res);
   if (!userId) {
     return res.status(401).json({ message: "Not authenticated" });
   }
