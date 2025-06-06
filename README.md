@@ -13,6 +13,59 @@ A modern web application for browsing and finding your perfect canine companion!
 - **Interactive UI**: Smooth animations and intuitive interface
 - **Improved UI/UX**: Enhanced layout, accessibility, and mobile experience
 
+## 🧭 User Flow
+
+1. **Sign Up**
+
+   - User creates an account with email/username and password.
+   - Immediately after signup, the user is redirected to a **survey page**.
+
+2. **Onboarding Survey**
+
+   - New users (or users without preferences) must fill out a survey.
+   - The survey collects preferences such as dog size, age range, energy level, barking level, shedding level, good with kids/other animals/strangers, and borough/location.
+   - Upon submission, preferences are saved to the backend and the user is redirected to the main dog browsing page.
+
+3. **Browsing & Filtering Dogs**
+
+   - Users see a list of adoptable dogs, filtered or sorted based on their survey preferences.
+   - Users can further filter/search using UI controls.
+   - Clicking a dog opens a modal with detailed info and a favorite button.
+
+4. **Favorites**
+
+   - Users can favorite or unfavorite dogs, which are saved to the backend and shown in a dedicated section.
+   - Users can view all their favorited dogs in one place.
+
+5. **Matching**
+
+   - Users can generate a match from their favorites.
+   - The app selects a random favorite dog the user hasn't matched with before.
+   - The matched dog is shown in a modal with details and a "Try Again" option.
+
+6. **User Preferences**
+
+   - Users can revisit and update their survey/preferences at any time.
+
+7. **Logout**
+   - Users can log out, which clears their session and local data.
+
+```mermaid
+flowchart TD
+    A[Sign Up] --> B[Fill Out Survey]
+    B --> C[Dog Browsing/Filtering]
+    C --> D[View Dog Details]
+    D --> E[Add/Remove Favorites]
+    E --> F[View Favorites]
+    F --> G[Generate Match]
+    G --> H[View Match Details]
+    C --> I[Update Preferences]
+    I --> C
+    C --> J[Logout]
+    F --> J
+    H --> J
+```
+
 ## 🆕 Recent Enhancements
 
 - **Suggested Dogs**: Users now receive personalized suggested dog matches, stored and displayed per user.
