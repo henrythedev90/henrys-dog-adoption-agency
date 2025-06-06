@@ -9,9 +9,15 @@ export default function Page() {
   return (
     <ProtectedRoute>
       <Header />
-      <Container>
-        <Dashboard />
-      </Container>
+      <div
+        style={{
+          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        }}
+      >
+        <Container>
+          <Dashboard />
+        </Container>
+      </div>
       <Footer />
     </ProtectedRoute>
   );

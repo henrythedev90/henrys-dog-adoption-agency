@@ -8,7 +8,9 @@ function DogCardImage({
   urlImage: string | null;
   title: string;
 }) {
-  const [imageSrc, setImageSrc] = useState(urlImage || "/placeholder.png");
+  const [imageSrc, setImageSrc] = useState(
+    urlImage || "/images/placeholder.png"
+  );
 
   return (
     <Image
@@ -16,7 +18,7 @@ function DogCardImage({
       alt={title}
       width={180}
       height={180}
-      onError={() => setImageSrc("/placeholder.png")}
+      onError={() => setImageSrc("/images/placeholder.png")}
     />
   );
 }

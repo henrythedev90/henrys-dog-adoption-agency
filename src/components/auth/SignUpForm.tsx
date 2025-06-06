@@ -4,57 +4,57 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import classes from "./style/LoginForm.module.css";
+import { apiClient } from "@/lib/apiClient";
 
 const SignUpForm = () => {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userName,
-          email,
-          password,
-        }),
+      const { data } = await apiClient.post("/auth/signup", {
+        userName,
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to sign up");
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      // If signup successful, log the user in
-      setIsNavigating(true);
-      router.push("/dogs");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sign up");
-    } finally {
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        apiClient.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${data.token}`;
+      }
+
+      // Wait for the token to be set before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      router.push("/dogs/get-started");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
       setLoading(false);
     }
   };
 
-  if (loading || isNavigating) {
+  if (loading) {
     return (
       <div className={classes.loading_container}>
         <LoadingSpinner />
-        <p className={classes.loading_text}>
-          {loading ? "Creating account..." : "Redirecting to dashboard..."}
-        </p>
+        <p className={classes.loading_text}>Creating account...</p>
       </div>
     );
   }

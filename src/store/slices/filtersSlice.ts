@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Borough } from "@/enums/boroughs";
+import { Gender } from "@/enums/genders";
 
 export type PageSize = 20 | 40 | 60 | 80 | 100;
 
@@ -9,6 +10,7 @@ interface FiltersState {
   breeds: string[];
   zipCodes: string[];
   boroughs: Borough[];
+  genders: Gender[];
   ageMin: number | null;
   ageMax: number | null;
   size: PageSize;
@@ -16,19 +18,23 @@ interface FiltersState {
   sort: string;
 }
 
+// Define default state as fallback
+const defaultState: FiltersState = {
+  breeds: [],
+  zipCodes: [],
+  boroughs: [],
+  genders: [],
+  ageMin: null,
+  ageMax: null,
+  size: 20,
+  from: null,
+  sort: "breed:asc",
+};
+
 // Load filters from localStorage if they exist
 const loadFiltersFromStorage = (): FiltersState => {
   if (typeof window === "undefined") {
-    return {
-      breeds: [],
-      zipCodes: [],
-      boroughs: [],
-      ageMin: null,
-      ageMax: null,
-      size: 20,
-      from: null,
-      sort: "breed:asc",
-    };
+    return defaultState;
   }
 
   try {
@@ -40,28 +46,7 @@ const loadFiltersFromStorage = (): FiltersState => {
     console.error("Failed to load filters from localStorage:", error);
   }
 
-  return {
-    breeds: [],
-    zipCodes: [],
-    boroughs: [],
-    ageMin: null,
-    ageMax: null,
-    size: 20,
-    from: null,
-    sort: "breed:asc",
-  };
-};
-
-// Define default state as fallback
-const defaultState: FiltersState = {
-  breeds: [],
-  zipCodes: [],
-  boroughs: [],
-  ageMin: null,
-  ageMax: null,
-  size: 20,
-  from: null,
-  sort: "breed:asc",
+  return defaultState;
 };
 
 const initialState: FiltersState = loadFiltersFromStorage();
@@ -92,6 +77,9 @@ const filterSlice = createSlice({
       if (action.payload.boroughs !== undefined) {
         state.boroughs = action.payload.boroughs;
       }
+      if (action.payload.genders !== undefined) {
+        state.genders = action.payload.genders;
+      }
 
       // For other properties, we can use direct assignment
       if (action.payload.ageMin !== undefined) {
@@ -108,6 +96,9 @@ const filterSlice = createSlice({
       }
       if (action.payload.sort !== undefined) {
         state.sort = action.payload.sort;
+      }
+      if (action.payload.genders !== undefined) {
+        state.genders = action.payload.genders;
       }
 
       // Save updated state to localStorage

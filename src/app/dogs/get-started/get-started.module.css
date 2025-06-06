@@ -1,0 +1,38 @@
+.parentContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.Container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+}
+.Container > div {
+  border: 4px solid var(--foreground);
+  border-radius: 16px;
+  box-shadow: 18px 18px 0 0 var(--secondary), 18px 18px 0 4px var(--foreground);
+}
+.Container label,
+.Container p {
+  color: var(--foreground);
+}
+
+@media (max-width: 768px) {
+  .parentContainer {
+    padding: 0.5rem;
+  }
+
+  .Container {
+    max-width: 100%;
+  }
+}

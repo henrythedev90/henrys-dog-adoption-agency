@@ -5,8 +5,10 @@
   max-width: 600px;
   margin: 120px auto 0;
   border: 4px solid var(--foreground);
+  background: var(--background);
   border-radius: 8px;
   padding: 20px;
+  box-shadow: 18px 18px 0 0 var(--secondary), 18px 18px 0 4px var(--foreground);
 }
 
 .carousel_slide_container {
@@ -219,12 +221,14 @@
 
 @media (max-width: 766px) {
   .carousel_wrapper {
-    width: 100%;
-    max-width: 100vw;
-    margin: 120px auto 0;
-    padding: 10px;
-    border: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 90px auto 0;
+    width: 100vw;
     box-sizing: border-box;
+    padding: 10px 0;
+    border: 4px solid var(--foreground);
   }
   .carousel_button_previous {
     left: 20;
@@ -235,5 +239,19 @@
     right: 20;
     padding-left: 6px;
     padding-right: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .carousel_wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    max-width: 90vw;
+    width: auto;
+    margin: 90px auto 0;
+    padding: 8px 0;
+    box-sizing: border-box;
   }
 }

@@ -4,7 +4,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchDogs,
   setDogsPage,
-  toggleFavorite,
+  addFavorite,
+  removeFavorite,
 } from "../../store/slices/dogsSlice";
 import {
   selectDogs,
@@ -25,6 +26,8 @@ import SplitColorText from "../ui/SplitColorText";
 import { fetchBreeds } from "@/store/slices/breedSlice";
 import Button from "../ui/Button";
 import { setFilters } from "@/store/slices/filtersSlice";
+import DogDetailsModal from "@/components/dogs/DogDetailsModal";
+import SuggestedDogs from "./SuggestedDogs.client";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
@@ -39,6 +42,9 @@ const Dashboard = React.memo(() => {
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
   const [hasFiltersOrPageChanged, setHasFiltersOrPageChanged] = useState(false);
   const resultIds = useAppSelector((state) => state.dogs.resultIds);
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
+  const favorite = useAppSelector((state) => state.dogs.favorites);
+  const isFavorite = (dogId: string) => favorite.includes(dogId);
 
   const currentSortString = filters.sort;
   const [currentSortKey, currentSortDirection] = currentSortString.split(":");
@@ -47,7 +53,8 @@ const Dashboard = React.memo(() => {
     filters.breeds.length > 0 ||
     filters.zipCodes.length > 0 ||
     filters.ageMin !== null ||
-    filters.ageMax !== null;
+    filters.ageMax !== null ||
+    (filters.genders && filters.genders.length > 0);
 
   useEffect(() => {
     console.log("Dashboard: Mount - Dispatching checkAuth");
@@ -100,6 +107,7 @@ const Dashboard = React.memo(() => {
     filters.ageMax,
     filters.size,
     filters.sort,
+    filters.genders,
     dispatch,
     isAuthCheckComplete,
     isLoggedIn,
@@ -119,6 +127,7 @@ const Dashboard = React.memo(() => {
     filters.ageMax,
     filters.size,
     filters.sort,
+    filters.genders,
     isAuthCheckComplete,
   ]);
 
@@ -167,7 +176,13 @@ const Dashboard = React.memo(() => {
 
   return (
     <div className={classes.dashboard_parent_container}>
-      <div className={classes.dashboard_container}>
+      <div
+        className={classes.dashboard_container}
+        style={{
+          background: "white",
+          gridArea: "filters",
+        }}
+      >
         {isLoggedIn && (
           <div className={classes.dashboard_header_welcome}>
             <h4>
@@ -181,13 +196,22 @@ const Dashboard = React.memo(() => {
             </h4>
           </div>
         )}
-        <div>
+        <div className={classes.dashboard_filters_container}>
           <h3>Filter Dogs:</h3>
           <Filters />
         </div>
       </div>
+      <div
+        className={classes.dashboard_suggested_dogs}
+        style={{ gridArea: "suggested" }}
+      >
+        <SuggestedDogs />
+      </div>
 
-      <div className={classes.dashboard_dogs_result}>
+      <div
+        className={classes.dashboard_dogs_result}
+        style={{ gridArea: "dogs" }}
+      >
         <div className={classes.dashboard_dogs_result_header}>
           <h4>Available Dogs</h4>
           {dogs.length > 0 && !loading && (
@@ -253,12 +277,34 @@ const Dashboard = React.memo(() => {
                 <DogCard
                   key={dog._id}
                   dog={dog}
-                  onToggleFavorite={(dogId: string) =>
-                    dispatch(toggleFavorite({ dogId, removeFromResults: true }))
-                  }
+                  onToggleFavorite={(dogId: string) => {
+                    const isFavorite = favorite.includes(dogId);
+                    if (isFavorite) {
+                      dispatch(removeFavorite(dogId));
+                    } else {
+                      dispatch(addFavorite(dogId));
+                    }
+                  }}
+                  onClick={setSelectedDog}
                 />
               ))}
             </div>
+            {selectedDog && (
+              <DogDetailsModal
+                dog={selectedDog}
+                isOpen={!!selectedDog}
+                onClose={() => setSelectedDog(null)}
+                onToggleFavorite={(dogId: string) => {
+                  const isFavorite = favorite.includes(dogId);
+                  if (isFavorite) {
+                    dispatch(removeFavorite(dogId));
+                  } else {
+                    dispatch(addFavorite(dogId));
+                  }
+                }}
+                isFavorite={isFavorite(selectedDog._id)}
+              />
+            )}
             {totalPages > 1 && (
               <div className={classes.dashboard_pagination_sections}>
                 <Pagination

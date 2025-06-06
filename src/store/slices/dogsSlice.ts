@@ -53,6 +53,9 @@ export const fetchDogs = createAsyncThunk(
           boroughs: filters.boroughs.length
             ? filters.boroughs.join(",")
             : undefined,
+          genders: filters.genders?.length
+            ? filters.genders.join(",")
+            : undefined,
           ageMin: filters.ageMin ?? undefined,
           ageMax: filters.ageMax ?? undefined,
           size: filters.size,
@@ -127,9 +130,7 @@ export const fetchFavoriteDogs = createAsyncThunk(
       const response = await apiClient.post("/dogs", userFavorites);
       return { dogs: response.data || [], favorites: userFavorites };
     } catch (error: unknown) {
-      console.error("fetchFavoriteDogs Thunk: Error:", {
-        /* ... */
-      });
+      console.error("fetchFavoriteDogs Thunk: Error:", error);
       if (error instanceof AxiosError && error.response?.status === 401) {
         return rejectWithValue("Authentication failed.");
       }
@@ -144,7 +145,8 @@ export const addFavorite = createAsyncThunk(
   "dogs/addFavorite",
   async (dogId: string, { rejectWithValue }) => {
     try {
-      await apiClient.post("/favorites", { dogId });
+      const response = await apiClient.post(`/favorites/${dogId}`);
+      console.log("Add favorite response:", response.data);
       return dogId;
     } catch (error) {
       console.error("Failed to add favorite:", error);
@@ -157,7 +159,8 @@ export const removeFavorite = createAsyncThunk(
   "dogs/removeFavorite",
   async (dogId: string, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`/favorites/${dogId}`);
+      const response = await apiClient.delete(`/favorites/${dogId}`);
+      console.log("Remove favorite response:", response.data);
       return dogId;
     } catch (error) {
       console.error("Failed to remove favorite:", error);
@@ -276,27 +279,6 @@ const dogsSlice = createSlice({
     setResults: (state, action: PayloadAction<Dog[]>) => {
       state.results = action.payload;
     },
-    toggleFavorite: (
-      state,
-      action: PayloadAction<{ dogId: string; removeFromResults?: boolean }>
-    ) => {
-      const { dogId, removeFromResults = false } = action.payload;
-
-      if (state.favorites.includes(dogId)) {
-        // Remove from favourites
-        state.favorites = state.favorites.filter((id) => id !== dogId);
-
-        // Optionally remove from results (e.g., carousel)
-        if (removeFromResults) {
-          state.results = state.results.filter((dog) => dog._id !== dogId);
-        }
-      } else {
-        // Add to favourites
-        state.favorites.push(dogId);
-      }
-
-      // No longer persisting favourites to localStorage
-    },
     setMatch: (state, action: PayloadAction<Dog>) => {
       state.match = action.payload;
     },
@@ -399,13 +381,7 @@ const dogsSlice = createSlice({
   },
 });
 
-export const {
-  setResults,
-  toggleFavorite,
-  setMatch,
-  clearFavorite,
-  clearBreeds,
-  setDogsPage,
-} = dogsSlice.actions;
+export const { setResults, setMatch, clearFavorite, clearBreeds, setDogsPage } =
+  dogsSlice.actions;
 
 export default dogsSlice.reducer;

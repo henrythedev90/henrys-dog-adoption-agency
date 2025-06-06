@@ -9,7 +9,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 30px;
+  padding: 15px 10px;
   margin: 6px auto;
   background-color: var(--background);
   border: 4px solid var(--foreground);
@@ -100,7 +100,7 @@
   background-color: var(--background);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  padding: 15px 10px;
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
