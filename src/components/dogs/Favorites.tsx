@@ -39,7 +39,7 @@ export default function Favorites() {
     }
     setIsModalOpen(true);
     try {
-      let result = await dispatch(
+      const result = await dispatch(
         fetchMatch({ favoriteIds: favorites, userId: user?._id })
       );
       if (result && result.payload) {
