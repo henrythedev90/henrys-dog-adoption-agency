@@ -2,8 +2,8 @@ import React from "react";
 import styles from "./styles/Modal.module.css";
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   children: React.ReactNode;
   title?: string;
   style?: React.CSSProperties;
@@ -23,23 +23,25 @@ export default function Modal({
       <div className={styles.modal_content} style={style}>
         <div className={styles.modal_header}>
           {title && <h2 className={styles.modal_title}>{title}</h2>}
-          <button onClick={onClose} className={styles.close_button}>
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+          {onClose && (
+            <button onClick={onClose} className={styles.close_button}>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
         </div>
         {children}
       </div>
