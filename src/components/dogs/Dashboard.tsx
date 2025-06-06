@@ -27,7 +27,7 @@ import { fetchBreeds } from "@/store/slices/breedSlice";
 import Button from "../ui/Button";
 import { setFilters } from "@/store/slices/filtersSlice";
 import DogDetailsModal from "@/components/dogs/DogDetailsModal";
-import SuggestedDogs from "./SuggestedDogs";
+import SuggestedDogs from "./SuggestedDogs.client";
 
 const Dashboard = React.memo(() => {
   const dispatch = useAppDispatch();
