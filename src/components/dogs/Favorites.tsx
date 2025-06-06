@@ -12,6 +12,7 @@ import DogDetailsModal from "./DogDetailsModal";
 import Button from "../ui/Button";
 import { Dog } from "@/types/dog";
 import Link from "next/link";
+import { fireConfetti } from "@/utils/fireConfetti";
 
 export default function Favorites() {
   const dispatch = useAppDispatch();
@@ -37,7 +38,17 @@ export default function Favorites() {
       return;
     }
     setIsModalOpen(true);
-    dispatch(fetchMatch({ favoriteIds: favorites, userId: user?._id }));
+    try {
+      let result = await dispatch(
+        fetchMatch({ favoriteIds: favorites, userId: user?._id })
+      );
+      if (result && result.payload) {
+        console.log("THIS IS result", result);
+        fireConfetti();
+      }
+    } catch (error) {
+      console.error("Error generating match:", error);
+    }
   };
 
   const handleCloseModal = () => {

@@ -16,7 +16,6 @@ import {
   removeFavorite,
 } from "@/store/slices/dogsSlice";
 import { resetFilter } from "@/store/slices/filtersSlice";
-import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 
 interface CarouselControls {
@@ -174,23 +173,6 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
     return () => clearInterval(interval);
   }, [autoNextSlide, autoNextInterval, dogs.length, handleNextSlide]);
 
-  const fireConfetti = () => {
-    confetti({
-      particleCount: 100,
-      spread: 120,
-      origin: { x: 0, y: 0.6 },
-      scalar: 1.5,
-      ticks: 200,
-    });
-    confetti({
-      particleCount: 100,
-      spread: 120,
-      origin: { x: 1, y: 0.6 },
-      scalar: 1.5,
-      ticks: 200,
-    });
-  };
-
   const handleGenerateMatch = async () => {
     if (favoriteIds.length === 0) {
       alert("Please favorite some dogs first!");
@@ -234,7 +216,7 @@ const DogCarousel: React.FC<DogCarouselProps> = ({
         }
 
         setMatchedDog(result);
-        fireConfetti();
+        // fireConfetti();
       }
     } catch (err: unknown) {
       console.error("Match error:", err);
