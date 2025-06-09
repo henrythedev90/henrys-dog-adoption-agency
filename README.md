@@ -13,6 +13,101 @@ A modern web application for browsing and finding your perfect canine companion!
 - **Interactive UI**: Smooth animations and intuitive interface
 - **Improved UI/UX**: Enhanced layout, accessibility, and mobile experience
 
+## 🎯 Dog Ranking & Sorting
+
+The application implements multiple ways to rank and sort dogs:
+
+1. **Manual Sorting**
+
+   - Users can sort dogs by:
+     - Breed (A-Z or Z-A)
+     - Name (A-Z or Z-A)
+     - Age (1-9 or 9-1)
+   - Sorting is implemented using MongoDB's collation for case-insensitive string comparisons
+
+2. **Suggested Dogs Ranking**
+
+   - Dogs are ranked based on a weighted scoring system that considers:
+     - Age match (weight: 4)
+     - Energy level compatibility (weight: 3)
+     - Barking level compatibility (weight: 2)
+     - Shedding level compatibility (weight: 2)
+     - Compatibility bonuses (weight: 1 each):
+       - Good with children
+       - Good with other dogs
+       - Good with strangers
+       - Good with other animals
+
+3. **Match Generation**
+   - When generating matches, the system:
+     - Randomly selects from user's favorites
+     - Ensures no repeat matches
+     - Tracks match history per user
+
+Example of sorting implementation:
+
+```typescript
+// Sort object for MongoDB query
+const sortObj: Record<string, 1 | -1> = {};
+if (sort) {
+  const [field, order] = sort.split(":");
+  sortObj[field] = order === "asc" ? 1 : -1;
+
+  // Add collation for string fields
+  if (field !== "age") {
+    collation = {
+      locale: "en",
+      strength: 2, // Case-insensitive comparison
+      alternate: "shifted", // Handle special characters
+    };
+  }
+}
+```
+
+User Example:
+
+```typescript
+// Example user preferences
+const userPreferences = {
+  ageRange: [2, 5],
+  energy_level: 3,
+  barking_level: 2,
+  shedding_level: 1,
+  good_with_children: true,
+  good_with_other_dogs: true,
+  good_with_strangers: false,
+  good_with_other_animals: true,
+};
+
+// Example dog matches and their scores
+const dogMatches = [
+  {
+    name: "Buddy",
+    age: 3,
+    energy_level: 3,
+    barking_level: 2,
+    shedding_level: 1,
+    good_with_children: true,
+    good_with_other_dogs: true,
+    good_with_strangers: true,
+    good_with_other_animals: true,
+    matchScore: 12, // Perfect match! (4 + 3 + 2 + 2 + 1)
+  },
+  {
+    name: "Max",
+    age: 6,
+    energy_level: 4,
+    barking_level: 3,
+    shedding_level: 2,
+    good_with_children: true,
+    good_with_other_dogs: false,
+    good_with_strangers: true,
+    good_with_other_animals: true,
+    matchScore: 7, // Partial match (0 + 2 + 1 + 1 + 3)
+  },
+];
+```
+
 ## 🧭 User Flow
 
 1. **Sign Up**
